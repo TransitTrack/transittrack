@@ -1,24 +1,24 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import java.util.List;
 
-import org.transitclock.ApplicationProperties;
-import org.transitclock.core.avl.ad.ArrivalDepartureGenerator;
-import org.transitclock.core.prediction.PredictionGenerator;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.ad.ArrivalDepartureGenerator;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.headwaygenerator.HeadwayGenerator;
+import org.transitclock.core.prediction.PredictionGenerator;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.domain.structs.Match;
 import org.transitclock.domain.structs.Prediction;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.utils.Time;
 
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * For generating predictions, arrival/departure times, headways etc. This class is used once a
@@ -35,7 +35,7 @@ public class MatchProcessor {
     private final HeadwayGenerator headwayGenerator;
     private final ArrivalDepartureGenerator arrivalDepartureGenerator;
     private final PredictionGenerator predictionGenerator;
-    private final ApplicationProperties properties;
+    private final CoreProperties coreProperties;
 
     public MatchProcessor(DataDbLogger dbLogger,
                           DbConfig dbConfig,
@@ -43,14 +43,14 @@ public class MatchProcessor {
                           HeadwayGenerator headwayGenerator,
                           ArrivalDepartureGenerator arrivalDepartureGenerator,
                           PredictionGenerator predictionGenerator,
-                          ApplicationProperties properties) {
+                          CoreProperties coreProperties) {
         this.dbLogger = dbLogger;
         this.dbConfig = dbConfig;
         this.predictionDataCache = predictionDataCache;
         this.headwayGenerator = headwayGenerator;
         this.arrivalDepartureGenerator = arrivalDepartureGenerator;
         this.predictionGenerator = predictionGenerator;
-        this.properties = properties;
+        this.coreProperties = coreProperties;
     }
 
     /**
@@ -64,11 +64,11 @@ public class MatchProcessor {
         List<IpcPrediction> newPredictions = predictionGenerator.generate(vehicleStatus);
 
         // Store the predictions in database if so configured
-        if (properties.getCore().getMaxPredictionTimeForDbSecs() > 0) {
+        if (coreProperties.getMaxPredictionTimeForDbSecs() > 0) {
             for (IpcPrediction prediction : newPredictions) {
                 // If prediction not too far into the future then ...
                 if (prediction.getPredictionTime() - prediction.getAvlTime()
-                        < ((long) properties.getCore().getMaxPredictionTimeForDbSecs() * Time.MS_PER_SEC)) {
+                        < ((long) coreProperties.getMaxPredictionTimeForDbSecs() * Time.MS_PER_SEC)) {
                     dbLogger.add(new Prediction(dbConfig.getConfigRev(), prediction));
 
                 } else {
@@ -76,7 +76,7 @@ public class MatchProcessor {
                             "Difference in predictionTiem and AVLTime is {} and is greater than"
                                     + " getMaxPredictionsTimeForDbSecs {}.",
                             prediction.getPredictionTime() - prediction.getAvlTime(),
-                            properties.getCore().getMaxPredictionTimeForDbSecs() * Time.MS_PER_SEC);
+                            coreProperties.getMaxPredictionTimeForDbSecs() * Time.MS_PER_SEC);
                 }
             }
         }
@@ -166,7 +166,7 @@ public class MatchProcessor {
 
         // Process predictions, headways, arrivals/departures, and and spatial
         // matches. If don't need matches then don't store them
-        if (!properties.getCore().getOnlyNeedArrivalDepartures()) {
+        if (!coreProperties.getOnlyNeedArrivalDepartures()) {
             processPredictions(vehicleStatus);
             processHeadways(vehicleStatus);
             processSpatialMatch(vehicleStatus);

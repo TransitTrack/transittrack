@@ -1,19 +1,25 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.transitclock.ApplicationProperties;
-import org.transitclock.core.*;
-import org.transitclock.core.avl.space.SpatialMatch;
-import org.transitclock.core.avl.space.SpatialMatcher;
-import org.transitclock.core.avl.space.SpatialMatcher.MatchingType;
-import org.transitclock.core.avl.assigner.AutoBlockAssigner;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+import org.transitclock.core.ServiceUtils;
+import org.transitclock.core.TemporalDifference;
+import org.transitclock.core.VehicleAtStopInfo;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.assigner.AutoBlockAssignerFactory;
 import org.transitclock.core.avl.assigner.BlockAssigner;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
+import org.transitclock.core.avl.space.SpatialMatch;
+import org.transitclock.core.avl.space.SpatialMatcher;
+import org.transitclock.core.avl.space.SpatialMatcher.MatchingType;
 import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.core.avl.time.TemporalMatcher;
 import org.transitclock.core.dataCache.PredictionDataCache;
@@ -21,13 +27,31 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.*;
 import org.transitclock.domain.structs.AssignmentType;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Block;
+import org.transitclock.domain.structs.Location;
+import org.transitclock.domain.structs.Route;
+import org.transitclock.domain.structs.Stop;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.domain.structs.VectorWithHeading;
+import org.transitclock.domain.structs.VehicleEvent;
+import org.transitclock.domain.structs.VehicleState;
+import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.gtfs.DbConfig;
-import org.transitclock.utils.*;
+import org.transitclock.properties.AutoBlockAssignerProperties;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.utils.Geo;
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.StringUtils;
+import org.transitclock.utils.SystemTime;
+import org.transitclock.utils.Time;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import static org.transitclock.config.data.CoreConfig.*;
 
@@ -75,8 +99,13 @@ public class AvlProcessor {
     private DataDbLogger dataDbLogger;
 
     @Autowired
-    private ApplicationProperties properties;
+    private CoreProperties coreProperties;
 
+    @Autowired
+    private AutoBlockAssignerProperties autoBlockAssignerProperties;
+
+    @Autowired
+    private AvlProperties avlProperties;
 
     // For keeping track of how long since received an AVL report so
     // can determine if AVL feed is up.
@@ -176,7 +205,7 @@ public class AvlProcessor {
             return false;
 
         // If this feature disabled then return false
-        int noProgressMsec = properties.getCore().getTimeForDeterminingNoProgress();
+        int noProgressMsec = coreProperties.getTimeForDeterminingNoProgress();
         if (noProgressMsec <= 0)
             return false;
 
@@ -187,7 +216,7 @@ public class AvlProcessor {
 
         // Determine distance traveled between the matches
         double distanceTraveled = previousMatch.distanceBetweenMatches(bestTemporalMatch, dbConfig);
-        double minDistance = properties.getCore().getMinDistanceForNoProgress();
+        double minDistance = coreProperties.getMinDistanceForNoProgress();
 
         if (distanceTraveled < minDistance) {
             // Determine if went through any wait stops since if did then
@@ -244,7 +273,7 @@ public class AvlProcessor {
         if (currentMatch == null) return false;
 
         // If this feature disabled then return false
-        int maxDelayedSecs = properties.getCore().getTimeForDeterminingDelayedSecs();
+        int maxDelayedSecs = coreProperties.getTimeForDeterminingDelayedSecs();
         if (maxDelayedSecs <= 0) return false;
 
         // If no previous match then cannot determine if not making progress
@@ -254,7 +283,7 @@ public class AvlProcessor {
         // Determine distance traveled between the matches
         double distanceTraveled = previousMatch.distanceBetweenMatches(currentMatch, dbConfig);
 
-        double minDistance = properties.getCore().getMinDistanceForDelayed();
+        double minDistance = coreProperties.getMinDistanceForDelayed();
         if (distanceTraveled < minDistance) {
             // Determine if went through any wait stops since if did then
             // vehicle wasn't stuck in traffic. It was simply stopped at
@@ -328,7 +357,7 @@ public class AvlProcessor {
             vehicleStatus);
 
         // Find possible spatial matches
-        SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, properties);
+        SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, coreProperties, avlProperties);
         List<SpatialMatch> spatialMatches = spatialMatcher.getSpatialMatches(vehicleStatus);
         logger.debug(
                 "For vehicleId={} found the following {} spatial " + "matches: {}",
@@ -400,7 +429,7 @@ public class AvlProcessor {
      * @return True if the match can be used when matching vehicle to a route
      */
     private boolean matchOkForRouteMatching(SpatialMatch match) {
-        return match.awayFromTerminals(properties.getCore().getTerminalDistanceForRouteMatching());
+        return match.awayFromTerminals(coreProperties.getTerminalDistanceForRouteMatching());
     }
 
     /**
@@ -512,7 +541,7 @@ public class AvlProcessor {
         // difference
         double deltaDistance = Math.abs(Geo.distance(avlLocation, matchLocation));
 
-        if (vehicleStatus.isPredictable() && deltaDistance > properties.getCore().getMaxMatchDistanceFromAVLRecord()) {
+        if (vehicleStatus.isPredictable() && deltaDistance > coreProperties.getMaxMatchDistanceFromAVLRecord()) {
             String eventDescription = "Vehicle match conflict from AVL report of "
                     + Geo.distanceFormat(deltaDistance)
                     + " from match "
@@ -572,7 +601,7 @@ public class AvlProcessor {
             // because looking at each trip means all the trip data including
             // travel times needs to be lazy loaded, which can be slow.
             // Override by setting transitclock.core.ignoreInactiveBlocks to false
-            if (!block.isActive(dbConfig, avlReport.getDate()) && properties.getCore().getIgnoreInactiveBlocks()) {
+            if (!block.isActive(dbConfig, avlReport.getDate()) && coreProperties.getIgnoreInactiveBlocks()) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(
                             "For vehicleId={} ignoring block ID {} with "
@@ -599,12 +628,12 @@ public class AvlProcessor {
                     potentialTrips);
 
             // Get the potential spatial matches
-            List<SpatialMatch> spatialMatchesForBlock = new SpatialMatcher(dbConfig, properties).getSpatialMatches(
+            List<SpatialMatch> spatialMatchesForBlock = new SpatialMatcher(dbConfig, coreProperties, avlProperties).getSpatialMatches(
                     vehicleStatus.getAvlReport(), block, potentialTrips, MatchingType.AUTO_ASSIGNING_MATCHING);
 
             // Add appropriate spatial matches to list
             for (SpatialMatch spatialMatch : spatialMatchesForBlock) {
-                SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, properties);
+                SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, coreProperties, avlProperties);
                 if (!spatialMatcher.problemMatchDueToLackOfHeadingInfo(
                                 spatialMatch, vehicleStatus, MatchingType.AUTO_ASSIGNING_MATCHING)
                         && matchOkForRouteMatching(spatialMatch)) allPotentialSpatialMatchesForRoute.add(spatialMatch);
@@ -653,7 +682,7 @@ public class AvlProcessor {
         // specifying the block assignment so it should find a match even
         // if it pretty far off.
         List<Trip> potentialTrips = block.getTripsCurrentlyActive(dbConfig, avlReport);
-        List<SpatialMatch> spatialMatches = new SpatialMatcher(dbConfig, properties).getSpatialMatches(
+        List<SpatialMatch> spatialMatches = new SpatialMatcher(dbConfig, coreProperties, avlProperties).getSpatialMatches(
                 vehicleStatus.getAvlReport(), block, potentialTrips, MatchingType.STANDARD_MATCHING);
         logger.debug(
                 "For vehicleId={} and blockId={} spatial matches={}",
@@ -670,7 +699,7 @@ public class AvlProcessor {
         // is acceptable then don't consider this a match. Instead, wait till
         // get another AVL report at a different location so can see if making
         // progress along route in proper direction.
-        SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, properties);
+        SpatialMatcher spatialMatcher = new SpatialMatcher(dbConfig, coreProperties, avlProperties);
         if (spatialMatcher.problemMatchDueToLackOfHeadingInfo(
                 bestMatch, vehicleStatus, MatchingType.STANDARD_MATCHING)) {
             logger.debug(
@@ -801,7 +830,7 @@ public class AvlProcessor {
                             + "assignment is already taken by vehicleId={} and the new "
                             + "match doesn't appear to be valid because it is more "
                             + "than {}m from the route. {} {}",
-                    properties.getCore().getAgencyId(),
+                    coreProperties.getAgencyId(),
                     vehicleStatus.getVehicleId(),
                     otherVehicleId,
                     maxDistanceForAssignmentGrab.getValue(),
@@ -815,7 +844,7 @@ public class AvlProcessor {
                                 + "assignment is already taken by vehicleId={} and the new "
                                 + "match doesn't appear to be valid because it is more "
                                 + "than {}m from the route. {} {}",
-                        properties.getCore().getAgencyId(),
+                        coreProperties.getAgencyId(),
                         vehicleStatus.getVehicleId(),
                         otherVehicleId,
                         maxDistanceForAssignmentGrab.getValue(),
@@ -1014,7 +1043,7 @@ public class AvlProcessor {
         // If actually creating a schedule based prediction
         if (vehicleStatus.isForSchedBasedPreds()) return false;
 
-        if (!properties.getAutoBlockAssigner().isAutoAssignerEnabled()) {
+        if (!autoBlockAssignerProperties.isAutoAssignerEnabled()) {
             logger.info(
                     "Could not automatically assign vehicleId={} because " + "AutoBlockAssigner not enabled.",
                     vehicleStatus.getVehicleId());
@@ -1132,7 +1161,7 @@ public class AvlProcessor {
         // time then indicate such as an event.
         if (vehicleStatus.getMatch().isWaitStop()
                 && scheduleAdherence != null
-                && scheduleAdherence.isLaterThan(properties.getCore().getAllowableLateAtTerminalForLoggingEvent())
+                && scheduleAdherence.isLaterThan(coreProperties.getAllowableLateAtTerminalForLoggingEvent())
                 && vehicleStatus.getMatch().getAtStop() != null) {
             // Create description for VehicleEvent
             String stopId = vehicleStatus.getMatch().getStopPath().getStopId();
@@ -1224,7 +1253,7 @@ public class AvlProcessor {
      */
     private boolean matchesUnpredictableAssignment(String assignment) {
         if (!unpredictableAssignmentsPatternInitialized) {
-            String regEx = properties.getAvl().getUnpredictableAssignmentsRegEx();
+            String regEx = avlProperties.getUnpredictableAssignmentsRegEx();
             if (regEx != null && !regEx.isEmpty()) {
                 regExPattern = Pattern.compile(regEx);
             }
@@ -1442,7 +1471,7 @@ public class AvlProcessor {
         // Handle special case where want to not use assignment from AVL
         // report, most likely because want to test automatic assignment
         // capability
-        if (properties.getAutoBlockAssigner().isIgnoreAvlAssignments() && !avlReport.isForSchedBasedPreds()) {
+        if (autoBlockAssignerProperties.isIgnoreAvlAssignments() && !avlReport.isForSchedBasedPreds()) {
             logger.info("Removing assignment from AVL report [{}] because transitclock.autoBlockAssigner.ignoreAvlAssignments=true!", avlReport);
             avlReport.setAssignment(null, AssignmentType.UNSET);
         }
@@ -1473,7 +1502,7 @@ public class AvlProcessor {
         vehicleDataCache.cacheVehicleConfig(avlReport);
 
         // Store the AVL report into the database
-        if (!properties.getCore().getOnlyNeedArrivalDepartures() && !avlReport.isForSchedBasedPreds())
+        if (!coreProperties.getOnlyNeedArrivalDepartures() && !avlReport.isForSchedBasedPreds())
             dataDbLogger.add(avlReport);
 
         // If any vehicles have timed out then handle them. This is done

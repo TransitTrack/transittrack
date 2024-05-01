@@ -1,25 +1,36 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache.frequency;
 
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.transitclock.config.data.CoreConfig;
+import org.transitclock.core.dataCache.ArrivalDepartureComparator;
+import org.transitclock.core.dataCache.HistoricalAverage;
+import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
+import org.transitclock.core.dataCache.StopPathCacheKey;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.TripKey;
+import org.transitclock.domain.structs.ArrivalDeparture;
+import org.transitclock.domain.structs.QArrivalDeparture;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.gtfs.DbConfig;
+import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.properties.GtfsProperties;
+import org.transitclock.service.dto.IpcArrivalDeparture;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
-
-import org.transitclock.ApplicationProperties;
-import org.transitclock.config.data.CoreConfig;
-import org.transitclock.core.dataCache.*;
-import org.transitclock.domain.structs.ArrivalDeparture;
-import org.transitclock.domain.structs.QArrivalDeparture;
-import org.transitclock.domain.structs.Trip;
-import org.transitclock.gtfs.DbConfig;
-import org.transitclock.gtfs.GtfsData;
-import org.transitclock.gtfs.GtfsFilter;
-import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Sean Óg Crudden This class is to hold the historical average for frequency based
@@ -36,10 +47,9 @@ public class FrequencyBasedHistoricalAverageCache {
     private final DbConfig dbConfig;
 
     public FrequencyBasedHistoricalAverageCache(TripDataHistoryCacheInterface tripDataHistoryCacheInterface,
-                                                ApplicationProperties properties,
+                                                GtfsProperties gtfsProperties,
                                                 DbConfig dbConfig) {
         this.tripDataHistoryCacheInterface = tripDataHistoryCacheInterface;
-        var gtfsProperties = properties.getGtfs();
         this.gtfsFilter = new GtfsFilter(gtfsProperties.getRouteIdFilterRegEx(), gtfsProperties.getTripIdFilterRegEx());
         this.dbConfig = dbConfig;
     }

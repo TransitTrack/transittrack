@@ -4,7 +4,6 @@ package org.transitclock.core.avl.ad;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.Indices;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
@@ -32,6 +31,8 @@ import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.ArrivalsDeparturesProperties;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.utils.Time;
 
@@ -84,7 +85,8 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
     private final DwellTimeModelCacheInterface dwellTimeModelCacheInterface;
     private final DataDbLogger dataDbLogger;
     private final DbConfig dbConfig;
-    private final ApplicationProperties properties;
+    private final ArrivalsDeparturesProperties arrivalsDeparturesProperties;
+    private final CoreProperties coreProperties;
 
     public ArrivalDepartureGeneratorDefaultImpl(ScheduleBasedHistoricalAverageCache scheduleBasedHistoricalAverageCache,
                                                 FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
@@ -97,7 +99,8 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
                                                 DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
                                                 DataDbLogger dataDbLogger,
                                                 DbConfig dbConfig,
-                                                ApplicationProperties properties) {
+                                                ArrivalsDeparturesProperties arrivalsDeparturesProperties,
+                                                CoreProperties coreProperties) {
         this.scheduleBasedHistoricalAverageCache = scheduleBasedHistoricalAverageCache;
         this.frequencyBasedHistoricalAverageCache = frequencyBasedHistoricalAverageCache;
         this.holdingTimeCache = holdingTimeCache;
@@ -109,7 +112,8 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         this.dwellTimeModelCacheInterface = dwellTimeModelCacheInterface;
         this.dataDbLogger = dataDbLogger;
         this.dbConfig = dbConfig;
-        this.properties = properties;
+        this.arrivalsDeparturesProperties = arrivalsDeparturesProperties;
+        this.coreProperties = coreProperties;
     }
 
 
@@ -189,14 +193,14 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         // truly know what is going on it is best to not generate
         // arrivals/departures for between the matches.
         int stopsTraversed = SpatialMatch.numberStopsBetweenMatches(oldMatch, newMatch);
-        if (stopsTraversed > properties.getArrivalsDepartures().getMaxStopsBetweenMatches()) {
+        if (stopsTraversed > arrivalsDeparturesProperties.getMaxStopsBetweenMatches()) {
             logger.error(
                     "Attempting to traverse {} stops between oldMatch "
                             + "and newMatch, which is more thanThere are more than "
                             + "MAX_STOPS_BETWEEN_MATCHES={}. Therefore not generating "
                             + "arrival/departure times. oldMatch={} newMatch={}",
                     stopsTraversed,
-                    properties.getArrivalsDepartures().getMaxStopsBetweenMatches(),
+                    arrivalsDeparturesProperties.getMaxStopsBetweenMatches(),
                     oldMatch,
                     newMatch);
             return false;
@@ -400,7 +404,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
     private boolean timeReasonable(ArrivalDeparture arrivalDeparture) {
         long delta = Math.abs(arrivalDeparture.getAvlTime().getTime() - arrivalDeparture.getDate().getTime());
 
-        if (delta < properties.getArrivalsDepartures().getAllowableDifferenceBetweenAvlTimeSecs() * Time.MS_PER_SEC) {
+        if (delta < arrivalsDeparturesProperties.getAllowableDifferenceBetweenAvlTimeSecs() * Time.MS_PER_SEC) {
             return true;
         }
 
@@ -409,7 +413,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
                         + "{} secs away from the AVL time of {}. Therefore not "
                         + "storing this time. {}",
                 arrivalDeparture.getDate(),
-                properties.getArrivalsDepartures().getAllowableDifferenceBetweenAvlTimeSecs(),
+                arrivalsDeparturesProperties.getAllowableDifferenceBetweenAvlTimeSecs(),
                 arrivalDeparture.getAvlTime(),
                 arrivalDeparture);
         return false;
@@ -468,7 +472,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         if (schAdh == null) return;
 
         // If vehicle left too early then record an event
-        if (schAdh.isEarlierThan(properties.getCore().getAllowableEarlyDepartureTimeForLoggingEvent())) {
+        if (schAdh.isEarlierThan(coreProperties.getAllowableEarlyDepartureTimeForLoggingEvent())) {
             // Create description for VehicleEvent
             Stop stop = dbConfig.getStop(departure.getStopId());
             Route route = dbConfig.getRouteById(departure.getRouteId());
@@ -498,7 +502,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         }
 
         // If vehicle left too late then record an event
-        if (schAdh.isLaterThan(properties.getCore().getAllowableLateDepartureTimeForLoggingEvent())) {
+        if (schAdh.isLaterThan(coreProperties.getAllowableLateDepartureTimeForLoggingEvent())) {
             // Create description for VehicleEvent
             Stop stop = dbConfig.getStop(departure.getStopId());
             Route route = dbConfig.getRouteById(departure.getRouteId());
@@ -567,7 +571,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
 
         if (newMatch.getTripIndex() == 0
                 && newMatch.getStopPathIndex() > 0
-                && newMatch.getStopPathIndex() < properties.getArrivalsDepartures().getMaxStopsWhenNoPreviousMatch()) {
+                && newMatch.getStopPathIndex() < arrivalsDeparturesProperties.getMaxStopsWhenNoPreviousMatch()) {
             // Couple more convenience variables
             Date avlReportTime = vehicleStatus.getAvlReport().getDate();
             Block block = newMatch.getBlock();
@@ -1183,9 +1187,9 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         // match is likely to be greater than getMaxDistanceFromSegment() but
         // still want to record the departure time.
         boolean oldMatchIsProblematic =
-                oldMatch.isLayover() && (oldMatch.getDistanceToSegment() > properties.getCore().getLayoverDistance());
+                oldMatch.isLayover() && (oldMatch.getDistanceToSegment() > coreProperties.getLayoverDistance());
         boolean newMatchIsProblematic =
-                newMatch.isLayover() && (newMatch.getDistanceToSegment() > properties.getCore().getLayoverDistance());
+                newMatch.isLayover() && (newMatch.getDistanceToSegment() > coreProperties.getLayoverDistance());
 
         if (oldMatchIsProblematic || newMatchIsProblematic) {
             logger.warn(
@@ -1193,7 +1197,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
                     "Therefore not generating arrival/departure times. " +
                     "Max allowed layoverDistance={}. oldMatch={} newMatch={}",
                     vehicleStatus.getVehicleId(),
-                    properties.getCore().getLayoverDistance(),
+                    coreProperties.getLayoverDistance(),
                     oldMatch,
                     newMatch);
             return;

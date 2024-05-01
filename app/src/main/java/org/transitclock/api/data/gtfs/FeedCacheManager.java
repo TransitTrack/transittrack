@@ -1,20 +1,24 @@
 package org.transitclock.api.data.gtfs;
 
-import com.google.transit.realtime.GtfsRealtime;
-import org.springframework.stereotype.Component;
-import org.transitclock.ApplicationProperties;
 import org.transitclock.api.utils.AgencyTimezoneCache;
+import org.transitclock.properties.ApiProperties;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.contract.PredictionsService;
 import org.transitclock.service.contract.VehiclesService;
+
+import com.google.transit.realtime.GtfsRealtime;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FeedCacheManager {
     private final DataCache vehicleFeedDataCache;
     private final DataCache tripFeedDataCache;
+    private final ApiProperties apiProperties;
 
-    public FeedCacheManager(ApplicationProperties properties) {
-        this.vehicleFeedDataCache = new DataCache(properties.getApi().getGtfsRtCacheSeconds());
-        this.tripFeedDataCache = new DataCache(properties.getApi().getGtfsRtCacheSeconds());
+    public FeedCacheManager(ApiProperties apiProperties) {
+        this.vehicleFeedDataCache = new DataCache(apiProperties.getGtfsRtCacheSeconds());
+        this.tripFeedDataCache = new DataCache(apiProperties.getGtfsRtCacheSeconds());
+        this.apiProperties = apiProperties;
     }
 
     /**
@@ -45,26 +49,23 @@ public class FeedCacheManager {
 
     /**
      * For caching Vehicle Positions feed messages.
-     *
-     * @param agencyId
-     * @return
      */
-    public GtfsRealtime.FeedMessage getPossiblyCachedMessage(ApplicationProperties properties,
+    public GtfsRealtime.FeedMessage getPossiblyCachedMessage(CoreProperties coreProperties,
                                                              PredictionsService predictionsService,
                                                              VehiclesService vehiclesService,
                                                              AgencyTimezoneCache agencyTimezoneCache) {
-        GtfsRealtime.FeedMessage feedMessage = tripFeedDataCache.get(properties.getCore().getAgencyId());
+        GtfsRealtime.FeedMessage feedMessage = tripFeedDataCache.get(coreProperties.getAgencyId());
         if (feedMessage != null) return feedMessage;
 
         synchronized (tripFeedDataCache) {
 
             // Cache may have been filled while waiting.
-            feedMessage = tripFeedDataCache.get(properties.getCore().getAgencyId());
+            feedMessage = tripFeedDataCache.get(coreProperties.getAgencyId());
             if (feedMessage != null) return feedMessage;
 
-            GtfsRtTripFeed feed = new GtfsRtTripFeed(properties, predictionsService, vehiclesService, agencyTimezoneCache);
+            GtfsRtTripFeed feed = new GtfsRtTripFeed(apiProperties, coreProperties, predictionsService, vehiclesService, agencyTimezoneCache);
             feedMessage = feed.createMessage();
-            tripFeedDataCache.put(properties.getCore().getAgencyId(), feedMessage);
+            tripFeedDataCache.put(coreProperties.getAgencyId(), feedMessage);
         }
 
         return feedMessage;

@@ -1,23 +1,24 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.transit.realtime.GtfsRealtime;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-import org.transitclock.ApplicationProperties;
-import org.transitclock.domain.structs.AssignmentType;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.domain.structs.Location;
-import org.transitclock.utils.IntervalTimer;
-import org.transitclock.utils.MathUtils;
-
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.transitclock.domain.structs.AssignmentType;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Location;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.MathUtils;
+
+import com.google.protobuf.CodedInputStream;
+import com.google.transit.realtime.GtfsRealtime;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 /**
  * For reading in feed of GTFS-realtime AVL data. Is used for both realtime feeds and for when
@@ -29,8 +30,8 @@ import java.util.List;
 @Component
 @ConditionalOnProperty(name = "transitclock.avl.gtfs-realtime-feed-uri")
 public class GtfsRealtimeModule extends PollUrlAvlModule {
-    public GtfsRealtimeModule(ApplicationProperties properties, AvlReportProcessor avlReportProcessor) {
-        super(properties, avlReportProcessor);
+    public GtfsRealtimeModule(AvlProperties avlProperties, AvlReportProcessor avlReportProcessor) {
+        super(avlProperties, avlReportProcessor);
     }
 
     @Override

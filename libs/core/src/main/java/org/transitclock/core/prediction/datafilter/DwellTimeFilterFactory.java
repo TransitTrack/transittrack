@@ -1,13 +1,12 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.datafilter;
 
+import org.transitclock.properties.PredictionProperties;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-
-import org.transitclock.ApplicationProperties;
-import org.transitclock.config.ClassConfigValue;
 
 @Configuration
 public class DwellTimeFilterFactory {
@@ -17,7 +16,7 @@ public class DwellTimeFilterFactory {
 
     @Bean
     @Lazy
-    public DwellTimeDataFilter dwellTimeDataFilter(ApplicationProperties properties) {
-        return new DwellTimeDataFilterImpl(properties.getPrediction());
+    public DwellTimeDataFilter dwellTimeDataFilter(PredictionProperties predictionProperties) {
+        return new DwellTimeDataFilterImpl(predictionProperties);
     }
 }

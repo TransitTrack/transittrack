@@ -1,24 +1,24 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.accuracy.gtfsrt;
 
+import java.net.URL;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.transitclock.core.prediction.accuracy.PredAccuracyPrediction;
+import org.transitclock.core.prediction.accuracy.PredictionAccuracyModule;
+import org.transitclock.domain.structs.ScheduleTime;
+import org.transitclock.domain.structs.StopPath;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.properties.GtfsProperties;
+
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.transitclock.ApplicationProperties;
-import org.transitclock.core.prediction.accuracy.PredAccuracyPrediction;
-import org.transitclock.core.prediction.accuracy.PredictionAccuracyModule;
-import org.transitclock.domain.structs.ScheduleTime;
-import org.transitclock.domain.structs.StopPath;
-import org.transitclock.domain.structs.Trip;
-
-import java.net.URL;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Reads in external prediction data from a GTFS realtime trip updates feed and stores the data in
@@ -30,7 +30,7 @@ import java.util.List;
 public class GTFSRealtimePredictionAccuracyModule extends PredictionAccuracyModule {
 
     @Autowired
-    ApplicationProperties properties;
+    GtfsProperties gtfsProperties;
     /**
      * Gets GTFS realtime feed all routes from URL and return FeedMessage
      *
@@ -39,13 +39,13 @@ public class GTFSRealtimePredictionAccuracyModule extends PredictionAccuracyModu
     private FeedMessage getExternalPredictions() {
         // Will just read all data from gtfs-rt url
         URL url = null;
-        logger.info("Getting predictions from API using URL={}", properties.getGtfs().getGtfsTripUpdateUrl());
+        logger.info("Getting predictions from API using URL={}", gtfsProperties.getGtfsTripUpdateUrl());
 
         try {
-            url = new URL(properties.getGtfs().getGtfsTripUpdateUrl());
+            url = new URL(gtfsProperties.getGtfsTripUpdateUrl());
 
             FeedMessage feed = FeedMessage.parseFrom(url.openStream());
-            logger.info("Prediction read successfully from URL={}", properties.getGtfs().getGtfsTripUpdateUrl());
+            logger.info("Prediction read successfully from URL={}", gtfsProperties.getGtfsTripUpdateUrl());
 
             return feed;
         } catch (Exception e) {

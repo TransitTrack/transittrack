@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.GtfsFilter;
 import org.transitclock.properties.GtfsProperties;
@@ -24,9 +23,8 @@ public class TripDataHistoryCacheFactory {
 
     @Bean
     public TripDataHistoryCacheInterface tripDataHistoryCacheInterface(CacheManager cacheManager,
-                                                                       ApplicationProperties properties,
+                                                                       GtfsProperties gtfsProperties,
                                                                        DbConfig dbConfig) {
-        GtfsProperties gtfsProperties = properties.getGtfs();
         var gtfsFilter = new GtfsFilter(gtfsProperties.getRouteIdFilterRegEx(), gtfsProperties.getTripIdFilterRegEx());
         if (className == org.transitclock.core.dataCache.ehcache.frequency.TripDataHistoryCache.class) {
             return new org.transitclock.core.dataCache.ehcache.frequency.TripDataHistoryCache(cacheManager, gtfsFilter, dbConfig);

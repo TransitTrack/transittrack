@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.Route;
@@ -70,10 +69,10 @@ public class PredictionDataCache {
     private final Map<MapKey, List<IpcPredictionsForRouteStopDest>> predictionsMap =
             new ConcurrentHashMap<>(1000);
 
-    public PredictionDataCache(VehicleStatusManager vehicleStatusManager, DbConfig dbConfig, ApplicationProperties properties) {
+    public PredictionDataCache(VehicleStatusManager vehicleStatusManager, DbConfig dbConfig, PredictionProperties predictionProperties) {
         this.vehicleStatusManager = vehicleStatusManager;
         this.dbConfig = dbConfig;
-        this.predictionProperties = properties.getPrediction();
+        this.predictionProperties = predictionProperties;
     }
 
     /**

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.transitclock.config.CRLFLogConverter;
 import org.transitclock.config.ConfigFileReader;
+import org.transitclock.properties.GtfsProperties;
 import org.transitclock.utils.threading.UncaughtExceptionHandler;
 
 import com.beust.jcommander.JCommander;
@@ -24,14 +25,10 @@ import org.springframework.core.env.Environment;
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties({
-    ApplicationProperties.class
-})
 @RequiredArgsConstructor
 public class Application implements ApplicationRunner {
 
-    private final ApplicationProperties properties;
-
+    private final GtfsProperties gtfsProperties;
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -96,7 +93,7 @@ public class Application implements ApplicationRunner {
 
     private void loadGtfs(CommandLineParameters cli) {
         GtfsFileProcessor processor = GtfsFileProcessor.createGtfsFileProcessor(cli);
-        processor.process(properties.getGtfs());
+        processor.process(gtfsProperties);
     }
 
 

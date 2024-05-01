@@ -16,6 +16,8 @@ import org.transitclock.api.data.gtfs.FeedCacheManager;
 import org.transitclock.api.resources.BaseApiResource;
 import org.transitclock.api.utils.AgencyTimezoneCache;
 import org.transitclock.api.utils.StandardParameters;
+import org.transitclock.properties.ApiProperties;
+import org.transitclock.properties.CoreProperties;
 
 /**
  * Contains API commands for the GTFS-realtime API.
@@ -95,8 +97,7 @@ public class GtfsRealtimeApi extends BaseApiResource {
         // standard binary GTFS-realtime format.
         final boolean humanFormatOutput = "human".equals(format);
 
-        FeedMessage message = feedCacheManager.getPossiblyCachedMessage(
-                properties, predictionsService, vehiclesService, agencyTimezoneCache);
+        FeedMessage message = feedCacheManager.getPossiblyCachedMessage(coreProperties, predictionsService, vehiclesService, agencyTimezoneCache);
 
         return generateResponse(message, humanFormatOutput);
 

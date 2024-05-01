@@ -7,9 +7,11 @@ import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship;
 import lombok.extern.slf4j.Slf4j;
-import org.transitclock.ApplicationProperties;
+
 import org.transitclock.api.utils.AgencyTimezoneCache;
 import org.transitclock.core.holdingmethod.PredictionTimeComparator;
+import org.transitclock.properties.ApiProperties;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.contract.PredictionsService;
 import org.transitclock.service.contract.VehiclesService;
 import org.transitclock.service.dto.IpcPrediction;
@@ -55,15 +57,19 @@ public class GtfsRtTripFeed {
     private final SimpleDateFormat gtfsRealtimeDateFormatter = new SimpleDateFormat("yyyyMMdd");
 
     private final SimpleDateFormat gtfsRealtimeTimeFormatter = new SimpleDateFormat("HH:mm:ss");
-    private final ApplicationProperties properties;
+    private final ApiProperties apiProperties;
     private final PredictionsService predictionsService;
     private final VehiclesService vehiclesService;
 
-    public GtfsRtTripFeed(ApplicationProperties properties, PredictionsService predictionsService, VehiclesService vehiclesService, AgencyTimezoneCache agencyTimezoneCache) {
-        this.properties = properties;
+    public GtfsRtTripFeed(ApiProperties apiProperties,
+                          CoreProperties coreProperties,
+                          PredictionsService predictionsService,
+                          VehiclesService vehiclesService,
+                          AgencyTimezoneCache agencyTimezoneCache) {
+        this.apiProperties = apiProperties;
         this.predictionsService = predictionsService;
         this.vehiclesService = vehiclesService;
-        this.gtfsRealtimeDateFormatter.setTimeZone(agencyTimezoneCache.get(properties.getCore().getAgencyId()));
+        this.gtfsRealtimeDateFormatter.setTimeZone(agencyTimezoneCache.get(coreProperties.getAgencyId()));
     }
 
     /**
@@ -118,7 +124,7 @@ public class GtfsRtTripFeed {
             tripDescriptor.setScheduleRelationship(TripDescriptor.ScheduleRelationship.CANCELED);
 
         tripUpdate.setTrip(tripDescriptor);
-        if (firstPred.getDelay() != null && properties.getApi().getIncludeTripUpdateDelay())
+        if (firstPred.getDelay() != null && apiProperties.getIncludeTripUpdateDelay())
             tripUpdate.setDelay(firstPred.getDelay()); // set schedule deviation
 
         // Add the VehicleDescriptor information
@@ -273,7 +279,7 @@ public class GtfsRtTripFeed {
      */
     private Map<String, List<IpcPrediction>> getPredictionsPerTrip() {
         // Get all the predictions, grouped by vehicle, from the server
-        List<IpcPredictionsForRouteStopDest> allPredictionsByStop = predictionsService.getAllPredictions(properties.getApi().getPredictionMaxFutureSecs());
+        List<IpcPredictionsForRouteStopDest> allPredictionsByStop = predictionsService.getAllPredictions(apiProperties.getPredictionMaxFutureSecs());
 
         // Group the predictions by trip instead of by vehicle
         Map<String, List<IpcPrediction>> predictionsByTrip = new HashMap<>();

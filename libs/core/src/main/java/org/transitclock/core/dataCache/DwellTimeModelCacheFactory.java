@@ -1,14 +1,14 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.ehcache.CacheManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import org.transitclock.ApplicationProperties;
 import org.transitclock.config.ClassConfigValue;
 import org.transitclock.core.dataCache.ehcache.scheduled.DwellTimeModelCache;
 import org.transitclock.core.prediction.scheduled.dwell.DwellModel;
+import org.transitclock.properties.PredictionProperties;
+
+import org.ehcache.CacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Sean Óg Crudden Factory that will provide cache to hold dwell time model class instances
@@ -26,10 +26,10 @@ public class DwellTimeModelCacheFactory {
     public DwellTimeModelCacheInterface dwellTimeModelCacheInterface(CacheManager cm,
                                                                      DwellModel dwellModel,
                                                                      StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
-                                                                     ApplicationProperties properties) {
+                                                                     PredictionProperties properties) {
         var value = className.getValue();
         if (value == DwellTimeModelCache.class) {
-            return new DwellTimeModelCache(cm, dwellModel, stopArrivalDepartureCacheInterface, properties.getPrediction().getRls());
+            return new DwellTimeModelCache(cm, dwellModel, stopArrivalDepartureCacheInterface, properties.getRls());
         }
 
         return new DummyDwellTimeModelCacheImpl();

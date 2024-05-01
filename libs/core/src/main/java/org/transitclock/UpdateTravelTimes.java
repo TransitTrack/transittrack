@@ -8,19 +8,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.transitclock.config.ConfigFileReader;
 import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.core.travelTimes.TravelTimeInfoMap;
 import org.transitclock.core.travelTimes.TravelTimeInfoWithHowSet;
 import org.transitclock.core.travelTimes.TravelTimesProcessor;
 import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.*;
 import org.transitclock.domain.structs.ActiveRevision;
+import org.transitclock.domain.structs.Agency;
+import org.transitclock.domain.structs.TravelTimesForStopPath;
+import org.transitclock.domain.structs.TravelTimesForTrip;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.properties.TravelTimesProperties;
+import org.transitclock.properties.UpdatesProperties;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Time;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 /**
  * Uses AVL based data of arrival/departure times and matches from the database to update the
@@ -278,8 +284,7 @@ public class UpdateTravelTimes {
             Session session, String agencyId, List<Integer> specialDaysOfWeek, Date beginTime, Date endTime) {
         // Read in historic data from db and put it into maps so that it can
         // be processed.
-        ApplicationProperties properties = new ApplicationProperties();
-        TravelTimesProcessor processor = new TravelTimesProcessor(properties);
+        TravelTimesProcessor processor = new TravelTimesProcessor(new TravelTimesProperties(), new UpdatesProperties());
         processor.readAndProcessHistoricData(agencyId, specialDaysOfWeek, beginTime, endTime);
 
         if (processor.isEmpty()) {

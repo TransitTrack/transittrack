@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.transitclock.ApplicationProperties;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Calendar;
 import org.transitclock.domain.structs.CalendarDate;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.ServiceProperties;
 import org.transitclock.utils.Time;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * For working with service types, such as determining serviceId or appropriate block to use for a
@@ -28,14 +28,14 @@ import org.transitclock.utils.Time;
  */
 @Slf4j
 public class ServiceUtils {
-    private final ApplicationProperties properties;
+    private final ServiceProperties properties;
     private final GregorianCalendar calendar;
     private final DbConfig dbConfig;
     /**
      * ServiceUtils constructor. Creates reusable GregorianCalendar and sets the timezone so that
      * the calendar can be reused.
      */
-    public ServiceUtils(ApplicationProperties properties, DbConfig dbConfig) {
+    public ServiceUtils(ServiceProperties properties, DbConfig dbConfig) {
         this.properties = properties;
         Agency agency = dbConfig.getFirstAgency();
         this.calendar = agency != null ? new GregorianCalendar(agency.getTimeZone()) : new GregorianCalendar();
@@ -250,7 +250,7 @@ public class ServiceUtils {
         List<String> serviceIdsForDay = getServiceIdsForDay(epochTime);
         Time time = dbConfig.getTime();
         if (time.getSecondsIntoDay(epochTime)
-                > properties.getService().getMinutesIntoMorningToIncludePreviousServiceIds() * Time.MIN_IN_SECS) return serviceIdsForDay;
+                > properties.getMinutesIntoMorningToIncludePreviousServiceIds() * Time.MIN_IN_SECS) return serviceIdsForDay;
 
         List<String> serviceIdsForPreviousDay = getServiceIdsForDay(epochTime.getTime() - Time.DAY_IN_MSECS);
 

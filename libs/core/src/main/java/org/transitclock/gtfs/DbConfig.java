@@ -1,12 +1,15 @@
 /* (C)2023 */
 package org.transitclock.gtfs;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.Agency;
@@ -21,19 +24,16 @@ import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Transfer;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.TripPattern;
+import org.transitclock.properties.ServiceProperties;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
 
 /**
  * Reads all the configuration data from the database. The data is based on GTFS but is heavily
@@ -106,7 +106,7 @@ public class DbConfig {
     private final ServiceUtils serviceUtils;
     private final Time time;
 
-    public DbConfig(ApplicationProperties properties, String agencyId, int configRev) {
+    public DbConfig(ServiceProperties serviceProperties, String agencyId, int configRev) {
         this.agencyId = agencyId;
         // For logging how long things take
         IntervalTimer timer = new IntervalTimer();
@@ -133,7 +133,7 @@ public class DbConfig {
 
         // Let user know what is going on
         logger.info("Finished reading configuration data from database . " + "Took {} msec.", timer.elapsedMsec());
-        this.serviceUtils = new ServiceUtils(properties, this);
+        this.serviceUtils = new ServiceUtils(serviceProperties, this);
         this.time = new Time(this);
     }
 

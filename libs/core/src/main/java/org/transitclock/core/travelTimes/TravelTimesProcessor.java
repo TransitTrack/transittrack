@@ -3,7 +3,6 @@ package org.transitclock.core.travelTimes;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.travelTimes.DataFetcher.DbDataMapKey;
 import org.transitclock.domain.structs.ArrivalDeparture;
@@ -71,9 +70,9 @@ public class TravelTimesProcessor {
     private final TravelTimesProperties travelTimesProperties;
     private final UpdatesProperties updatesProperties;
 
-    public TravelTimesProcessor(ApplicationProperties properties) {
-        this.travelTimesProperties = properties.getTravelTimes();
-        this.updatesProperties = properties.getUpdates();
+    public TravelTimesProcessor(TravelTimesProperties travelTimesProperties, UpdatesProperties updatesProperties) {
+        this.travelTimesProperties = travelTimesProperties;
+        this.updatesProperties = updatesProperties;
         isEmpty = true;
     }
 

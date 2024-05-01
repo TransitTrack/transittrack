@@ -1,17 +1,23 @@
 /* (C)2023 */
 package org.transitclock.core.avl.ad;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.TravelTimes;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
 import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.ArrivalsDeparturesProperties;
+import org.transitclock.properties.CoreProperties;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * For instantiating a ArrivalDepartureGenerator object that generates arrival/departure data when a
@@ -26,7 +32,8 @@ public class ArrivalDepartureGeneratorFactory {
     private Class<?> neededClass;
 
     @Bean
-    public ArrivalDepartureGenerator arrivalDepartureGenerator(ApplicationProperties properties,
+    public ArrivalDepartureGenerator arrivalDepartureGenerator(ArrivalsDeparturesProperties arrivalsDeparturesProperties,
+                                                               CoreProperties coreProperties,
                                                                ScheduleBasedHistoricalAverageCache scheduleBasedHistoricalAverageCache,
                                                                FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
                                                                HoldingTimeCache holdingTimeCache,
@@ -40,7 +47,7 @@ public class ArrivalDepartureGeneratorFactory {
                                                                DbConfig dbConfig) {
         // If the PredictionGenerator hasn't been created yet then do so now
         if (neededClass == ArrivalDepartureGeneratorDefaultImpl.class)
-            return new ArrivalDepartureGeneratorDefaultImpl(scheduleBasedHistoricalAverageCache, frequencyBasedHistoricalAverageCache, holdingTimeCache, vehicleStatusManager, holdingTimeGenerator, travelTimes, tripDataHistoryCacheInterface, stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface, dataDbLogger, dbConfig, properties);
+            return new ArrivalDepartureGeneratorDefaultImpl(scheduleBasedHistoricalAverageCache, frequencyBasedHistoricalAverageCache, holdingTimeCache, vehicleStatusManager, holdingTimeGenerator, travelTimes, tripDataHistoryCacheInterface, stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface, dataDbLogger, dbConfig, arrivalsDeparturesProperties, coreProperties);
 
         throw new IllegalArgumentException("Requested ArrivalDepartureGenerator is not implemented");
     }

@@ -1,19 +1,30 @@
 /* (C)2023 */
 package org.transitclock.core.avl.space;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.Indices;
-import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.core.VehicleStatus;
-import org.transitclock.domain.structs.*;
+import org.transitclock.core.avl.time.TemporalMatch;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Block;
+import org.transitclock.domain.structs.Location;
+import org.transitclock.domain.structs.Route;
+import org.transitclock.domain.structs.StopPath;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.domain.structs.VectorWithHeading;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
 
-import java.util.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * For determining possible spatial matches. A spatial match is when the AVL report location is
@@ -26,7 +37,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SpatialMatcher {
     private final DbConfig dbConfig;
-    private final ApplicationProperties properties;
+    private final CoreProperties coreProperties;
+    private final AvlProperties avlProperties;
 
     // So that know where to start searching from
     private SpatialMatch startSearchSpatialMatch = null;
@@ -169,7 +181,7 @@ public class SpatialMatcher {
         // is not a layover. So check the previous fix.
         // If there was no valid previous AVL report then can't tell if
         // heading in proper direction for the match so return true.
-        double minDistance = properties.getCore().getDistanceBetweenAvlsForInitialMatchingWithoutHeading();
+        double minDistance = coreProperties.getDistanceBetweenAvlsForInitialMatchingWithoutHeading();
         AvlReport previousAvlReport = vehicleStatus.getPreviousAvlReport(minDistance);
         if (previousAvlReport == null) return true;
 
@@ -273,12 +285,12 @@ public class SpatialMatcher {
             Iterator<SpatialMatch> iterator = spatialMatchesForAllTrips.iterator();
             while (iterator.hasNext()) {
                 SpatialMatch match = iterator.next();
-                if (block.nearEndOfBlock(match, properties.getCore().getDistanceFromEndOfBlockForInitialMatching())) {
+                if (block.nearEndOfBlock(match, coreProperties.getDistanceFromEndOfBlockForInitialMatching())) {
                     // The match is too close to end of block so don't use it
                     logger.debug(
                             "vehicleId={} match was within {}m of the end of the block so not using that spatial match [{}].",
                             avlReport.getVehicleId(),
-                            properties.getCore().getDistanceFromEndOfBlockForInitialMatching(),
+                            coreProperties.getDistanceFromEndOfBlockForInitialMatching(),
                             match);
                     iterator.remove();
                 }
@@ -320,7 +332,7 @@ public class SpatialMatcher {
         // Filter out the ones that are layovers
         List<SpatialMatch> spatialMatches = new ArrayList<SpatialMatch>();
         for (SpatialMatch spatialMatch : allSpatialMatches) {
-            if (!spatialMatch.isLayover() || properties.getCore().getSpatialMatchToLayoversAllowedForAutoAssignment())
+            if (!spatialMatch.isLayover() || coreProperties.getSpatialMatchToLayoversAllowedForAutoAssignment())
                 spatialMatches.add(spatialMatch);
         }
 
@@ -338,12 +350,12 @@ public class SpatialMatcher {
      */
     private double getMaxAllowableDistanceFromSegment(Route route, MatchingType matchingType) {
         if (matchingType == MatchingType.AUTO_ASSIGNING_MATCHING) {
-            return properties.getCore().getMaxDistanceFromSegmentForAutoAssigning();
+            return coreProperties.getMaxDistanceFromSegmentForAutoAssigning();
         } else {
             // matchingType is STANDARD_MATCHING
             double maxDistance = route.getMaxAllowableDistanceFromSegment();
             if (Double.isNaN(maxDistance)) {
-                maxDistance = properties.getCore().getMaxDistanceFromSegment();
+                maxDistance = coreProperties.getMaxDistanceFromSegment();
             }
             return maxDistance;
         }
@@ -409,7 +421,7 @@ public class SpatialMatcher {
         // distance, whichever is greater.
         Location previousStopLoc = previousStopPath.getEndOfPathLocation();
         double distanceBtwnStops = layoverLoc.distance(previousStopLoc);
-        double allowableDistance = Math.max(distanceBtwnStops * 1.5, properties.getCore().getLayoverDistance());
+        double allowableDistance = Math.max(distanceBtwnStops * 1.5, coreProperties.getLayoverDistance());
 
         boolean withinAllowableDistanceOfLayover = distanceToLayover < allowableDistance;
         if (!withinAllowableDistanceOfLayover && logger.isDebugEnabled()) {
@@ -423,7 +435,7 @@ public class SpatialMatcher {
                     vehicleId,
                     Geo.distanceFormat(distanceToLayover),
                     distanceBtwnStops,
-                    properties.getCore().getLayoverDistance(),
+                    coreProperties.getLayoverDistance(),
                     allowableDistance,
                     withinAllowableDistanceOfLayover);
         }
@@ -535,7 +547,7 @@ public class SpatialMatcher {
         // towards a minimum so keep track of it if heading and distance are OK.
         if (distanceToSegment < previousDistanceToSegment) {
             boolean headingOK =
-                    segmentVector.headingOK(avlReport.getHeading(), properties.getCore().getMaxHeadingOffsetFromSegment());
+                    segmentVector.headingOK(avlReport.getHeading(), coreProperties.getMaxHeadingOffsetFromSegment());
             boolean distanceOK =
                     distanceToSegment < getMaxAllowableDistanceFromSegment(potentialMatchIndices, matchingType);
 
@@ -652,7 +664,7 @@ public class SpatialMatcher {
         long timeBetweenFixesMsec = vehicleStatus.getAvlReport().getTime()
                 - vehicleStatus.getPreviousAvlReportFromSuccessfulMatch().getTime();
         double distanceAlongPathToSearch =
-                properties.getAvl().getMaxSpeed() * 1.2 * timeBetweenFixesMsec / Time.MS_PER_SEC + 200.0;
+                avlProperties.getMaxSpeed() * 1.2 * timeBetweenFixesMsec / Time.MS_PER_SEC + 200.0;
 
         // This allows you override the default max distance used to calculate how far along the
         // route to look for a match.
@@ -697,7 +709,7 @@ public class SpatialMatcher {
 
         while (!indices.pastEndOfBlock(vehicleStatus.getAvlReport().getTime(), dbConfig)
                 && (vehicleStatus.isLayover() || distanceSearched < distanceAlongPathToSearch)
-                && Math.abs(indices.getStopPathIndex() - previousMatch.getIndices().getStopPathIndex()) <= properties.getAvl().getMaxStopPathsAhead()) {
+                && Math.abs(indices.getStopPathIndex() - previousMatch.getIndices().getStopPathIndex()) <= avlProperties.getMaxStopPathsAhead()) {
 
             processPossiblePotentialMatch(
                     vehicleStatus.getAvlReport(), indices, spatialMatches, MatchingType.STANDARD_MATCHING);
@@ -759,7 +771,7 @@ public class SpatialMatcher {
         Block block = previousMatch.getBlock();
         if (!block.isNoSchedule()
                 && previousMatch.isLastTripOfBlock()
-                && previousMatch.withinDistanceOfEndOfTrip(properties.getCore().getDistanceFromLastStopForEndMatching())) {
+                && previousMatch.withinDistanceOfEndOfTrip(coreProperties.getDistanceFromLastStopForEndMatching())) {
             // Create a match that is at the end of the block
             Trip trip = previousMatch.getTrip();
             int indexOfLastStopPath = trip.getNumberStopPaths() - 1;

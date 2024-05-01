@@ -1,23 +1,25 @@
 package org.transitclock;
 
+import java.util.TimeZone;
+
+import org.transitclock.domain.ApiKeyManager;
+import org.transitclock.domain.webstructs.WebAgency;
+import org.transitclock.properties.CoreProperties;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import org.transitclock.domain.ApiKeyManager;
-import org.transitclock.domain.webstructs.WebAgency;
-
-import java.util.TimeZone;
 
 @Slf4j
 @Component
 public class ApplicationStartupListener implements ApplicationListener<ApplicationReadyEvent> {
     private final ApiKeyManager apiKeyManager;
-    private final ApplicationProperties properties;
+    private final CoreProperties properties;
     private final DataSourceProperties dataSourceProperties;
 
-    public ApplicationStartupListener(ApiKeyManager apiKeyManager, ApplicationProperties properties, DataSourceProperties dataSourceProperties) {
+    public ApplicationStartupListener(ApiKeyManager apiKeyManager, CoreProperties properties, DataSourceProperties dataSourceProperties) {
         this.apiKeyManager = apiKeyManager;
         this.properties = properties;
         this.dataSourceProperties = dataSourceProperties;
@@ -40,7 +42,7 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
 
         }
 
-        String agencyId = properties.getCore().getAgencyId();
+        String agencyId = properties.getAgencyId();
         WebAgency webAgency = new WebAgency(agencyId,
             "127.0.0.1",
             true,

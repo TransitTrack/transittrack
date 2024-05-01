@@ -1,15 +1,26 @@
 package org.transitclock.api.resources;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.transitclock.ApplicationProperties;
 import org.transitclock.api.exception.InvalidAccessException;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.domain.ApiKeyManager;
-import org.transitclock.service.contract.*;
+import org.transitclock.properties.ApiProperties;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.service.contract.CacheQueryService;
+import org.transitclock.service.contract.CommandsService;
+import org.transitclock.service.contract.ConfigService;
+import org.transitclock.service.contract.HoldingTimeService;
+import org.transitclock.service.contract.PredictionAnalysisService;
+import org.transitclock.service.contract.PredictionsService;
+import org.transitclock.service.contract.VehiclesService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseApiResource {
     @Autowired
-    protected ApplicationProperties properties;
+    protected ApiProperties apiProperties;
+
+    @Autowired
+    protected CoreProperties coreProperties;
 
     @Autowired
     protected ApiKeyManager manager;

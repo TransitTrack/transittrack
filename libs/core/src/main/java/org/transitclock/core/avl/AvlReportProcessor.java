@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.utils.Time;
@@ -119,11 +118,11 @@ public class AvlReportProcessor {
     }
 
     public AvlReportProcessor(AvlProcessor avlProcessor,
-                              ApplicationProperties properties,
+                              AvlProperties avlProperties,
                               @Qualifier("avlExecutingThreadPool") Executor avlExecutingThreadPool) {
         this.avlProcessor = avlProcessor;
         this.avlExecutingThreadPool = avlExecutingThreadPool;
-        this.avlProperties = properties.getAvl();
+        this.avlProperties = avlProperties;
         avlReports = new ConcurrentHashMap<>();
     }
 

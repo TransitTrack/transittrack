@@ -11,7 +11,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.Module;
 import org.transitclock.properties.GtfsProperties;
 import org.transitclock.utils.HttpGetFile;
@@ -36,10 +35,10 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(name = "transitclock.gtfs.auto-update.enabled", havingValue = "true")
 public class GtfsUpdatedModule implements Module {
-    private final GtfsProperties gtfsConfig;
+    private final GtfsProperties gtfsProperties;
 
-    public GtfsUpdatedModule(ApplicationProperties properties) {
-        this.gtfsConfig = properties.getGtfs();
+    public GtfsUpdatedModule(GtfsProperties gtfsProperties) {
+        this.gtfsProperties = gtfsProperties;
     }
 
     /**
@@ -79,7 +78,7 @@ public class GtfsUpdatedModule implements Module {
 
     @Scheduled(fixedRateString = "${transitclock.gtfs.auto-update.intervalMsec}")
     public void run() {
-        GtfsProperties.AutoUpdate autoUpdateConfig = gtfsConfig.getAutoUpdate();
+        GtfsProperties.AutoUpdate autoUpdateConfig = gtfsProperties.getAutoUpdate();
         logger.info("Checking to see if GTFS should be downloaded " + "because it was modified. {}", autoUpdateConfig.getUrl());
 
         // Construct the getter

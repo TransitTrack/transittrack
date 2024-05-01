@@ -3,13 +3,14 @@ package org.transitclock.config;
 import jakarta.annotation.PostConstruct;
 import java.util.TimeZone;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.properties.ServiceProperties;
 import org.transitclock.utils.Time;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +23,10 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class DatabaseConfiguration {
-    private final ApplicationProperties properties;
     private final DataSourceProperties dataSourceProperties;
 
-    public DatabaseConfiguration(ApplicationProperties properties, DataSourceProperties dataSourceProperties) {
-        this.properties = properties;
+    public DatabaseConfiguration(DataSourceProperties dataSourceProperties) {
         this.dataSourceProperties = dataSourceProperties;
-
         HibernateUtils.registerDatasourceProperties(dataSourceProperties);
     }
 
@@ -43,8 +41,8 @@ public class DatabaseConfiguration {
     }
 
     @Bean
-    DbConfig dbConfig() {
-        String agencyId = properties.getCore().getAgencyId();
+    DbConfig dbConfig(CoreProperties coreProperties, ServiceProperties serviceProperties) {
+        String agencyId = coreProperties.getAgencyId();
         // Read in config rev from ActiveRevisions table in db
         ActiveRevision activeRevision = ActiveRevision.get(agencyId);
 
@@ -76,7 +74,7 @@ public class DatabaseConfiguration {
         // HibernateUtils.clearSessionFactory();
 
         // Read in all GTFS based config data from the database
-        return new DbConfig(properties, agencyId, configRev);
+        return new DbConfig(serviceProperties, agencyId, configRev);
     }
 
     @Bean
@@ -90,11 +88,10 @@ public class DatabaseConfiguration {
     }
 
     @Bean
-    DataDbLogger dataDbLogger(@Value("${spring.datasource.batch-size: 4_000}") int batchSize) {
-        var coreConfig = properties.getCore();
-        String agencyId = coreConfig.getAgencyId();
-        boolean storeDataInDatabase = coreConfig.getStoreDataInDatabase();
-        boolean pauseIfDbQueueFilling = coreConfig.getPauseIfDbQueueFilling();
+    DataDbLogger dataDbLogger(@Value("${spring.datasource.batch-size: 4_000}") int batchSize, CoreProperties coreProperties) {
+        String agencyId = coreProperties.getAgencyId();
+        boolean storeDataInDatabase = coreProperties.getStoreDataInDatabase();
+        boolean pauseIfDbQueueFilling = coreProperties.getPauseIfDbQueueFilling();
         // Create the DataDBLogger so that generated data can be stored
         // to database via a robust queue. But don't actually log data
         // if in playback mode since then would be writing data again

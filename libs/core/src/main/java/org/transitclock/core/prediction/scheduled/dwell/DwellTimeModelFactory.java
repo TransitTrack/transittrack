@@ -1,8 +1,8 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.scheduled.dwell;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.config.ClassConfigValue;
+import org.transitclock.properties.PredictionProperties;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +19,11 @@ public class DwellTimeModelFactory {
             "Specifies the name of the class used to predict dwell.");
 
     @Bean
-    public DwellModel dwellModel(ApplicationProperties properties) {
+    public DwellModel dwellModel(PredictionProperties properties) {
         if (className.getValue() == DwellAverage.class) {
-            return new DwellAverage(properties.getPrediction().getDwell().getAverage());
+            return new DwellAverage(properties.getDwell().getAverage());
         }
 
-        return new DwellRLS(properties.getPrediction().getRls());
+        return new DwellRLS(properties.getRls());
     }
 }

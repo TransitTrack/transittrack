@@ -1,15 +1,6 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.transitclock.ApplicationProperties;
-import org.transitclock.config.data.AvlConfig;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.utils.IntervalTimer;
-import org.transitclock.utils.Time;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +14,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import org.transitclock.config.data.AvlConfig;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.IntervalTimer;
+
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONException;
+import org.springframework.scheduling.annotation.Scheduled;
+
 /**
  * Subclass of AvlModule to be used when reading AVL data from a feed. Calls the abstract method
  * getAndProcessData() for the subclass to actually get data from the feed. The getAndProcessData()
@@ -34,8 +34,8 @@ import java.util.zip.GZIPInputStream;
  */
 @Slf4j
 public abstract class PollUrlAvlModule extends AvlModule {
-    protected PollUrlAvlModule(ApplicationProperties properties, AvlReportProcessor avlReportProcessor) {
-        super(properties.getAvl(), avlReportProcessor);
+    protected PollUrlAvlModule(AvlProperties avlProperties, AvlReportProcessor avlReportProcessor) {
+        super(avlProperties, avlReportProcessor);
     }
 
     /**

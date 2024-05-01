@@ -1,9 +1,12 @@
 /* (C)2023 */
 package org.transitclock.core;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.Module;
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
@@ -13,6 +16,7 @@ import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
@@ -49,9 +53,9 @@ public class SchedBasedPredsModule implements Module {
     private final AvlProcessor avlProcessor;
     private final BlockInfoProvider blockInfoProvider;
     private final DbConfig dbConfig;
-    private final ApplicationProperties properties;
+    private final PredictionProperties properties;
 
-    public SchedBasedPredsModule(VehicleDataCache vehicleDataCache, AvlProcessor avlProcessor, BlockInfoProvider blockInfoProvider, DbConfig dbConfig, ApplicationProperties properties) {
+    public SchedBasedPredsModule(VehicleDataCache vehicleDataCache, AvlProcessor avlProcessor, BlockInfoProvider blockInfoProvider, DbConfig dbConfig, PredictionProperties properties) {
         this.vehicleDataCache = vehicleDataCache;
         this.avlProcessor = avlProcessor;
         this.blockInfoProvider = blockInfoProvider;
@@ -78,8 +82,8 @@ public class SchedBasedPredsModule implements Module {
         List<Block> activeBlocks = blockInfoProvider.getCurrentlyActiveBlocks(
                 null, // Get for all routes
                 blockIdsAlreadyAssigned,
-                properties.getPrediction().getBeforeStartTimeMinutes() * Time.SEC_PER_MIN,
-                properties.getPrediction().getAfterStartTimeMinutes() * Time.SEC_PER_MIN);
+                properties.getBeforeStartTimeMinutes() * Time.SEC_PER_MIN,
+                properties.getAfterStartTimeMinutes() * Time.SEC_PER_MIN);
 
         // For each block about to start see if no associated vehicle
         for (Block block : activeBlocks) {

@@ -1,14 +1,16 @@
 /* (C)2023 */
 package org.transitclock.core.prediction;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.avl.RealTimeSchedAdhProcessor;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
+import org.transitclock.core.dataCache.ErrorCache;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopPathPredictionCache;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.VehicleDataCache;
+import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
 import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
@@ -17,6 +19,11 @@ import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
 import org.transitclock.core.prediction.lastvehicle.LastVehiclePredictionGeneratorImpl;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.PredictionProperties;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * For instantiating a PredictionGenerator object that generates predictions when a new match is
@@ -48,7 +55,7 @@ public class PredictionGeneratorFactory {
                                                    DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
                                                    FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
                                                    ScheduleBasedHistoricalAverageCache scheduleBasedHistoricalAverageCache,
-                                                   ApplicationProperties applicationProperties) {
+                                                   PredictionProperties predictionProperties) {
         Class<?> desiredGenerator = neededClass;
         if (desiredGenerator == org.transitclock.core.prediction.scheduled.dwell.DwellTimePredictionGeneratorImpl.class) {
             return new org.transitclock.core.prediction.scheduled.dwell.DwellTimePredictionGeneratorImpl(
@@ -57,7 +64,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     holdingTimeCache,
                     stopPathPredictionCache,
                     travelTimes,
@@ -76,7 +83,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     vehicleDataCache,
                     holdingTimeCache,
                     stopPathPredictionCache,
@@ -98,7 +105,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     vehicleDataCache,
                     holdingTimeCache,
                     stopPathPredictionCache,
@@ -117,7 +124,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     vehicleDataCache,
                     holdingTimeCache,
                     stopPathPredictionCache,
@@ -137,7 +144,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     holdingTimeCache,
                     stopPathPredictionCache,
                     travelTimes,
@@ -156,7 +163,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     vehicleDataCache,
                     holdingTimeCache,
                     stopPathPredictionCache,
@@ -175,7 +182,7 @@ public class PredictionGeneratorFactory {
                     dbConfig,
                     dataDbLogger,
                     travelTimeDataFilter,
-                    applicationProperties.getPrediction(),
+                    predictionProperties,
                     vehicleDataCache,
                     holdingTimeCache,
                     stopPathPredictionCache,
@@ -190,7 +197,7 @@ public class PredictionGeneratorFactory {
 
         // If the PredictionGenerator hasn't been created yet then do so now
         return new PredictionGeneratorDefaultImpl(stopArrivalDepartureCacheInterface,
-                                                  tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, applicationProperties.getPrediction(),
+                                                  tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, predictionProperties,
                                                   holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor,
                                                   biasAdjuster);
     }

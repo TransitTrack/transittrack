@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.transitclock.ApplicationProperties;
 import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
 import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
@@ -70,11 +69,10 @@ public class CachingConfiguration {
                                              TripDataHistoryCacheInterface tripDataHistoryCacheInterface,
                                              StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
                                              DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
-                                             ApplicationProperties properties) {
+                                             CoreProperties coreProperties) {
         return new CacheInitializer(frequencyBasedHistoricalAverageCache,
             scheduleBasedHistoricalAverageCache, tripDataHistoryCacheInterface,
-            stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface,
-                                    properties.getCore());
+            stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface, coreProperties);
     }
 
     @RequiredArgsConstructor

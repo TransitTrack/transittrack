@@ -38,14 +38,10 @@ server:
   port: 8080
 
 transitclock:
-  db:
-    dbUserName: postgres
-    dbHost: localhost:5432
-    storeDataInDatabase: true
-    dbType: postgresql
   factory:
     headway-generator: org.transitclock.core.headwaygenerator.LastArrivalsHeadwayGenerator
     prediction-generator: org.transitclock.core.prediction.PredictionGeneratorDefaultImpl
+    arrival-departure-generator: org.transitclock.core.avl.ad.ArrivalDepartureGeneratorDefaultImpl
   api:
     gtfsRtCacheSeconds: 15
     includeTripUpdateDelay: false
@@ -229,7 +225,8 @@ transitclock:
         max-days-to-search: 21
         percentagePredictionMethodDifferencene: 50
         thresholdForDifferenceEventLog: 60000
-    rls.lambda: 0.9
+    rls:
+      lambda: 0.9
   service:
     minutesIntoMorningToIncludePreviousServiceIds: 240
   timeout:
