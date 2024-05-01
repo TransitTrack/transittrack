@@ -40,7 +40,6 @@ import org.transitclock.domain.structs.VehicleConfig;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleState;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
-import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.domain.webstructs.WebAgency;
 
 import com.querydsl.jpa.impl.JPAQuery;
@@ -99,7 +98,6 @@ public class HibernateUtils {
         Headway.class,
 
         // For website
-        ApiKey.class,
         WebAgency.class,
     };
     // Cache. Keyed on database name
@@ -110,7 +108,7 @@ public class HibernateUtils {
         dataSourceProperties = props;
     }
 
-    private static SessionFactory createSessionFactory(String dbName) throws HibernateException {
+    private static SessionFactory createSessionFactory() throws HibernateException {
         Configuration config = new Configuration();
 
         for (Class<?> aClass : classList) {
@@ -168,7 +166,8 @@ public class HibernateUtils {
             // If factory not yet created for this projectId then create it
             if (factory == null || factory.isClosed()) {
                 try {
-                    factory = createSessionFactory(dbName);
+                    factory = createSessionFactory();
+                    logger.info("Created new session factory {}", factory);
                     sessionFactoryCache.put(dbName, factory);
                 } catch (Exception e) {
                     logger.error("Could not create SessionFactory for dbName={}", dbName, e);

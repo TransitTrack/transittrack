@@ -32,10 +32,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     public ResponseEntity<String> getTripsWithTravelTimes(
             StandardParameters stdParameters,
             String date) {
-
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
 
             String response = Reports.getTripsWithTravelTimes(stdParameters.getAgencyId(), date);
@@ -53,7 +49,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
             int numDays,
             String beginTime,
             String endTime) {
-        validate(stdParameters);
         String response = Reports.getAvlJson(
                 stdParameters.getAgencyId(),
                 vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
@@ -67,9 +62,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
             String tripId,
             String date) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         String response = Reports.getTripWithTravelTimes(stdParameters.getAgencyId(), tripId, date);
         return ResponseEntity.ok(response);
     }
@@ -78,9 +70,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     public ResponseEntity<String> getTrips(
             StandardParameters stdParameters,
             String date) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         String response = Reports.getTripsFromArrivalAndDeparturesByDate(stdParameters.getAgencyId(), date);
         return ResponseEntity.ok(response);
@@ -96,7 +85,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
             String endTime,
             String allowableEarly,
             String allowableLate) {
-        validate(stdParameters);
         String response = Reports.getScheduleAdhByStops(
                 stdParameters.getAgencyId(),
                 routeId,
@@ -111,9 +99,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
 
     @Override
     public ResponseEntity<String> getLastAvlJsonData(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         String response = Reports.getLastAvlJson(stdParameters.getAgencyId());
         return ResponseEntity.ok(response);
     }

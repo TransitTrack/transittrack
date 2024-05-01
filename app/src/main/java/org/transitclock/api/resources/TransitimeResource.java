@@ -84,9 +84,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             List<String> routesIdOrShortNames,
             String stopId,
             int numberPredictions) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get Vehicle data from server
         Collection<IpcVehicle> vehicles;
         if (!routesIdOrShortNames.isEmpty() && !routesIdOrShortNames.get(0).trim().isEmpty()) {
@@ -120,9 +117,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     public ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
             String blockId) {
-
-        validate(stdParameters);
-
         // Get Vehicle data from server
         var result = vehiclesService.getVehicleToBlockConfig(blockId);
         ApiVehicleToBlockResponse res = new ApiVehicleToBlockResponse(result);
@@ -133,9 +127,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiIdsResponse> getVehicleIds(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get Vehicle data from server
         List<String> ids = configService.getVehicleIds();
 
@@ -147,8 +138,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     public ResponseEntity<Location> getVehicleLocation(
             StandardParameters stdParameters,
             String vehicleId) {
-        validate(stdParameters);
-
         // Get Vehicle data from server
         IpcVehicle vehicle = vehiclesService.get(vehicleId);
         if (vehicle == null) {
@@ -167,9 +156,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String stopId,
             int numberPredictions,
             boolean onlyAssigned) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get Vehicle data from server
         Collection<IpcVehicle> vehicles;
         // Collection<IpcVehicle> vehicles_temp;
@@ -231,9 +217,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiVehicleConfigsResponse> getVehicleConfigs(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get Vehicle data from server
         Collection<IpcVehicleConfig> ipcVehicleConfigs = vehiclesService.getVehicleConfigs();
         ApiVehicleConfigsResponse apiVehicleConfigsResponse = new ApiVehicleConfigsResponse(ipcVehicleConfigs);
@@ -248,9 +231,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             List<String> routeStopStrs,
             List<String> stopStrs,
             int numberPredictions) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Create list of route/stops that should get predictions for
         List<RouteStop> routeStopsList = new ArrayList<>();
         for (String routeStopStr : routeStopStrs) {
@@ -294,9 +274,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             Double lon,
             double maxDistance,
             int numberPredictions) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         if (maxDistance > PredsByLoc.MAX_MAX_DISTANCE) {
             throw new RuntimeException("Maximum maxDistance parameter "
                                                + "is "
@@ -320,9 +297,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             List<String> routeIdsOrShortNames,
             Boolean keepDuplicates) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         // Get agency info so can also return agency name
         List<Agency> agencies = configService.getAgencies();
@@ -385,9 +359,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String directionId,
             String stopId,
             String tripPatternId) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get agency info so can also return agency name
         List<Agency> agencies = configService.getAgencies();
 
@@ -423,9 +394,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String routesIdOrShortNames) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get stops data from server
             IpcDirectionsForRoute stopsForRoute = configService.getStops(dbConfig, routesIdOrShortNames);
@@ -451,8 +419,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String blockId,
             String serviceId) {
 
-        // Make sure request is valid
-        validate(stdParameters);
         if (serviceId == null) {
             throw WebUtils.badRequestException("Must specify serviceId");
         }
@@ -482,9 +448,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String blockId) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             Collection<IpcBlock> ipcBlocks = configService.getBlocks(blockId);
@@ -509,9 +472,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String blockId) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             Collection<IpcBlock> ipcBlocks = configService.getBlocks(blockId);
@@ -535,9 +495,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     public ResponseEntity<ApiIdsResponse> getBlockIds(
             StandardParameters stdParameters,
             String serviceId) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get Vehicle data from server
             List<String> ids = configService.getBlockIds(serviceId);
@@ -555,9 +512,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             List<String> routesIdOrShortNames,
             int allowableBeforeTimeSecs) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         try {
             // Get active block data from server
@@ -580,9 +534,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             List<String> routesIdOrShortNames,
             int allowableBeforeTimeSecs) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get active block data from server
             Collection<IpcActiveBlock> activeBlocks =
@@ -603,9 +554,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             List<String> routesIdOrShortNames,
             int allowableBeforeTimeSecs) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         try {
             // Get active block data from server
@@ -628,9 +576,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String routesIdOrShortName,
             int allowableBeforeTimeSecs) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get active block data from server
             Collection<IpcActiveBlock> activeBlocks =
@@ -651,9 +596,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String routeName,
             int allowableBeforeTimeSecs) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get active block data from server
             Collection<IpcActiveBlock> activeBlocks =
@@ -690,9 +632,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             int allowableLateSec,
             int allowableBeforeTimeSecs) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
 
             int late = 0, ontime = 0, early = 0, nodata = 0, blocks = 0;
@@ -726,9 +665,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiTrip> getTrip(StandardParameters stdParameters, String tripId) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             IpcTrip ipcTrip = configService.getTrip(tripId);
@@ -752,9 +688,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     @Override
     public ResponseEntity<ApiTripWithTravelTimes> getTripWithTravelTimes(StandardParameters stdParameters, String tripId) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             IpcTrip ipcTrip = configService.getTrip(tripId);
@@ -777,9 +710,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiIdsResponse> getTripIds(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get Vehicle data from server
             List<String> ids = configService.getTripIds();
@@ -794,9 +724,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiTripPatternsResponse> getTripPatterns(StandardParameters stdParameters, String routesIdOrShortNames) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         try {
             // Get block data from server
@@ -822,9 +749,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String routesIdOrShortNames) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             List<IpcSchedule> ipcSchedules = configService.getSchedules(routesIdOrShortNames);
@@ -849,9 +773,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             StandardParameters stdParameters,
             String routesIdOrShortNames) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             List<IpcSchedule> ipcSchedules = configService.getSchedules(routesIdOrShortNames);
@@ -873,9 +794,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiAgenciesResponse> getAgencyGroup(StandardParameters stdParameters) {
-
-        // Make sure request is valid
-        validate(stdParameters);
         // Get block data from server
         List<Agency> agencies = configService.getAgencies();
 
@@ -885,9 +803,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiCalendarsResponse> getCurrentCalendars(StandardParameters stdParameters) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         try {
             // Get block data from server
@@ -905,9 +820,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     @Override
     public ResponseEntity<ApiCalendarsResponse> getAllCalendars(StandardParameters stdParameters) {
 
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get block data from server
             List<IpcCalendar> ipcCalendars = configService.getAllCalendars();
@@ -923,9 +835,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiIdsResponse> getServiceIds(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get Vehicle data from server
             List<String> ids = configService.getServiceIds();
@@ -940,9 +849,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiIdsResponse> getCurrentServiceIds(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Get Vehicle data from server
             List<String> ids = configService.getCurrentServiceIds();
@@ -957,7 +863,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<ApiExportsDataResponse> getExports(StandardParameters stdParameters) {
-        validate(stdParameters);
         ApiExportsDataResponse result;
         Session session = HibernateUtils.getSession();
         try {
@@ -974,7 +879,6 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
     @Override
     public ResponseEntity<Object> getExportById(StandardParameters stdParameters, long id) {
-        validate(stdParameters);
         Session session = HibernateUtils.getSession();
         try {
             ExportTable result = ExportTable.getExportFile(session, id).get(0);

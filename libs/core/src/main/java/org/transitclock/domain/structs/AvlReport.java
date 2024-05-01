@@ -16,7 +16,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.properties.AvlProperties;

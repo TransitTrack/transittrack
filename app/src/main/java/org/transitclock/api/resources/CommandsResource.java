@@ -51,9 +51,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             float heading,
             String assignmentId,
             String assignmentTypeStr) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         if (vehicleId == null || vehicleId.isEmpty())
             throw WebUtils.badRequestException("Must specify vehicle ID using " + "\"v=vehicleId\"");
         if (time == 0)
@@ -122,9 +119,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> pushAvlData(
             StandardParameters stdParameters,
             @Parameter(description = "Json of avl report.", required = true) InputStream requestBody) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         Collection<IpcAvl> avlData = new ArrayList<IpcAvl>();
         try {
             // Process the AVL report data from the JSON object
@@ -181,9 +175,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
 
     @Override
     public ResponseEntity<ApiCommandAck> getVehicles(StandardParameters stdParameters, List<String> vehicleIds) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         for (String vehicleId : vehicleIds) {
             commandsService.setVehicleUnpredictable(vehicleId);
         }
@@ -200,9 +191,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             String stopId,
             String directionId,
             String headsign) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             // Store the arrival time in the db
             String agencyId = stdParameters.getAgencyId();
@@ -228,7 +216,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             StandardParameters stdParameters,
             String tripId,
             DateTimeParam at) {
-        validate(stdParameters);
         String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
         if (ipcTrip == null) {
@@ -248,8 +235,7 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             StandardParameters stdParameters,
             String tripId,
             DateTimeParam at) {
-        validate(stdParameters);
-        String result = null;
+        String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
         if (ipcTrip == null) {
             throw WebUtils.badRequestException("TripId=" + tripId + " does not exist.");
@@ -266,8 +252,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> addVehicleToBlock(
             StandardParameters stdParameters,
             InputStream requestBody) {
-        // Make sure request is valid
-        validate(stdParameters);
         String result = null;
 
         try {
@@ -291,8 +275,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> removeVehicleToBlock(
             StandardParameters stdParameters,
             long id) {
-        // Make sure request is valid
-        validate(stdParameters);
         try {
             commandsService.removeVehicleToBlock(id);
         } catch (Exception e) {
@@ -306,9 +288,6 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> addAVLReport(
             StandardParameters stdParameters,
             String avlDate) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         try {
             ExportTable exportTable = new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(avlDate), 1, "avl_" + avlDate + ".csv");
             dataDbLogger.add(exportTable);

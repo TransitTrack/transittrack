@@ -31,9 +31,6 @@ import java.util.List;
 public class TransitimeNonAgencyResource extends BaseApiResource implements TransitimeNonAgencyApi {
     @Override
     public ResponseEntity<ApiAgenciesResponse> getAgencies(StandardParameters stdParameters) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         List<ApiAgency> apiAgencyList = new ArrayList<>();
         List<WebAgency> webAgencies = WebAgency.getCachedOrderedListOfWebAgencies();
 
@@ -56,8 +53,6 @@ public class TransitimeNonAgencyResource extends BaseApiResource implements Tran
             Double lon,
             double maxDistance,
             int numberPredictions) {
-        // Make sure request is valid
-        validate(stdParameters);
 
         if (maxDistance > PredsByLoc.MAX_MAX_DISTANCE)
             throw new RuntimeException("Maximum maxDistance parameter "

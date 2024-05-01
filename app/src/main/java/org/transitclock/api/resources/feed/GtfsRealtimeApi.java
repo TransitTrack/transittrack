@@ -25,7 +25,7 @@ import org.transitclock.properties.CoreProperties;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/api/v1/key/{key}/agency/{agency}")
+@RequestMapping("/api/v1/agency/{agency}")
 public class GtfsRealtimeApi extends BaseApiResource {
     private final AgencyTimezoneCache agencyTimezoneCache;
     private final FeedCacheManager feedCacheManager;
@@ -54,9 +54,6 @@ public class GtfsRealtimeApi extends BaseApiResource {
         StandardParameters stdParameters,
         @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format")
         @RequestParam(value = "format", required = false) String format) {
-
-        // Make sure request is valid
-        validate(stdParameters);
 
         // Determine if output should be in human-readable format or in
         // standard binary GTFS-realtime format.
@@ -89,10 +86,6 @@ public class GtfsRealtimeApi extends BaseApiResource {
             @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format")
             @RequestParam(value = "format", required = false)
             String format) {
-
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Determine if output should be in human readable format or in
         // standard binary GTFS-realtime format.
         final boolean humanFormatOutput = "human".equals(format);

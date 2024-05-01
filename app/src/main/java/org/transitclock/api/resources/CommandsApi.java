@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@RequestMapping("/api/v1/key/{key}/agency/{agency}")
+@RequestMapping("/api/v1/agency/{agency}")
 public interface CommandsApi {
     /**
      * Reads in a single AVL report specified by the query string parameters v=vehicleId

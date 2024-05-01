@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@RequestMapping("/api/v1/key/{key}/agency/{agency}")
+@RequestMapping("/api/v1/agency/{agency}")
 public interface ReportsApi {
     /**
      * Handles the "tripsWithTravelTimes" command which outputs arrival and departures data for the

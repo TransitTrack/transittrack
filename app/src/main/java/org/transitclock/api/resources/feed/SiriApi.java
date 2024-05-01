@@ -27,7 +27,7 @@ import java.util.List;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/api/v1/key/{key}/agency/{agency}")
+@RequestMapping("/api/v1/agency/{agency}")
 public class SiriApi extends BaseApiResource {
 
     /**
@@ -56,9 +56,6 @@ public class SiriApi extends BaseApiResource {
             @RequestParam(value = "v", required = false) List<String> vehicleIds,
             @Parameter(description = "List of routesId or routeShortName", required = false)
             @RequestParam(value = "r", required = false) List<String> routesIdOrShortNames) {
-        // Make sure request is valid
-        validate(stdParameters);
-
         // Get Vehicle data from server
         Collection<IpcVehicleComplete> vehicles;
         if (!routesIdOrShortNames.isEmpty()) {
@@ -105,27 +102,24 @@ public class SiriApi extends BaseApiResource {
             @Parameter(description = "Number of predictions", required = false)
             @RequestParam(value = "numPreds", required = false, defaultValue = "3") int numberPredictions
     ) {
-        // Make sure request is valid
-        validate(stdParameters);
+        // Get prediction data from server
+        List<IpcPredictionsForRouteStopDest> preds = predictionsService.get(routeIdOrShortName, stopId, numberPredictions);
 
-            // Get prediction data from server
-            List<IpcPredictionsForRouteStopDest> preds = predictionsService.get(routeIdOrShortName, stopId, numberPredictions);
-
-            // For each prediction also need corresponding vehicle so can create
-            // the absurdly large MonitoredVehicleJourney element.
-            List<String> vehicleIds = new ArrayList<>();
-            for (IpcPredictionsForRouteStopDest predsForDest : preds) {
-                for (IpcPrediction individualPred : predsForDest.getPredictionsForRouteStop()) {
-                    vehicleIds.add(individualPred.getVehicleId());
-                }
+        // For each prediction also need corresponding vehicle so can create
+        // the absurdly large MonitoredVehicleJourney element.
+        List<String> vehicleIds = new ArrayList<>();
+        for (IpcPredictionsForRouteStopDest predsForDest : preds) {
+            for (IpcPrediction individualPred : predsForDest.getPredictionsForRouteStop()) {
+                vehicleIds.add(individualPred.getVehicleId());
             }
-            Collection<IpcVehicleComplete> vehicles = vehiclesService.getComplete(vehicleIds);
+        }
+        Collection<IpcVehicleComplete> vehicles = vehiclesService.getComplete(vehicleIds);
 
-            // Determine SiriStopMonitoring response
-            SiriStopMonitoring siriStopMonitoring =
-                    new SiriStopMonitoring(preds, vehicles, stdParameters.getAgencyId());
+        // Determine SiriStopMonitoring response
+        SiriStopMonitoring siriStopMonitoring =
+                new SiriStopMonitoring(preds, vehicles, stdParameters.getAgencyId());
 
-            // Return SiriStopMonitoring response
-            return ResponseEntity.ok(siriStopMonitoring);
+        // Return SiriStopMonitoring response
+        return ResponseEntity.ok(siriStopMonitoring);
     }
 }

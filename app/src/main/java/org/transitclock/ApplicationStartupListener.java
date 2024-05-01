@@ -2,7 +2,6 @@ package org.transitclock;
 
 import java.util.TimeZone;
 
-import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.properties.CoreProperties;
 
@@ -15,12 +14,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ApplicationStartupListener implements ApplicationListener<ApplicationReadyEvent> {
-    private final ApiKeyManager apiKeyManager;
     private final CoreProperties properties;
     private final DataSourceProperties dataSourceProperties;
 
-    public ApplicationStartupListener(ApiKeyManager apiKeyManager, CoreProperties properties, DataSourceProperties dataSourceProperties) {
-        this.apiKeyManager = apiKeyManager;
+    public ApplicationStartupListener(CoreProperties properties, DataSourceProperties dataSourceProperties) {
         this.properties = properties;
         this.dataSourceProperties = dataSourceProperties;
     }
@@ -29,18 +26,6 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
     public void onApplicationEvent(ApplicationReadyEvent event) {
         TimeZone aDefault = TimeZone.getDefault();
         logger.warn("Application started using Timezone [{}, offset={}, daylight={}]", aDefault.getID(), aDefault.getRawOffset(), aDefault.useDaylightTime());
-
-        try {
-            apiKeyManager
-                .generateApiKey(
-                    "Sean Og Crudden",
-                    "http://www.transitclock.org",
-                    "og.crudden@gmail.com",
-                    "123456",
-                    "foo");
-        } catch (IllegalArgumentException ignored) {
-
-        }
 
         String agencyId = properties.getAgencyId();
         WebAgency webAgency = new WebAgency(agencyId,

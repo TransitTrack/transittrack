@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@RequestMapping("/api/v1/key/{key}/agency/{agency}")
+@RequestMapping("/api/v1/agency/{agency}")
 public interface TransitimeApi {
     // For specifying how vehicles should be drawn in the UI.
     enum UiMode {

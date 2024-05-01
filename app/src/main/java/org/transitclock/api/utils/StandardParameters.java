@@ -2,11 +2,10 @@
 package org.transitclock.api.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.BindParam;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * For getting the standard parameters from the URI used to access the feed. Includes the key,
@@ -16,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
  */
 @Data
 public class StandardParameters {
-    @BindParam("key")
-//    @Parameter(description = "Application key to access this api.")
-    private String key;
 
     @BindParam("agency")
 //    @Parameter(description = "Specify the agency the request is intended to.")
@@ -114,15 +110,6 @@ public class StandardParameters {
      */
     public <T> ResponseEntity<T> createResponse(T object) {
         return ResponseEntity.ok(object);
-    }
-
-    /**
-     * Simple getter for the key
-     *
-     * @return
-     */
-    public String getKey() {
-        return key;
     }
 
     /**
