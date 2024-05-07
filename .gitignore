@@ -17,8 +17,8 @@ dependency-reduced-pom.xml
 target
 logs
 
-
 HELP.md
+database
 target/
 !../.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
