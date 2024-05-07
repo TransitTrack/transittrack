@@ -1,4 +1,4 @@
-There are several main classes which are used in the set up of the system. These can be run directly by specifying the class to run or by using the executable jar in the target directory.
+ There are several main classes which are used in the set up of the system. These can be run directly by specifying the class to run or by using the executable jar in the target directory.
 
 The steps to set up the system are 
 <ul>
