@@ -6,7 +6,7 @@ import lombok.Data;
 public class CoreProperties {
     // config param: transitclock.core.agencyId
     // Specifies the ID of the agency. Used for the database name and in the logback configuration to specify the directory where to put the log files.
-    private String agencyId = null;
+    private String agencyId = "transitclock";
 
     // config param: transitclock.core.timezone
     // For setting timezone for application. Ideally would get timezone from the agency db but once a Hibernate session factory is created, such as for reading timezone from db, then it is too late to set the timezone. Therefore this provides ability to set it manually.

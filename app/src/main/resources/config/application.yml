@@ -82,8 +82,8 @@ transitclock:
   blockLoading:
     agressive: false
   core:
+    agencyId: 'transitclock' # please change this to your agency id
     afterStopDistance: 50.0
-#    agencyId: 'null'
     allowableBadAssignments: 4
     allowableEarlyDepartureTimeForLoggingEvent: 60
     allowableEarlyForLayoverSeconds: 3600
