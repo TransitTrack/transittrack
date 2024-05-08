@@ -70,7 +70,7 @@ jobs:
 
       - name: Build container image with Jib, push to Dockerhub
         env:
-          CONTAINER_REPO: ghcr.io/TransitTrack/transit-track
+          CONTAINER_REPO: "ghcr.io/TransitTrack/transittrack"
           CONTAINER_REGISTRY_USER: ${{ github.repository_owner }}
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
