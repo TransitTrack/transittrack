@@ -53,7 +53,7 @@ jobs:
           cache: gradle
 
       - name: Docker setup-buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           install: true
 
