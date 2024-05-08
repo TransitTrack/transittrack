@@ -11,7 +11,7 @@ pluginManagement {
         kotlin("plugin.allopen") version kotlinVersion
 
         id("org.springframework.boot") version springVersion
-        id("io.spring.dependency-management") version "1.1.4"
+        id("io.spring.dependency-management") version "1.1.5"
 
         id("com.google.cloud.tools.jib") version jibPluginVersion
         id("com.palantir.git-version") version "0.15.0"
