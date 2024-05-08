@@ -52,6 +52,19 @@ jobs:
           distribution: temurin
           cache: gradle
 
+      - name: Docker setup-buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+
+      - name: Docker Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
 
