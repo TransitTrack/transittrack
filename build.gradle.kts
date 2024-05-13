@@ -28,7 +28,7 @@ subprojects {
             mavenBom("org.springframework.boot:spring-boot-dependencies:${springVersion}")
         }
         dependencies{
-            dependency("org.apache.commons:commons-csv:1.10.0")
+            dependency("org.apache.commons:commons-csv:1.11.0")
             dependency("io.hypersistence:hypersistence-utils-hibernate-62:3.7.5")
             dependency("com.google.guava:guava:33.2.0-jre")
         }
