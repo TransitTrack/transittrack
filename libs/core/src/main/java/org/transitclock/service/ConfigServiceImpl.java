@@ -30,7 +30,9 @@ import org.transitclock.service.dto.IpcVehicleComplete;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -371,5 +373,13 @@ public class ConfigServiceImpl implements ConfigService {
                 .map(Block::getId)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    /* (non-Javadoc)
+     * @see org.transitclock.ipc.interfaces.ConfigInterface#getBlockIds()
+     */
+    @Override
+    public Map<String, List<String>> getServiceIdsWithBlockIds() {
+        return dbConfig.getBlockIdsForAllServiceIds();
     }
 }

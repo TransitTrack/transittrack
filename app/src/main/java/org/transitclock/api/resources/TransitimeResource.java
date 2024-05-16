@@ -24,6 +24,7 @@ import org.transitclock.api.data.ApiRoutesDetailsResponse;
 import org.transitclock.api.data.ApiRoutesResponse;
 import org.transitclock.api.data.ApiSchedulesHorizStops;
 import org.transitclock.api.data.ApiSchedulesVertStopsResponse;
+import org.transitclock.api.data.ApiServiceIdResponse;
 import org.transitclock.api.data.ApiTrip;
 import org.transitclock.api.data.ApiTripPatternsResponse;
 import org.transitclock.api.data.ApiTripWithTravelTimes;
@@ -841,6 +842,20 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
 
             ApiIdsResponse apiIds = new ApiIdsResponse(ids);
             return stdParameters.createResponse(apiIds);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiServiceIdResponse> getServiceIdsWithBlocks(StandardParameters stdParameters) {
+        try {
+            // Get Vehicle data from server
+            Map<String, List<String>> idsWithBlockIds = configService.getServiceIdsWithBlockIds();
+
+            ApiServiceIdResponse apiServiceIds = new ApiServiceIdResponse(idsWithBlockIds);
+            return stdParameters.createResponse(apiServiceIds);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);

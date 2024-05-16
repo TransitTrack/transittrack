@@ -14,6 +14,7 @@ import org.transitclock.service.dto.IpcTripPattern;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Defines the RMI interface for getting configuration data.
@@ -52,7 +53,7 @@ public interface ConfigService {
     /**
      * Obtains ordered list of route details
      *
-     * @param routeIdOrShortName
+     * @param routeIdsOrShortNames
      * @return
      */
     List<IpcRoute> getRoutes(List<String> routeIdsOrShortNames);
@@ -176,4 +177,12 @@ public interface ConfigService {
      * @return vehicle IDs
      */
     List<String> getBlockIds(String serviceId);
+
+
+    /**
+     * Returns sorted lists of block IDs what belong to all service IDs
+     *
+     * @return Map of service IDs with belong block IDs
+     */
+    Map<String, List<String>> getServiceIdsWithBlockIds();
 }
