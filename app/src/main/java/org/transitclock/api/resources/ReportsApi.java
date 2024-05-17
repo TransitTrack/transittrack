@@ -47,8 +47,8 @@ public interface ReportsApi {
     ResponseEntity<String> getAvlReport(
             StandardParameters stdParameters,
             @Parameter(description = "Vehicle id") @RequestParam(value = "v") String vehicleId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @RequestParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", required = false) int numDays,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
             @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime);
 
@@ -104,7 +104,7 @@ public interface ReportsApi {
     ResponseEntity<String> scheduleAdhReport(
             StandardParameters stdParameters,
             @Parameter(description = "Route id") @RequestParam(value = "r") String routeId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime") String endTime,
