@@ -4,16 +4,12 @@ package org.transitclock.domain.structs;
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
-import org.transitclock.domain.structs.QTravelTimesForTrip;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -80,10 +76,10 @@ public class TravelTimesForTrip implements Serializable {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "travel_times_for_trip_to_travel_times_for_path",
             joinColumns = {
-                    @JoinColumn(name = "for_path_id", referencedColumnName = "id")
+                    @JoinColumn(name = "for_trip_id", referencedColumnName = "id")
             },
             inverseJoinColumns = {
-                    @JoinColumn(name = "for_trip_id", referencedColumnName = "id")
+                    @JoinColumn(name = "for_path_id", referencedColumnName = "id")
             })
     @Cascade({CascadeType.SAVE_UPDATE})
     @OrderColumn(name = "list_index")

@@ -29,7 +29,9 @@
               <apiPackage>org.transitclock.extension.traccar.api</apiPackage>
               <invokerPackage>org.transitclock.extension.traccar</invokerPackage>
               <generatorName>java</generatorName>
+              <generateApiTests>false</generateApiTests>
               <generateModels>true</generateModels>
+              <generateModelTests>false</generateModelTests>
               <generateModelDocumentation>false</generateModelDocumentation>
               <modelPackage>org.transitclock.extension.traccar.model</modelPackage>
               <modelNameSuffix>Dto</modelNameSuffix>
@@ -42,6 +44,15 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.gaul</groupId>
+        <artifactId>modernizer-maven-plugin</artifactId>
+        <configuration>
+          <!-- skipping for now cause it generates problem on windows -->
+          <skip>true</skip>
+        </configuration>
       </plugin>
     </plugins>
   </build>

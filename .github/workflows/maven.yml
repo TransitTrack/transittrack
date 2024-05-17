@@ -10,7 +10,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main", "refactor" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -38,7 +38,7 @@ jobs:
       uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
 
   container-image:
-    if: github.repository_owner == 'opentransportro' && github.event_name == 'push' && (github.ref == 'refs/heads/main')
+    if: github.repository_owner == 'transittrack' && github.event_name == 'push' && (github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     needs:
       - build
@@ -55,9 +55,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+
+      - name: Docker setup-buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Docker Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build container image with Jib, push to Dockerhub
         env:
-          CONTAINER_REPO: docker.io/otrro/transitclock-server
+          CONTAINER_REPO: "ghcr.io/transittrack/transittrack"
           CONTAINER_REGISTRY_USER: ${{secrets.DOCKER_USER}}
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_AUTH }}
         run: |
@@ -77,4 +90,4 @@ jobs:
             echo "Maven version ${version_with_snapshot} contains SNAPSHOT, adding date to container image tag"
           fi
   
-          mvn install jib:build -Djib.to.tags=latest,$image_version
+          mvn install jib:build -Djib.to.tags=$image_version
