@@ -528,9 +528,9 @@ public class TripPattern implements Serializable, Lifecycle {
      * @return
      */
     public List<String> getStopIds() {
-        List<String> list = new ArrayList<String>(stopPaths.size());
-        for (StopPath stopPath : stopPaths) list.add(stopPath.getStopId());
-        return list;
+        return stopPaths.stream()
+                .map(StopPath::getStopId)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -539,7 +539,9 @@ public class TripPattern implements Serializable, Lifecycle {
      * @return ID of last stop
      */
     public String getLastStopIdForTrip() {
-        return stopPaths.get(stopPaths.size() - 1).getStopId();
+        return Optional.ofNullable(getStopPath(stopPaths.size() - 1))
+                .map(StopPath::getStopId)
+                .orElse(null);
     }
 
     /**
@@ -560,7 +562,8 @@ public class TripPattern implements Serializable, Lifecycle {
      * @return The specified StopPath or null if index out of range
      */
     public StopPath getStopPath(int index) {
-        if (index < 0 || index >= stopPaths.size()) return null;
+        if (index < 0 || index >= stopPaths.size())
+            return null;
 
         return stopPaths.get(index);
     }
