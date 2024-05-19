@@ -217,13 +217,17 @@ public class SqlUtils {
 
         SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
         SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-        if (beginDate.charAt(4) != '-') { // for two patterns MM-dd-yyyy & yyyy-MM-dd
+
         try {
-            beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            if (beginDate.charAt(4) != '-') { // for two patterns MM-dd-yyyy & yyyy-MM-dd
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
         } catch (ParseException e) {
             logger.error("Exception happened while processing time-range clause", e);
-            }
         }
+
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
     }
