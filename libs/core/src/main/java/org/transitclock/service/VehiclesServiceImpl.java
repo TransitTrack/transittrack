@@ -5,6 +5,8 @@ import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.hibernate.HibernateUtils;
@@ -25,6 +27,7 @@ import org.transitclock.service.dto.IpcVehicleToBlockConfig;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -370,31 +373,49 @@ public class VehiclesServiceImpl implements VehiclesService {
     }
 
     @Override
-    public Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfig(String blockId) {
+    public Collection<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs() {
         List<IpcVehicleToBlockConfig> result = new ArrayList<>();
-        try (Session session = HibernateUtils.getSession()){
-            for (VehicleToBlockConfig vTBC : VehicleToBlockConfig.getVehicleToBlockConfigsByBlockId(session, blockId)) {
-                result.add(new IpcVehicleToBlockConfig(vTBC));
-            }
-        } catch (Exception ex) {
-            logger.error("Something happened while fetching the VehicleToBlockConfig.", ex);
+        try (Session session = HibernateUtils.getSession()) {
+            return VehicleToBlockConfig.getActualVehicleToBlockConfigs(session).stream()
+                    .map(IpcVehicleToBlockConfig::new)
+                    .collect(Collectors.toList());
+            } catch (Exception ex) {
+            logger.error("Something happened while fetching the data: ", ex);
         }
-        return result;
+        return List.of();
+    }
+
+    @Override
+    public Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfigByBlockId(String blockId) {
+        try (Session session = HibernateUtils.getSession()) {
+        if (!StringUtils.isEmpty(blockId)) {
+            return VehicleToBlockConfig.getVehicleToBlockConfigsByBlockId(session, blockId)
+                    .stream()
+                    .map(IpcVehicleToBlockConfig::new)
+                    .collect(Collectors.toList());
+        }
+        return VehicleToBlockConfig.getVehicleToBlockConfigs(session)
+                .stream()
+                .map(IpcVehicleToBlockConfig::new)
+                .collect(Collectors.toList());
+    } catch (Exception ex) {
+        logger.error("Something happened while fetching the data.", ex);
+    }
+        return List.of();
     }
 
     @Override
     public Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfigByVehicleId(String vehicleId) {
-        List<IpcVehicleToBlockConfig> result = new ArrayList<>();
-        Session session = HibernateUtils.getSession();
-        try {
-            for (var vTBC : VehicleToBlockConfig.getVehicleToBlockConfigsByVehicleId(session, vehicleId)) {
-                result.add(new IpcVehicleToBlockConfig(vTBC));
-            }
-            session.close();
+
+        try (Session session = HibernateUtils.getSession()) {
+            return VehicleToBlockConfig.getVehicleToBlockConfigsByVehicleId(session, vehicleId)
+                    .stream()
+                    .map(IpcVehicleToBlockConfig::new)
+                    .collect(Collectors.toList());
         } catch (Exception ex) {
-            session.close();
+            logger.error("Something happened while fetching the data.", ex);
         }
-        return result;
+        return List.of();
     }
 
     /**
@@ -434,5 +455,5 @@ public class VehiclesServiceImpl implements VehiclesService {
             if (blockStartTime1 > blockStartTime2) return 1;
             return 0;
         }
-    };
+    }
 }

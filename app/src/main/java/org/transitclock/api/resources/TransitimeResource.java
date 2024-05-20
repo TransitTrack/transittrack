@@ -116,13 +116,19 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     @Override
     public ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
+            boolean actual,
             String blockId) {
         // Get Vehicle data from server
-        var result = vehiclesService.getVehicleToBlockConfig(blockId);
-        ApiVehicleToBlockResponse res = new ApiVehicleToBlockResponse(result);
-
+        if(actual) {
+            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs();
+            ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(actualConfigs);
+            // return actual ApiVehicles response
+            return ResponseEntity.ok(response);
+        }
+        var configs = vehiclesService.getVehicleToBlockConfigByBlockId(blockId);
+        ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(configs);
         // return ApiVehicles response
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(response);
     }
 
     @Override

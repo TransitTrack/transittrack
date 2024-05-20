@@ -111,6 +111,11 @@ public class VehicleToBlockConfig implements Serializable {
             throw t;
         }
     }
+    public static List<VehicleToBlockConfig> getActualVehicleToBlockConfigs(Session session) throws HibernateException {
+        return session
+                .createQuery("FROM VehicleToBlockConfig WHERE validTo > now() ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
+                .list();
+    }
 
     public static List<VehicleToBlockConfig> getVehicleToBlockConfigsByBlockId(Session session, String blockId) throws HibernateException {
         return session
