@@ -40,7 +40,7 @@ dependencies {
         exclude("com.sun.istack", "istack-commons-runtime")
     }
 
-    implementation("com.esotericsoftware:kryo:4.0.0")
+    implementation("com.esotericsoftware:kryo:5.6.0")
     implementation("com.github.haifengl:smile-core:1.5.1")
     implementation("org.glassfish.jaxb:jaxb-core")
     implementation("org.apache.httpcomponents:httpcore")
