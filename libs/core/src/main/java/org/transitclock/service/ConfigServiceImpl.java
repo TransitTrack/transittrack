@@ -1,11 +1,9 @@
 /* (C)2023 */
 package org.transitclock.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.structs.Agency;
@@ -30,9 +28,12 @@ import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.dto.IpcTripPattern;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implements ConfigInterface to serve up configuration information to RMI clients.
@@ -388,5 +389,13 @@ public class ConfigServiceImpl implements ConfigService {
                                              null,
                                              null))
                 .collect(Collectors.toList());
+    }
+
+    /* (non-Javadoc)
+     * @see org.transitclock.ipc.interfaces.ConfigInterface#getBlockIds()
+     */
+    @Override
+    public Map<String, List<String>> getServiceIdsWithBlockIds() {
+        return dbConfig.getBlockIdsForAllServiceIds();
     }
 }
