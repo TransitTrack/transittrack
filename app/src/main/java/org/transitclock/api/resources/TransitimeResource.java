@@ -386,7 +386,20 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
         // ApiRoutesDetails object
         ApiRoutesDetailsResponse routeData = new ApiRoutesDetailsResponse(ipcRoutes, agencies.get(0));
         return stdParameters.createResponse(routeData);
+    }
 
+    @Override
+    public ResponseEntity<ApiRoutesDetailsResponse> getRouteDetailsByStopId(
+            StandardParameters stdParameters,
+            String stopId) {
+        // Get agency info so can also return agency name
+        List<Agency> agencies = configService.getAgencies();
+        // Retrieve filtered routs
+        var ipcRoutes = configService.getRoutesByStopId(stopId);
+        // Take the IpcRoute data array and create and return
+        // ApiRoutesDetails object
+        ApiRoutesDetailsResponse routeData = new ApiRoutesDetailsResponse(ipcRoutes, agencies.get(0));
+        return stdParameters.createResponse(routeData);
     }
 
     @Override

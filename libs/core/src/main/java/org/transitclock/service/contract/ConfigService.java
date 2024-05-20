@@ -176,4 +176,12 @@ public interface ConfigService {
      * @return vehicle IDs
      */
     List<String> getBlockIds(String serviceId);
+
+    /**
+     * Obtains list of routes which contained stops with following stop ID
+     *
+     * @param stopId
+     * @return list of IpcRoute
+     */
+    List<IpcRoute> getRoutesByStopId(String stopId);
 }
