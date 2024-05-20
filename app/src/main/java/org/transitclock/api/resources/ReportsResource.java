@@ -98,6 +98,28 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     }
 
     @Override
+    public ResponseEntity<String> reportForStopById(
+            StandardParameters stdParameters,
+            String stopId,
+            String beginDate,
+            int numDays,
+            String beginTime,
+            String endTime,
+            String allowableEarly,
+            String allowableLate) {
+        String response = Reports.getReportForStopById(
+                stdParameters.getAgencyId(),
+                stopId,
+                beginDate,
+                allowableEarly,
+                allowableLate,
+                beginTime,
+                endTime,
+                numDays);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<String> getLastAvlJsonData(StandardParameters stdParameters) {
         String response = Reports.getLastAvlJson(stdParameters.getAgencyId());
         return ResponseEntity.ok(response);

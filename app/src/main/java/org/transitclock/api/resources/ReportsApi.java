@@ -113,6 +113,24 @@ public interface ReportsApi {
             @Parameter(description = "Allowable late in mins(default 4.0")
             @RequestParam(value = "allowableLate", required = false, defaultValue = "4.0") String allowableLate);
 
+    @Operation(
+            summary = "Returns schedule adherence report for single stop.",
+            description = "Returns schedule adherence report for single stop.",
+            tags = {"report", "stop", "schedule adherence"})
+    @GetMapping(value = "/reports/schedStopAdh",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    ResponseEntity<String> reportForStopById(
+            StandardParameters stdParameters,
+            @Parameter(description = "Stop id") @RequestParam(value = "stopId") String stopId,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
+            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
+            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime,
+            @Parameter(description = "Allowable early in mins(default 1.0)")
+            @RequestParam(value = "allowableEarly", required = false, defaultValue = "1.0") String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 4.0")
+            @RequestParam(value = "allowableLate", required = false, defaultValue = "4.0") String allowableLate);
+
     @GetMapping(value = "/reports/lastAvlJsonData",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @Operation(

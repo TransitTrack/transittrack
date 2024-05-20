@@ -31,7 +31,7 @@ dependencies {
 
     implementation("com.google.guava:guava")
 
-    api("org.json:json:20231013")
+    api("org.json:json:20240303")
     implementation("org.jasypt:jasypt:1.9.3")
 
     api(group = "org.ehcache", name = "ehcache", classifier = "jakarta") {
