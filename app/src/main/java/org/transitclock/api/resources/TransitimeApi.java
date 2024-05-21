@@ -6,22 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
@@ -36,25 +21,15 @@ import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
-import org.transitclock.service.dto.IpcActiveBlock;
-import org.transitclock.service.dto.IpcBlock;
-import org.transitclock.service.dto.IpcCalendar;
-import org.transitclock.service.dto.IpcDirectionsForRoute;
-import org.transitclock.service.dto.IpcPrediction;
-import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-import org.transitclock.service.dto.IpcRoute;
-import org.transitclock.service.dto.IpcRouteSummary;
-import org.transitclock.service.dto.IpcSchedule;
-import org.transitclock.service.dto.IpcServerStatus;
-import org.transitclock.service.dto.IpcTrip;
-import org.transitclock.service.dto.IpcTripPattern;
-import org.transitclock.service.dto.IpcVehicle;
-import org.transitclock.service.dto.IpcVehicleConfig;
 import org.transitclock.service.contract.ConfigInterface;
 import org.transitclock.service.contract.PredictionsInterface;
-import org.transitclock.service.contract.PredictionsInterface.RouteStop;
 import org.transitclock.service.contract.ServerStatusInterface;
 import org.transitclock.service.contract.VehiclesInterface;
+import org.transitclock.service.dto.*;
+
+import java.rmi.RemoteException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Contains the API commands for the Transitime API for getting real-time vehicle and prediction
@@ -68,18 +43,18 @@ import org.transitclock.service.contract.VehiclesInterface;
  */
 @OpenAPIDefinition(
         info =
-                @Info(
-                        title = "TrasnsitClockAPI",
-                        version = "1.0",
-                        description = "TheTransitClock is an open source transit information system. It’s"
-                                + " core function is to provide and analyze arrival predictions"
-                                + " for transit systems.<br>Here you will find the detailed"
-                                + " description of The Transit Clock API.<br>For more"
-                                + " information visit <a"
-                                + " href=\"https://thetransitclock.github.io/\">thetransitclock.github.io.</a><br>"
-                                + " The original documentation can be found in <a"
-                                + " href=\"https://github.com/Transitime/core/wiki/API\">Api"
-                                + " doc</a>."),
+        @Info(
+                title = "TrasnsitClockAPI",
+                version = "1.0",
+                description = "TheTransitClock is an open source transit information system. It’s"
+                        + " core function is to provide and analyze arrival predictions"
+                        + " for transit systems.<br>Here you will find the detailed"
+                        + " description of The Transit Clock API.<br>For more"
+                        + " information visit <a"
+                        + " href=\"https://thetransitclock.github.io/\">thetransitclock.github.io.</a><br>"
+                        + " The original documentation can be found in <a"
+                        + " href=\"https://github.com/Transitime/core/wiki/API\">Api"
+                        + " doc</a>."),
         servers = {@Server(url = "/api/v1")})
 @Path("/key/{key}/agency/{agency}")
 public class TransitimeApi {
@@ -92,15 +67,15 @@ public class TransitimeApi {
      * the both XML and JSON yet always return the proper media type even if it is configured via
      * the query string "format" parameter as opposed to the accept header.
      *
-     * @param stdParameters StdParametersBean that gets the standard parameters from the URI, query
-     *     string, and headers.
-     * @param vehicleIds Optional way of specifying which vehicles to get data for
+     * @param stdParameters        StdParametersBean that gets the standard parameters from the URI, query
+     *                             string, and headers.
+     * @param vehicleIds           Optional way of specifying which vehicles to get data for
      * @param routesIdOrShortNames Optional way of specifying which routes to get data for
-     * @param stopId Optional way of specifying a stop so can get predictions for routes and
-     *     determine which vehicles are the ones generating the predictions. The other vehicles are
-     *     labeled as minor so they can be drawn specially in the UI.
-     * @param numberPredictions For when determining which vehicles are generating the predictions
-     *     so can label minor vehicles
+     * @param stopId               Optional way of specifying a stop so can get predictions for routes and
+     *                             determine which vehicles are the ones generating the predictions. The other vehicles are
+     *                             labeled as minor so they can be drawn specially in the UI.
+     * @param numberPredictions    For when determining which vehicles are generating the predictions
+     *                             so can label minor vehicles
      * @return The Response object already configured for the specified media type.
      */
     @Operation(
@@ -114,20 +89,20 @@ public class TransitimeApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Vehicles is list.") @QueryParam(value = "v") List<String> vehicleIds,
             @Parameter(description = "Specifies which vehicles to get data for.", required = false)
-                    @QueryParam(value = "r")
-                    List<String> routesIdOrShortNames,
+            @QueryParam(value = "r")
+            List<String> routesIdOrShortNames,
             @Parameter(
-                            description = "Specifies a stop so can get predictions for routes and"
-                                    + " determine which vehicles are the ones generating the"
-                                    + " predictions. The other vehicles are labeled as minor so"
-                                    + " they can be drawn specially in the UI.",
-                            required = false)
-                    @QueryParam(value = "s")
-                    String stopId,
+                    description = "Specifies a stop so can get predictions for routes and"
+                            + " determine which vehicles are the ones generating the"
+                            + " predictions. The other vehicles are labeled as minor so"
+                            + " they can be drawn specially in the UI.",
+                    required = false)
+            @QueryParam(value = "s")
+            String stopId,
             @Parameter(description = "Number of predictions to show.", required = false)
-                    @QueryParam(value = "numPreds")
-                    @DefaultValue("2")
-                    int numberPredictions)
+            @QueryParam(value = "numPreds")
+            @DefaultValue("2")
+            int numberPredictions)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -177,11 +152,9 @@ public class TransitimeApi {
     public Response getVehiclesToBlock(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "If set 'true', returns only the data with actual time windows.", required = false)
-            @QueryParam(value = "actual")
-            boolean isActual,
+            @QueryParam(value = "actual") boolean isActual,
             @Parameter(description = "If set, returns only the data for that block Id.", required = false)
-            @QueryParam(value = "blockId")
-            String blockId)
+            @QueryParam(value = "blockId") String blockId)
             throws WebApplicationException {
 
         stdParameters.validate();
@@ -190,7 +163,7 @@ public class TransitimeApi {
             // Get Vehicle data from server
             VehiclesInterface inter = stdParameters.getVehiclesInterface();
 
-            if(isActual){
+            if (isActual) {
                 var actualConfigs = inter.getActualVehicleToBlockConfigs();
                 ApiVehicleToBlockConfigs vehiclesToBlocks = new ApiVehicleToBlockConfigs(actualConfigs);
                 // return actual ApiVehicleToBlockConfigs response
@@ -217,7 +190,7 @@ public class TransitimeApi {
     public Response getAvlReport(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Vehicle id") @QueryParam(value = "v") String vehicleId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.", required = false) @QueryParam(value = "numDays") int numDays,
             @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
@@ -312,14 +285,14 @@ public class TransitimeApi {
     public Response scheduleAdhReport(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Route id") @QueryParam(value = "r") String routeId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.", required = false) @QueryParam(value = "numDays") int numDays,
             @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime,
             @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
-                    String allowableEarly,
+            String allowableEarly,
             @Parameter(description = "Allowable late in mins(default 4.0") @QueryParam(value = "allowableLate")
-                    String allowableLate)
+            String allowableLate)
             throws WebApplicationException {
         stdParameters.validate();
         try {
@@ -352,6 +325,43 @@ public class TransitimeApi {
 
         try {
             String response = Reports.getLastAvlJson(stdParameters.getAgencyId());
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Operation(
+            summary = "Returns schedule adherence report for single stop.",
+            description = "Returns schedule adherence report for single stop.",
+            tags = {"report", "stop"})
+    @Path("/reports/schedStopAdh")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response reportForStopById(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Stop Id", required = true) @QueryParam(value = "id") String stopId,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.", required = true) @QueryParam(value = "numDays") int numDays,
+            @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
+            @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime,
+            @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
+            String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 4.0") @QueryParam(value = "allowableLate")
+            String allowableLate)
+            throws WebApplicationException {
+        stdParameters.validate();
+        try {
+            String response = Reports.getReportForStopById(
+                    stdParameters.getAgencyId(),
+                    stopId,
+                    beginDate,
+                    allowableEarly,
+                    allowableLate,
+                    beginTime,
+                    endTime,
+                    numDays);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
@@ -399,8 +409,8 @@ public class TransitimeApi {
     public Response getVehicleLocation(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Specifies the vehicle from which to get the location from.", required = true)
-                    @QueryParam(value = "v")
-                    String vehicleId)
+            @QueryParam(value = "v")
+            String vehicleId)
             throws WebApplicationException {
         try {
 
@@ -427,15 +437,15 @@ public class TransitimeApi {
      * the both XML and JSON yet always return the proper media type even if it is configured via
      * the query string "format" parameter as opposed to the accept header.
      *
-     * @param stdParameters StdParametersBean that gets the standard parameters from the URI, query
-     *     string, and headers.
-     * @param vehicleIds Optional way of specifying which vehicles to get data for
+     * @param stdParameters        StdParametersBean that gets the standard parameters from the URI, query
+     *                             string, and headers.
+     * @param vehicleIds           Optional way of specifying which vehicles to get data for
      * @param routesIdOrShortNames Optional way of specifying which routes to get data for
-     * @param stopId Optional way of specifying a stop so can get predictions for routes and
-     *     determine which vehicles are the ones generating the predictions. The other vehicles are
-     *     labeled as minor so they can be drawn specially in the UI.
-     * @param numberPredictions For when determining which vehicles are generating the predictions
-     *     so can label minor vehicles
+     * @param stopId               Optional way of specifying a stop so can get predictions for routes and
+     *                             determine which vehicles are the ones generating the predictions. The other vehicles are
+     *                             labeled as minor so they can be drawn specially in the UI.
+     * @param numberPredictions    For when determining which vehicles are generating the predictions
+     *                             so can label minor vehicles
      * @return The Response object already configured for the specified media type.
      */
     @Path("/command/vehiclesDetails")
@@ -450,30 +460,30 @@ public class TransitimeApi {
     public Response getVehiclesDetails(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Specifies which vehicles to get data for", required = false)
-                    @QueryParam(value = "v")
-                    List<String> vehicleIds,
+            @QueryParam(value = "v")
+            List<String> vehicleIds,
             @Parameter(description = "Specifies which routes to get data for", required = false)
-                    @QueryParam(value = "r")
-                    List<String> routesIdOrShortNames,
+            @QueryParam(value = "r")
+            List<String> routesIdOrShortNames,
             @Parameter(
-                            description = "Specifies a stop so can get predictions for routes and"
-                                    + " determine which vehicles are the ones generating the"
-                                    + " predictions. The other vehicles are labeled as minor so"
-                                    + " they can be drawn specially in the UI. ",
-                            required = false)
-                    @QueryParam(value = "s")
-                    String stopId,
+                    description = "Specifies a stop so can get predictions for routes and"
+                            + " determine which vehicles are the ones generating the"
+                            + " predictions. The other vehicles are labeled as minor so"
+                            + " they can be drawn specially in the UI. ",
+                    required = false)
+            @QueryParam(value = "s")
+            String stopId,
             @Parameter(
-                            description = " For when determining which vehicles are generating the"
-                                    + "predictions so can label minor vehicles",
-                            required = false)
-                    @QueryParam(value = "numPreds")
-                    @DefaultValue("3")
-                    int numberPredictions,
+                    description = " For when determining which vehicles are generating the"
+                            + "predictions so can label minor vehicles",
+                    required = false)
+            @QueryParam(value = "numPreds")
+            @DefaultValue("3")
+            int numberPredictions,
             @Parameter(description = " Return only assigned vehicles", required = false)
-                    @QueryParam(value = "onlyAssigned")
-                    @DefaultValue("false")
-                    boolean onlyAssigned)
+            @QueryParam(value = "onlyAssigned")
+            @DefaultValue("false")
+            boolean onlyAssigned)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -513,7 +523,7 @@ public class TransitimeApi {
                 List<IpcVehicleConfig> configs = vehiclesConfigsGrouped.getOrDefault(id, List.of());
                 if (!configs.isEmpty()) {
                     for (IpcVehicleConfig config : configs) {
-                        if(!StringUtils.isEmpty(config.getName())) {
+                        if (!StringUtils.isEmpty(config.getName())) {
                             vehiclesGrouped.get(id).forEach(v -> v.setVehicleName(config.getName()));
                             break;
                         }
@@ -554,7 +564,9 @@ public class TransitimeApi {
         NORMAL,
         SECONDARY,
         MINOR
-    };
+    }
+
+    ;
 
     /**
      * Gets information including vehicle IDs for all vehicles that have been configured. Useful for
@@ -687,17 +699,17 @@ public class TransitimeApi {
      * the both XML and JSON yet always return the proper media type even if it is configured via
      * the query string "format" parameter as opposed to the accept header.
      *
-     * @param stdParameters StdParametersBean that gets the standard parameters from the URI, query
-     *     string, and headers.
-     * @param routeStopStrs List of route/stops to return predictions for. If route not specified
-     *     then data will be returned for all routes for the specified stop. The route specifier is
-     *     the route id or the route short name. It is often best to use route short name for
-     *     consistency across configuration changes (route ID is not consistent for many agencies).
-     *     The stop specified can either be the stop ID or the stop code. Each route/stop is
-     *     separated by the "|" character so for example the query string could have
-     *     "rs=43|2029&rs=43|3029"
-     * @param stopStrs List of stops to return predictions for. Provides predictions for all routes
-     *     that serve the stop. Can use either stop ID or stop code. Can specify multiple stops.
+     * @param stdParameters     StdParametersBean that gets the standard parameters from the URI, query
+     *                          string, and headers.
+     * @param routeStopStrs     List of route/stops to return predictions for. If route not specified
+     *                          then data will be returned for all routes for the specified stop. The route specifier is
+     *                          the route id or the route short name. It is often best to use route short name for
+     *                          consistency across configuration changes (route ID is not consistent for many agencies).
+     *                          The stop specified can either be the stop ID or the stop code. Each route/stop is
+     *                          separated by the "|" character so for example the query string could have
+     *                          "rs=43|2029&rs=43|3029"
+     * @param stopStrs          List of stops to return predictions for. Provides predictions for all routes
+     *                          that serve the stop. Can use either stop ID or stop code. Can specify multiple stops.
      * @param numberPredictions Maximum number of predictions to return. Default value is 3.
      * @return
      * @throws WebApplicationException
@@ -711,27 +723,27 @@ public class TransitimeApi {
     public Response getPredictions(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "List of route/stops to return predictions for. If route not"
-                                    + " specified then data will be returned for all routes for"
-                                    + " the specified stop. The route specifier is the route id"
-                                    + " or the route short name. It is often best to use route"
-                                    + " short name for consistency across configuration changes"
-                                    + " (route ID is not consistent for many agencies). The"
-                                    + " stop specified can either be the stop ID or the stop"
-                                    + " code. Each route/stop is separated by the \"|\""
-                                    + " character so for example the query string could have"
-                                    + " \"rs=43|2029&rs=43|3029\"")
-                    @QueryParam(value = "rs")
-                    List<String> routeStopStrs,
+                    description = "List of route/stops to return predictions for. If route not"
+                            + " specified then data will be returned for all routes for"
+                            + " the specified stop. The route specifier is the route id"
+                            + " or the route short name. It is often best to use route"
+                            + " short name for consistency across configuration changes"
+                            + " (route ID is not consistent for many agencies). The"
+                            + " stop specified can either be the stop ID or the stop"
+                            + " code. Each route/stop is separated by the \"|\""
+                            + " character so for example the query string could have"
+                            + " \"rs=43|2029&rs=43|3029\"")
+            @QueryParam(value = "rs")
+            List<String> routeStopStrs,
             @Parameter(
-                            description = "List of stops to return predictions for. Can use either stop"
-                                    + " ID or stop code.")
-                    @QueryParam(value = "s")
-                    List<String> stopStrs,
+                    description = "List of stops to return predictions for. Can use either stop"
+                            + " ID or stop code.")
+            @QueryParam(value = "s")
+            List<String> stopStrs,
             @Parameter(description = "Maximum number of predictions to return.")
-                    @QueryParam(value = "numPreds")
-                    @DefaultValue("3")
-                    int numberPredictions)
+            @QueryParam(value = "numPreds")
+            @DefaultValue("3")
+            int numberPredictions)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -741,7 +753,7 @@ public class TransitimeApi {
             PredictionsInterface inter = stdParameters.getPredictionsInterface();
 
             // Create list of route/stops that should get predictions for
-            List<RouteStop> routeStopsList = new ArrayList<RouteStop>();
+            List<PredictionsInterface.RouteStop> routeStopsList = new ArrayList<>();
             for (String routeStopStr : routeStopStrs) {
                 // Each route/stop is specified as a single string using "\"
                 // as a divider (e.g. "routeId|stopId")
@@ -758,7 +770,7 @@ public class TransitimeApi {
                     routeIdOrShortName = routeStopParams[0];
                     stopIdOrCode = routeStopParams[1];
                 }
-                RouteStop routeStop = new RouteStop(routeIdOrShortName, stopIdOrCode);
+                PredictionsInterface.RouteStop routeStop = new PredictionsInterface.RouteStop(routeIdOrShortName, stopIdOrCode);
                 routeStopsList.add(routeStop);
             }
 
@@ -766,7 +778,7 @@ public class TransitimeApi {
             for (String stopStr : stopStrs) {
                 // Use null for route identifier so get predictions for all
                 // routes for the stop
-                RouteStop routeStop = new RouteStop(null, stopStr);
+                PredictionsInterface.RouteStop routeStop = new PredictionsInterface.RouteStop(null, stopStr);
                 routeStopsList.add(routeStop);
             }
 
@@ -790,11 +802,11 @@ public class TransitimeApi {
      * the both XML and JSON yet always return the proper media type even if it is configured via
      * the query string "format" parameter as opposed to the accept header.
      *
-     * @param stdParameters StdParametersBean that gets the standard parameters from the URI, query
-     *     string, and headers.
-     * @param lat latitude in decimal degrees
-     * @param lon longitude in decimal degrees
-     * @param maxDistance How far away a stop can be from the lat/lon. Default is 1,500 m.
+     * @param stdParameters     StdParametersBean that gets the standard parameters from the URI, query
+     *                          string, and headers.
+     * @param lat               latitude in decimal degrees
+     * @param lon               longitude in decimal degrees
+     * @param maxDistance       How far away a stop can be from the lat/lon. Default is 1,500 m.
      * @param numberPredictions Maximum number of predictions to return. Default value is 3.
      * @return
      * @throws WebApplicationException
@@ -808,19 +820,19 @@ public class TransitimeApi {
     public Response getPredictions(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Latitude of the location in decimal degrees.", required = true)
-                    @QueryParam(value = "lat")
-                    Double lat,
+            @QueryParam(value = "lat")
+            Double lat,
             @Parameter(description = "Longitude of the location in decimal degrees.", required = true)
-                    @QueryParam(value = "lon")
-                    Double lon,
+            @QueryParam(value = "lon")
+            Double lon,
             @Parameter(description = "How far away a stop can be from the location (lat/lon).", required = false)
-                    @QueryParam(value = "maxDistance")
-                    @DefaultValue("1500.0")
-                    double maxDistance,
+            @QueryParam(value = "maxDistance")
+            @DefaultValue("1500.0")
+            double maxDistance,
             @Parameter(description = "Maximum number of predictions to return.")
-                    @QueryParam(value = "numPreds")
-                    @DefaultValue("3")
-                    int numberPredictions)
+            @QueryParam(value = "numPreds")
+            @DefaultValue("3")
+            int numberPredictions)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -871,11 +883,11 @@ public class TransitimeApi {
     public Response getRoutes(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "List of routeId or routeShortName. Example: r=1&r=2", required = false)
-                    @QueryParam(value = "r")
-                    List<String> routeIdsOrShortNames,
+            @QueryParam(value = "r")
+            List<String> routeIdsOrShortNames,
             @Parameter(description = "Return all routes when more than one have the same shortName.", required = false)
-                    @QueryParam(value = "keepDuplicates")
-                    Boolean keepDuplicates)
+            @QueryParam(value = "keepDuplicates")
+            Boolean keepDuplicates)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -948,18 +960,18 @@ public class TransitimeApi {
      *
      * @param stdParameters
      * @param routeIdsOrShortNames list of route IDs or route short names. If a single route is
-     *     specified then data for just the single route is returned. If no route is specified then
-     *     data for all routes returned in an array. If multiple routes specified then data for
-     *     those routes returned in an array.
-     * @param stopId optional. If set then only this stop and the remaining ones on the trip pattern
-     *     are marked as being for the UI and can be highlighted. Useful for when want to emphasize
-     *     in the UI only the stops that are of interest to the user.
-     * @param direction optional. If set then only the shape for specified direction is marked as
-     *     being for the UI. Needed for situations where a single stop is used for both directions
-     *     of a route and want to highlight in the UI only the stops and the shapes that the user is
-     *     actually interested in.
-     * @param tripPatternId optional. If set then only the specified trip pattern is marked as being
-     *     for the UI.
+     *                             specified then data for just the single route is returned. If no route is specified then
+     *                             data for all routes returned in an array. If multiple routes specified then data for
+     *                             those routes returned in an array.
+     * @param stopId               optional. If set then only this stop and the remaining ones on the trip pattern
+     *                             are marked as being for the UI and can be highlighted. Useful for when want to emphasize
+     *                             in the UI only the stops that are of interest to the user.
+     * @param direction            optional. If set then only the shape for specified direction is marked as
+     *                             being for the UI. Needed for situations where a single stop is used for both directions
+     *                             of a route and want to highlight in the UI only the stops and the shapes that the user is
+     *                             actually interested in.
+     * @param tripPatternId        optional. If set then only the specified trip pattern is marked as being
+     *                             for the UI.
      * @return
      * @throws WebApplicationException
      */
@@ -974,28 +986,28 @@ public class TransitimeApi {
     public Response getRouteDetails(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "List of routeId or routeShortName. Example: r=1&r=2", required = false)
-                    @QueryParam(value = "r")
-                    List<String> routeIdsOrShortNames,
+            @QueryParam(value = "r")
+            List<String> routeIdsOrShortNames,
             @Parameter(
-                            description = "If set then only the shape for specified direction is marked"
-                                    + " as being for the UI.",
-                            required = false)
-                    @QueryParam(value = "d")
-                    String directionId,
+                    description = "If set then only the shape for specified direction is marked"
+                            + " as being for the UI.",
+                    required = false)
+            @QueryParam(value = "d")
+            String directionId,
             @Parameter(
-                            description = "If set then only this stop and the remaining ones on the trip"
-                                    + " pattern are marked as being for the UI and can be"
-                                    + " highlighted. Useful for when want to emphasize in the"
-                                    + " UI only  the stops that are of interest to the user.",
-                            required = false)
-                    @QueryParam(value = "s")
-                    String stopId,
+                    description = "If set then only this stop and the remaining ones on the trip"
+                            + " pattern are marked as being for the UI and can be"
+                            + " highlighted. Useful for when want to emphasize in the"
+                            + " UI only  the stops that are of interest to the user.",
+                    required = false)
+            @QueryParam(value = "s")
+            String stopId,
             @Parameter(
-                            description =
-                                    "If set then only the specified trip pattern is marked as being" + " for the UI",
-                            required = false)
-                    @QueryParam(value = "tripPattern")
-                    String tripPatternId)
+                    description =
+                            "If set then only the specified trip pattern is marked as being" + " for the UI",
+                    required = false)
+            @QueryParam(value = "tripPattern")
+            String tripPatternId)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -1021,6 +1033,15 @@ public class TransitimeApi {
 
                 ipcRoutes = new ArrayList<IpcRoute>();
                 ipcRoutes.add(route);
+            } else if (stopId != null) {
+
+                ipcRoutes = inter.getRoutesByStopId(stopId);
+
+                // If the stop doesn't exist then throw exception such that
+                // Bad Request with an appropriate message is returned.
+                if (ipcRoutes == null || ipcRoutes.isEmpty())
+                    throw WebUtils.badRequestException("Routes for stop ID= " + stopId + " does not exist.");
+
             } else {
                 // Multiple routes specified
                 ipcRoutes = inter.getRoutes(routeIdsOrShortNames);
@@ -1056,11 +1077,11 @@ public class TransitimeApi {
     public Response getStops(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "if set, retrives only busstops belongind to the route. "
-                                    + "It might be routeId or route shrot name.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    String routesIdOrShortNames)
+                    description = "if set, retrives only busstops belongind to the route. "
+                            + "It might be routeId or route shrot name.",
+                    required = false)
+            @QueryParam(value = "r")
+            String routesIdOrShortNames)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1107,9 +1128,9 @@ public class TransitimeApi {
     public Response getBlock(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Block id to be asked.", required = true) @QueryParam(value = "blockId")
-                    String blockId,
+            String blockId,
             @Parameter(description = "Service id to be asked.", required = true) @QueryParam(value = "serviceId")
-                    String serviceId)
+            String serviceId)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1156,7 +1177,7 @@ public class TransitimeApi {
     public Response getBlocksTerse(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Block id to be asked.", required = true) @QueryParam(value = "blockId")
-                    String blockId)
+            String blockId)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1200,7 +1221,7 @@ public class TransitimeApi {
     public Response getBlocks(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Block id to be asked.", required = true) @QueryParam(value = "blockId")
-                    String blockId)
+            String blockId)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1265,12 +1286,12 @@ public class TransitimeApi {
      * Gets which blocks are active. Can optionally specify list of routes and how much before a
      * block is supposed to start is it considered active.
      *
-     * @param stdParameters StdParametersBean that gets the standard parameters from the URI, query
-     *     string, and headers.
-     * @param routesIdOrShortNames Optional parameter for specifying which routes want data for.
+     * @param stdParameters           StdParametersBean that gets the standard parameters from the URI, query
+     *                                string, and headers.
+     * @param routesIdOrShortNames    Optional parameter for specifying which routes want data for.
      * @param allowableBeforeTimeSecs Optional parameter. A block will be active if the time is
-     *     between the block start time minus allowableBeforeTimeSecs and the block end time.
-     *     Default value for allowableBeforeTimeSecs is 0.
+     *                                between the block start time minus allowableBeforeTimeSecs and the block end time.
+     *                                Default value for allowableBeforeTimeSecs is 0.
      * @return
      * @throws WebApplicationException
      */
@@ -1285,18 +1306,18 @@ public class TransitimeApi {
     public Response getActiveBlocks(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "if set, retrives only active blocks belongind to the route. "
-                                    + "It might be routeId or route shrot name.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    List<String> routesIdOrShortNames,
+                    description = "if set, retrives only active blocks belongind to the route. "
+                            + "It might be routeId or route shrot name.",
+                    required = false)
+            @QueryParam(value = "r")
+            List<String> routesIdOrShortNames,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs and the block end"
-                                    + " time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs and the block end"
+                            + " time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1330,18 +1351,18 @@ public class TransitimeApi {
     public Response getActiveBlocksByRoute(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "if set, retrives only active blocks belongind to the route. "
-                                    + "It might be routeId or route shrot name.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    List<String> routesIdOrShortNames,
+                    description = "if set, retrives only active blocks belongind to the route. "
+                            + "It might be routeId or route shrot name.",
+                    required = false)
+            @QueryParam(value = "r")
+            List<String> routesIdOrShortNames,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs and the block end"
-                                    + " time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs and the block end"
+                            + " time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1376,18 +1397,18 @@ public class TransitimeApi {
     public Response getActiveBlocksByRouteWithoutVehicles(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "if set, retrives only active blocks belongind to the route. "
-                                    + "It might be routeId or route shrot name.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    List<String> routesIdOrShortNames,
+                    description = "if set, retrives only active blocks belongind to the route. "
+                            + "It might be routeId or route shrot name.",
+                    required = false)
+            @QueryParam(value = "r")
+            List<String> routesIdOrShortNames,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs and the block end"
-                                    + " time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs and the block end"
+                            + " time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1421,18 +1442,18 @@ public class TransitimeApi {
     public Response getActiveBlockByRouteWithVehicles(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "if set, retrives only active blocks belongind to the route. It"
-                                    + " might be routeId or route shrot name.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    String routesIdOrShortName,
+                    description = "if set, retrives only active blocks belongind to the route. It"
+                            + " might be routeId or route shrot name.",
+                    required = false)
+            @QueryParam(value = "r")
+            String routesIdOrShortName,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs and the block end"
-                                    + " time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs and the block end"
+                            + " time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1466,18 +1487,18 @@ public class TransitimeApi {
     public Response getActiveBlockByRouteNameWithVehicles(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description =
-                                    "if set, retrives only active blocks belongind to the route" + " name specified.",
-                            required = false)
-                    @QueryParam(value = "r")
-                    String routeName,
+                    description =
+                            "if set, retrives only active blocks belongind to the route" + " name specified.",
+                    required = false)
+            @QueryParam(value = "r")
+            String routeName,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs and the block end"
-                                    + " time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs and the block end"
+                            + " time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -1525,26 +1546,26 @@ public class TransitimeApi {
     public Response getVehicleAdherenceSummary(
             @BeanParam StandardParameters stdParameters,
             @Parameter(
-                            description = "The number of seconds early a vehicle has to be before it is"
-                                    + " considered in the early counter.",
-                            required = false)
-                    @QueryParam(value = "allowableEarlySec")
-                    @DefaultValue("0")
-                    int allowableEarlySec,
+                    description = "The number of seconds early a vehicle has to be before it is"
+                            + " considered in the early counter.",
+                    required = false)
+            @QueryParam(value = "allowableEarlySec")
+            @DefaultValue("0")
+            int allowableEarlySec,
             @Parameter(
-                            description = "The number of seconds early a vehicle has to be before it is"
-                                    + " considered in the late counter.",
-                            required = false)
-                    @QueryParam(value = "allowableLateSec")
-                    @DefaultValue("0")
-                    int allowableLateSec,
+                    description = "The number of seconds early a vehicle has to be before it is"
+                            + " considered in the late counter.",
+                    required = false)
+            @QueryParam(value = "allowableLateSec")
+            @DefaultValue("0")
+            int allowableLateSec,
             @Parameter(
-                            description = "A block will be active if the time is between the block start"
-                                    + " time minus allowableBeforeTimeSecs (t) and the block"
-                                    + " end time")
-                    @QueryParam(value = "t")
-                    @DefaultValue("0")
-                    int allowableBeforeTimeSecs)
+                    description = "A block will be active if the time is between the block start"
+                            + " time minus allowableBeforeTimeSecs (t) and the block"
+                            + " end time")
+            @QueryParam(value = "t")
+            @DefaultValue("0")
+            int allowableBeforeTimeSecs)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1583,7 +1604,7 @@ public class TransitimeApi {
      * all sub-data such as trip patterns.
      *
      * @param stdParameters
-     * @param tripId Can be the GTFS trip_id or the trip_short_name
+     * @param tripId        Can be the GTFS trip_id or the trip_short_name
      * @return
      * @throws WebApplicationException
      */
@@ -1747,8 +1768,8 @@ public class TransitimeApi {
     public Response getTripPatterns(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Specifies the routeId or routeShortName.", required = true)
-                    @QueryParam(value = "r")
-                    String routesIdOrShortNames)
+            @QueryParam(value = "r")
+            String routesIdOrShortNames)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1796,8 +1817,8 @@ public class TransitimeApi {
     public Response getScheduleVertStops(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Specifies the routeId or routeShortName.", required = true)
-                    @QueryParam(value = "r")
-                    String routesIdOrShortNames)
+            @QueryParam(value = "r")
+            String routesIdOrShortNames)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1845,8 +1866,8 @@ public class TransitimeApi {
     public Response getScheduleHorizStops(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Specifies the routeId or routeShortName.", required = true)
-                    @QueryParam(value = "r")
-                    String routesIdOrShortNames)
+            @QueryParam(value = "r")
+            String routesIdOrShortNames)
             throws WebApplicationException {
 
         // Make sure request is valid
@@ -1989,7 +2010,7 @@ public class TransitimeApi {
             description = "Retrives all service id. Optionally, retrives all service id with blockIds",
             tags = {"base data", "serviceId"})
     public Response getServiceIds(@BeanParam StandardParameters stdParameters,
-                                  @Parameter (description = "If set 'true', returns serviceIds with assigned blockIds", required = false)
+                                  @Parameter(description = "If set 'true', returns serviceIds with assigned blockIds", required = false)
                                   @QueryParam(value = "withBlockIds")
                                   boolean withBlockIds) throws WebApplicationException {
         // Make sure request is valid
@@ -2126,15 +2147,12 @@ public class TransitimeApi {
     public Response getExports(@BeanParam StandardParameters stdParameters) throws WebApplicationException {
         stdParameters.validate();
         ApiExportsData result = null;
-        Session session = HibernateUtils.getSession();
-        try {
-            result = new ApiExportsData(ExportTable.getExportTable(session));
 
-            session.close();
+        try (Session session = HibernateUtils.getSession()) {
+            result = new ApiExportsData(ExportTable.getExportTable(session));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
-            session.close();
             throw WebUtils.badRequestException(e);
         }
     }
@@ -2148,11 +2166,9 @@ public class TransitimeApi {
             @Parameter(description = "Id eksportu") @QueryParam(value = "id") long id)
             throws WebApplicationException {
         stdParameters.validate();
-        Session session = HibernateUtils.getSession();
-        try {
-            ExportTable result = ExportTable.getExportFile(session, id).get(0);
 
-            session.close();
+        try (Session session = HibernateUtils.getSession()) {
+            ExportTable result = ExportTable.getExportFile(session, id).get(0);
             // return ApiVehicles response
             // return stdParameters.createResponse(result);
             return Response.ok(result.getFile(), MediaType.APPLICATION_OCTET_STREAM)
@@ -2160,7 +2176,6 @@ public class TransitimeApi {
                     .build();
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
-            session.close();
             throw WebUtils.badRequestException(e);
         }
     }

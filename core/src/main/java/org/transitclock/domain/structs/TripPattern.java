@@ -3,7 +3,6 @@ package org.transitclock.domain.structs;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.CallbackException;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.annotations.Cascade;
