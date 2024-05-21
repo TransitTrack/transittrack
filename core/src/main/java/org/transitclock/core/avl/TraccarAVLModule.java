@@ -64,18 +64,23 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     public TraccarAVLModule(String agencyId) throws URISyntaxException {
         super(agencyId);
         useCompression = false;
+        ApiClient client;
+        try {
+            var host = HttpHost.create(TRACCARBASEURL.getValue());
+            var httpClientBuilder = HttpClientBuilder.create();
 
-        var host = HttpHost.create(TRACCARBASEURL.getValue());
-        var httpClientBuilder = HttpClientBuilder.create();
+            final AuthCache authCache = new BasicAuthCache();
+            authCache.put(host, new BasicScheme());
 
-        final AuthCache authCache = new BasicAuthCache();
-        authCache.put(host, new BasicScheme());
+            var provider = new BasicCredentialsProvider();
+            provider.setCredentials(new AuthScope(host), new UsernamePasswordCredentials(TRACCAREMAIL.getValue(), TRACCARPASSWORD.getValue().toCharArray()));
+            httpClientBuilder.setDefaultCredentialsProvider(provider);
 
-        var provider = new BasicCredentialsProvider();
-        provider.setCredentials(new AuthScope(host), new UsernamePasswordCredentials(TRACCAREMAIL.getValue(), TRACCARPASSWORD.getValue().toCharArray()));
-        httpClientBuilder.setDefaultCredentialsProvider(provider);
-
-        ApiClient client = new ApiClient(httpClientBuilder.build());
+            client = new ApiClient(httpClientBuilder.build());
+        } catch (Exception ex) {
+            logger.warn("Unsuccessful traccar authorisation: {} ", ex.toString());
+            client = new ApiClient();
+        }
         client.setBasePath(TRACCARBASEURL.getValue());
         client.setUsername(TRACCAREMAIL.getValue());
         client.setPassword(TRACCARPASSWORD.getValue());
