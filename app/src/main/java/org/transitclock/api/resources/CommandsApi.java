@@ -60,13 +60,13 @@ public interface CommandsApi {
             @RequestParam(value = "lon")
             double lon,
             @Parameter(description = "Speed of AVL reporte. m/s.", required = false)
-            @RequestParam(value = "s", defaultValue = "NaN")
+            @RequestParam(value = "s", defaultValue = "NaN", required = false)
             float speed,
             @Parameter(
                     description = "Heading of AVL report. Degrees. 0 degrees=North. Should be set"
                             + " to Float.NaN if speed not available",
                     required = false)
-            @RequestParam(value = "h", defaultValue = "NaN")
+            @RequestParam(value = "h", defaultValue = "NaN", required = false)
             float heading,
             @Parameter(
                     description = "Indicates the assignmet id of the AVL report according to the"
@@ -74,7 +74,7 @@ public interface CommandsApi {
                             + " ROUTE_ID, the assingment ID should be one route_id"
                             + " loaded in the system.",
                     required = false)
-            @RequestParam(value = "assignmentId")
+            @RequestParam(value = "assignmentId", required = false)
             String assignmentId,
             @Parameter(
                     description = "Indicates the assignmet type of the AV report. This parameter"
@@ -177,7 +177,7 @@ public interface CommandsApi {
             StandardParameters stdParameters,
             @Parameter(description = "tripId to be marked as canceled.", required = true) @PathVariable("tripId")
             String tripId,
-            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at") DateTimeParam at);
+            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at", required = false) DateTimeParam at);
 
     @PostMapping(
             value = "/command/reenableTrip/{tripId}",
@@ -192,7 +192,7 @@ public interface CommandsApi {
             StandardParameters stdParameters,
             @Parameter(description = "tripId to remove calceled satate.", required = true) @PathVariable("tripId")
             String tripId,
-            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at") DateTimeParam at);
+            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at", required = false) DateTimeParam at);
 
     @Operation(
             summary = "Add vehicles to block",
