@@ -337,11 +337,14 @@ public class AvlProcessor {
 
                 logger.warn("For vehicleId={} {}", vehicleState.getVehicleId(), eventDescription);
 
-                // Remove the predictions for the vehicle
-                makeVehicleUnpredictable(vehicleState.getVehicleId(), eventDescription, VehicleEvent.NO_MATCH);
+                if (!BlockAssignerConfig.isManualAssignmentEnabled() && !vehicleState.getAvlReport().getAssignmentId()
+                        .equals(bestTemporalMatch.getBlock().getId())) {
+                    // Remove the predictions for the vehicle
+                    makeVehicleUnpredictable(vehicleState.getVehicleId(), eventDescription, VehicleEvent.NO_MATCH);
 
-                // Remove block assignment from vehicle
-                vehicleState.unsetBlock(BlockAssignmentMethod.COULD_NOT_MATCH);
+                    // Remove block assignment from vehicle
+                    vehicleState.unsetBlock(BlockAssignmentMethod.COULD_NOT_MATCH);
+                }
             }
         } else {
             logger.info(

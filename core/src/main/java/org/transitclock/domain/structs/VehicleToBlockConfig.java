@@ -8,6 +8,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.Core;
+import org.transitclock.core.BlockAssignmentMethod;
+import org.transitclock.core.VehicleState;
+import org.transitclock.core.dataCache.VehicleStateManager;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -116,6 +119,10 @@ public class VehicleToBlockConfig implements Serializable {
     }
 
     public static void deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
+        String vehicleId = session
+                .createQuery("FROM VehicleToBlockConfig WHERE id = :id", VehicleToBlockConfig.class)
+                .setParameter("id", id).getSingleResult().getVehicleId();
+
         Transaction transaction = session.beginTransaction();
         try {
             session
@@ -124,6 +131,10 @@ public class VehicleToBlockConfig implements Serializable {
                     .executeUpdate();
 
             transaction.commit();
+            VehicleState vehicleState = VehicleStateManager.getInstance()
+                    .getVehicleState(vehicleId);
+            vehicleState.unsetBlock(BlockAssignmentMethod.ASSIGNMENT_TERMINATED);
+            vehicleState.setMatch(null);
         } catch (Throwable t) {
             transaction.rollback();
             throw t;
