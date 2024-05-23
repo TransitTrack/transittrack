@@ -75,11 +75,11 @@ public interface TransitimeApi {
     ResponseEntity<ApiVehiclesResponse> getVehicles(
             StandardParameters stdParameters,
 
-            @Parameter(description = "Vehicles is list.")
+            @Parameter(description = "Vehicles is list.", required = false)
             @RequestParam(value = "v", required = false, defaultValue = "")
             List<String> vehicleIds,
 
-            @Parameter(description = "Specifies which vehicles to get data for.")
+            @Parameter(description = "Specifies which vehicles to get data for.",required = false)
             @RequestParam(value = "r", required = false, defaultValue = "")
             List<String> routesIdOrShortNames,
 
@@ -87,12 +87,13 @@ public interface TransitimeApi {
                     description = "Specifies a stop so can get predictions for routes and"
                             + " determine which vehicles are the ones generating the"
                             + " predictions. The other vehicles are labeled as minor so"
-                            + " they can be drawn specially in the UI."
+                            + " they can be drawn specially in the UI.",
+                    required = false
             )
             @RequestParam(value = "s", required = false)
             String stopId,
 
-            @Parameter(description = "Number of predictions to show.")
+            @Parameter(description = "Number of predictions to show.", required = false)
             @RequestParam(value = "numPreds", required = false, defaultValue = "2")
             int numberPredictions);
 
@@ -281,7 +282,7 @@ public interface TransitimeApi {
             Double lon,
 
             @Parameter(description = "How far away a stop can be from the location (lat/lon).", required = false)
-            @RequestParam(value = "maxDistance", defaultValue = "1500.0")
+            @RequestParam(value = "maxDistance", defaultValue = "1500.0", required = false)
             double maxDistance,
 
             @Parameter(description = "Maximum number of predictions to return.")
@@ -326,7 +327,7 @@ public interface TransitimeApi {
      * @param stopId               optional. If set then only this stop and the remaining ones on the trip pattern
      *                             are marked as being for the UI and can be highlighted. Useful for when want to emphasize
      *                             in the UI only the stops that are of interest to the user.
-     * @param direction            optional. If set then only the shape for specified direction is marked as
+     * @param directionId            optional. If set then only the shape for specified direction is marked as
      *                             being for the UI. Needed for situations where a single stop is used for both directions
      *                             of a route and want to highlight in the UI only the stops and the shapes that the user is
      *                             actually interested in.
@@ -369,7 +370,7 @@ public interface TransitimeApi {
      * Useful for creating a UI where user needs to select a stop from a list.
      *
      * @param stdParameters
-     * @param routeShortName
+     * @param routesIdOrShortNames
      *
      * @return
      *
@@ -481,7 +482,7 @@ public interface TransitimeApi {
     ResponseEntity<ApiIdsResponse> getBlockIds(
             StandardParameters stdParameters,
             @Parameter(description = "if set, returns only the data for that serviceId.", required = false)
-            @RequestParam(value = "serviceId")
+            @RequestParam(value = "serviceId", required = false)
             String serviceId);
 
     /**
@@ -541,7 +542,7 @@ public interface TransitimeApi {
             @Parameter(
                     description = "A block will be active if the time is between the block start"
                             + " time minus allowableBeforeTimeSecs and the block end"
-                            + " time")
+                            + " time", required = false)
             @RequestParam(value = "t", defaultValue = "0", required = false)
             int allowableBeforeTimeSecs);
 
@@ -628,13 +629,13 @@ public interface TransitimeApi {
                     description = "The number of seconds early a vehicle has to be before it is"
                             + " considered in the early counter.",
                     required = false)
-            @RequestParam(value = "allowableEarlySec", defaultValue = "0")
+            @RequestParam(value = "allowableEarlySec", defaultValue = "0", required = false)
             int allowableEarlySec,
             @Parameter(
                     description = "The number of seconds early a vehicle has to be before it is"
                             + " considered in the late counter.",
                     required = false)
-            @RequestParam(value = "allowableLateSec", defaultValue = "0")
+            @RequestParam(value = "allowableLateSec", defaultValue = "0" , required = false)
             int allowableLateSec,
             @Parameter(
                     description = "A block will be active if the time is between the block start"
