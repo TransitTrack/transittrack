@@ -322,9 +322,16 @@ public class AvlProcessor {
         // reached number of bad matches.
         if (bestTemporalMatch != null || vehicleState.overLimitOfBadMatches()) {
             // If not over the limit of bad matches then handle normally
-            if (bestTemporalMatch != null || !vehicleState.overLimitOfBadMatches()) {
+            if (bestTemporalMatch != null && !vehicleState.overLimitOfBadMatches()) {
                 // Set the match of the vehicle.
                 vehicleState.setMatch(bestTemporalMatch);
+            } else if (BlockAssignerConfig.isManualAssignmentEnabled() && bestTemporalMatch != null &&
+                    bestTemporalMatch.getBlock().getBlockId().equals(vehicleState.getAssignmentId()) &&
+                    vehicleState.getBlock().getBlockId().equals(vehicleState.getAssignmentId())){
+                vehicleState.setMatch(bestTemporalMatch);
+                logger.info(
+                        "For vehicleId={} got another bad match in a row, but the manual assignment is enabled then do not unsetBlock().",
+                        vehicleState.getVehicleId());
             } else {
                 // Exceeded allowable number of bad matches so make vehicle
                 // unpredictable due to bad matches log that info.
@@ -337,14 +344,11 @@ public class AvlProcessor {
 
                 logger.warn("For vehicleId={} {}", vehicleState.getVehicleId(), eventDescription);
 
-                if (!BlockAssignerConfig.isManualAssignmentEnabled() && !vehicleState.getAvlReport().getAssignmentId()
-                        .equals(bestTemporalMatch.getBlock().getId())) {
                     // Remove the predictions for the vehicle
                     makeVehicleUnpredictable(vehicleState.getVehicleId(), eventDescription, VehicleEvent.NO_MATCH);
 
                     // Remove block assignment from vehicle
                     vehicleState.unsetBlock(BlockAssignmentMethod.COULD_NOT_MATCH);
-                }
             }
         } else {
             logger.info(
