@@ -2,6 +2,7 @@
 .gradle
 *.project
 *.classpath
+.fastRequest
 *.iml
 .idea/
 # Package Files #
