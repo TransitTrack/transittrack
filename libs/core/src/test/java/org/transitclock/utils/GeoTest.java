@@ -10,15 +10,16 @@ class GeoTest {
 
     @Test
     void offset() {
-        Location l = new Location(37.79971, -122.43595);
-        Location offset = Geo.offset(l, 20.0, -70.0);
+        Location location = new Location(37.79971, -122.43595);
+        Location offset = Geo.offset(location, 20.0, -70.0);
         assertThat(offset.getLat()).isEqualTo(37.79908047487586);
         assertThat(offset.getLon()).isEqualTo(-122.43572236920325);
     }
 
     @Test
     void format() {
-        assertThat(Geo.format(-122.43572236920325)).isEqualTo("-122.43572");
+        String format = Geo.format(-122.43572236920325);
+        assertThat(format).isEqualTo("-122.43572");
     }
 
     @Test
