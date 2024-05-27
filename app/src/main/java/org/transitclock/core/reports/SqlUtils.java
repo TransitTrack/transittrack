@@ -3,6 +3,8 @@ package org.transitclock.core.reports;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
+
 import org.transitclock.utils.Time;
 
 import java.text.ParseException;
@@ -79,7 +81,7 @@ public class SqlUtils {
      *     NULL AND (ad.routeshortname IN ('21','5') OR ad.routeid IN ('21','5') )"
      */
     public static String routeClause(String r, String tableAliasName) {
-        if (r == null || r.isEmpty())
+        if (StringUtils.isEmpty(r))
             return "";
 
         String routeIdentifiers = routeIdentifiersList(r);
@@ -90,6 +92,16 @@ public class SqlUtils {
         if (tableAliasName != null && !tableAliasName.isEmpty()) tableAlias = tableAliasName + ".";
 
         return " AND " + tableAlias + "route_short_name IN " + routeIdentifiers;
+    }
+
+    public static String stopClause(String id, String tableAliasName) {
+        if (StringUtils.isEmpty(id))
+            return "";
+
+        String tableAlias = "";
+        if (tableAliasName != null && !tableAliasName.isEmpty()) tableAlias = tableAliasName + ".";
+
+        return " AND " + tableAlias + "stop_id = '" + id + "'";
     }
 
     /**
@@ -189,7 +201,6 @@ public class SqlUtils {
      *     INTERVAL '1 day' AND time::time BETWEEN '12:00' AND '24:00'"
      */
     public static String timeRangeClause(
-            String agencyId,
             String timeColumnName,
             int maxNumDays,
             int numDays,
@@ -217,11 +228,17 @@ public class SqlUtils {
 
         SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
         SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
+
         try {
-            beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            if (beginDate.charAt(4) != '-') { // for two patterns MM-dd-yyyy & yyyy-MM-dd
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
         } catch (ParseException e) {
             logger.error("Exception happened while processing time-range clause", e);
         }
+
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
     }

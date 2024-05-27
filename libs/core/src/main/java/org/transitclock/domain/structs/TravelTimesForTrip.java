@@ -3,14 +3,13 @@ package org.transitclock.domain.structs;
 
 import com.querydsl.jpa.impl.JPAQuery;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
-import org.transitclock.domain.structs.QTravelTimesForTrip;
 
 import java.io.Serializable;
 import java.util.*;
@@ -24,7 +23,7 @@ import java.util.*;
 @Entity
 @Slf4j
 @DynamicUpdate
-@Getter @Setter @ToString
+@Data
 @Table(
         name = "travel_times_for_trips",
         indexes = {
@@ -72,15 +71,13 @@ public class TravelTimesForTrip implements Serializable {
     private final String tripCreatedForId;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "travel_times_for_trip_to_travel_times_for_path",
-        joinColumns = {
-            @JoinColumn(name = "for_path_id", referencedColumnName = "id")
-        },
-        inverseJoinColumns = {
-            @JoinColumn(name = "for_trip_id", referencedColumnName = "id")
-        }
-    )
+    @JoinTable(name = "travel_times_for_trip_to_travel_times_for_path",
+            joinColumns = {
+                    @JoinColumn(name = "for_trip_id", referencedColumnName = "id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "for_path_id", referencedColumnName = "id")
+            })
     @Cascade({CascadeType.SAVE_UPDATE})
     @OrderColumn(name = "list_index")
     private final List<TravelTimesForStopPath> travelTimesForStopPaths = new ArrayList<>();
@@ -272,17 +269,5 @@ public class TravelTimesForTrip implements Serializable {
      */
     public int numberOfStopPaths() {
         return travelTimesForStopPaths.size();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TravelTimesForTrip that)) return false;
-        return configRev == that.configRev && travelTimesRev == that.travelTimesRev && Objects.equals(id, that.id) && Objects.equals(tripPatternId, that.tripPatternId) && Objects.equals(tripCreatedForId, that.tripCreatedForId) && Objects.equals(travelTimesForStopPaths, that.travelTimesForStopPaths);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, configRev, travelTimesRev, tripPatternId, tripCreatedForId, travelTimesForStopPaths);
     }
 }

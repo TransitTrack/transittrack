@@ -47,10 +47,10 @@ public interface ReportsApi {
     ResponseEntity<String> getAvlReport(
             StandardParameters stdParameters,
             @Parameter(description = "Vehicle id") @RequestParam(value = "v") String vehicleId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @RequestParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", required = false) int numDays,
-            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
-            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime);
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
+            @Parameter(description = "Begin time(HH:MM)", required = false) @RequestParam(value = "beginTime", required = false) String beginTime,
+            @Parameter(description = "End time(HH:MM)", required = false) @RequestParam(value = "endTime", required = false) String endTime);
 
     /**
      * Handles the "tripWithTravelTimes" command which outputs arrival and departures data for the
@@ -104,10 +104,28 @@ public interface ReportsApi {
     ResponseEntity<String> scheduleAdhReport(
             StandardParameters stdParameters,
             @Parameter(description = "Route id") @RequestParam(value = "r") String routeId,
-            @Parameter(description = "Begin date(MM-DD-YYYY.") @RequestParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", required = false) int numDays,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime") String endTime,
+            @Parameter(description = "Allowable early in mins(default 1.0)", required = false)
+            @RequestParam(value = "allowableEarly", required = false, defaultValue = "1.0") String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 4.0", required = false)
+            @RequestParam(value = "allowableLate", required = false, defaultValue = "4.0") String allowableLate);
+
+    @Operation(
+            summary = "Returns schedule adherence report for single stop.",
+            description = "Returns schedule adherence report for single stop.",
+            tags = {"report", "stop", "schedule adherence"})
+    @GetMapping(value = "/reports/schedStopAdh",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    ResponseEntity<String> reportForStopById(
+            StandardParameters stdParameters,
+            @Parameter(description = "Stop id") @RequestParam(value = "stopId") String stopId,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
+            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
+            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime,
             @Parameter(description = "Allowable early in mins(default 1.0)")
             @RequestParam(value = "allowableEarly", required = false, defaultValue = "1.0") String allowableEarly,
             @Parameter(description = "Allowable late in mins(default 4.0")
