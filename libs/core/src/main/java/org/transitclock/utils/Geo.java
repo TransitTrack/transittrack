@@ -2,6 +2,9 @@
 package org.transitclock.utils;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Vector;
 
@@ -13,13 +16,13 @@ import org.transitclock.domain.structs.Vector;
 public class Geo {
 
     // So can output latitudes and longitudes with a consistent number of decimal places
-    private static final DecimalFormat geoFormat = new DecimalFormat("0.00000");
+    private static final DecimalFormat geoFormat = new DecimalFormat("0.00000", new DecimalFormatSymbols(Locale.ENGLISH));
 
     // So can output distances and such with a consistent number of decimal places
-    private static final DecimalFormat twoDigitFormat = new DecimalFormat("0.00");
+    private static final DecimalFormat twoDigitFormat = new DecimalFormat("0.00", new DecimalFormatSymbols(Locale.ENGLISH));
 
     // So can output headings and such with a consistent number of decimal places
-    private static final DecimalFormat oneDigitFormat = new DecimalFormat("0.0");
+    private static final DecimalFormat oneDigitFormat = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.ENGLISH));
 
     // For converting kilometers per hour to meters per second
     public static final float KPH_TO_MPS = 0.277778f;

@@ -52,7 +52,7 @@ public class GtfsRealtimeApi extends BaseApiResource {
             tags = {"GTFS", "feed"})
     public ResponseEntity<Object> getGtfsRealtimeVehiclePositionsFeed(
         StandardParameters stdParameters,
-        @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format")
+        @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format", required = false)
         @RequestParam(value = "format", required = false) String format) {
 
         // Determine if output should be in human-readable format or in
@@ -83,7 +83,7 @@ public class GtfsRealtimeApi extends BaseApiResource {
             tags = {"GTFS", "feed"})
     public ResponseEntity<Object> getGtfsRealtimeTripFeed(
             StandardParameters stdParameters,
-            @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format")
+            @Parameter(description = "If specified as human, it will get the output in human readable format. Otherwise will output data in binary format", required = false)
             @RequestParam(value = "format", required = false)
             String format) {
         // Determine if output should be in human readable format or in
