@@ -121,13 +121,13 @@ public interface CacheApi {
     ResponseEntity<ApiArrivalDeparturesResponse> getTripArrivalDepartureCacheData(
             StandardParameters stdParameters,
             @Parameter(description = "if specified, returns the list for that tripId.", required = false)
-            @RequestParam(value = "tripId")
+            @RequestParam(value = "tripId", required = false)
             String tripid,
             @Parameter(description = "if specified, returns the list for that date.", required = false)
-            @RequestParam(value = "date")
+            @RequestParam(value = "date", required = false)
             DateParam date,
             @Parameter(description = "if specified, returns the list for that starttime.", required = false)
-            @RequestParam(value = "starttime")
+            @RequestParam(value = "starttime", required = false)
             Integer starttime);
 
     /*
@@ -174,7 +174,7 @@ public interface CacheApi {
     ResponseEntity<ApiPredictionsForStopPathResponse> getStopPathPredictions(
             StandardParameters stdParameters,
             @Parameter(description = "Algorith used for calculating the perdiction", required = false)
-            @RequestParam(value = "algorithm")
+            @RequestParam(value = "algorithm", required = false)
             String algorithm,
             @Parameter(description = "Trip Id", required = true) @RequestParam(value = "tripId") String tripId,
             @Parameter(description = "Stop path index", required = true) @RequestParam(value = "stopPathIndex")
