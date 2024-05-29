@@ -125,16 +125,15 @@ public class VehicleToBlockConfig implements Serializable {
 
         Transaction transaction = session.beginTransaction();
         try {
-            session
-                    .createMutationQuery("delete from VehicleToBlockConfig where id = :id")
+            session.createMutationQuery("delete from VehicleToBlockConfig where id = :id")
                     .setParameter("id", id)
                     .executeUpdate();
 
             transaction.commit();
             VehicleState vehicleState = VehicleStateManager.getInstance()
                     .getVehicleState(vehicleId);
-            vehicleState.unsetBlock(BlockAssignmentMethod.ASSIGNMENT_TERMINATED);
             vehicleState.setMatch(null);
+            vehicleState.unsetBlock(BlockAssignmentMethod.ASSIGNMENT_TERMINATED);
         } catch (Throwable t) {
             transaction.rollback();
             throw t;
