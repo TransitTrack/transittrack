@@ -366,6 +366,26 @@ public interface TransitimeApi {
             String tripPatternId);
 
     /**
+     * Handles the "routesDetails" command for specified stop ID. Provides detailed information for a route includes all
+     * stops and paths.
+     *
+     * @param stdParameters
+     *
+     * @return
+     */
+    @GetMapping(value = "/command/routesDetailsByStopId",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @Operation(
+            summary = "Provides detailed information for a route.",
+            description = "Provides detailed information for a route includes specified stop Id "
+                    + "and paths such that it can be drawn in a map.",
+            tags = {"base data", "route"})
+    ResponseEntity<ApiRoutesDetailsResponse> getRouteDetailsByStopId(
+            StandardParameters stdParameters,
+            @Parameter(description = "Stop id") @RequestParam(value = "id")
+            String stopId);
+
+    /**
      * Handles the "stops" command. Returns all stops associated with a route, grouped by direction.
      * Useful for creating a UI where user needs to select a stop from a list.
      *
