@@ -1,9 +1,9 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -14,17 +14,18 @@ import lombok.Data;
 @Data
 public class ApiServiceIdResponse {
 
-    @JsonProperty("serviceIds")
-    private List<ApiServiceId> apiServiceIds;
+    @JsonProperty
+    private List<ApiServiceId> serviceIds;
 
     /**
      * Creates the API unsorted version of list of IDs.
      *
-     * @param serviceIds
+     * @param services
      */
-    public ApiServiceIdResponse(Map<String, List<String>> serviceIds) {
-        apiServiceIds = new ArrayList<>();
-        serviceIds.forEach((key, list) -> apiServiceIds
-                .add(new ApiServiceId(key, list)));
+    public ApiServiceIdResponse(Map<String, List<String>> services) {
+        serviceIds = services.entrySet()
+                .stream()
+                .map(entry -> new ApiServiceId(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 }
