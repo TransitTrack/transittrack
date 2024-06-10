@@ -185,8 +185,8 @@ public class CommandsServiceImpl implements CommandsService {
         try (Session session = HibernateUtils.getSession()) {
            return VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
         } catch (Exception ex) {
-           logger.warn("Something went wrong when try to delete a raw from {} table",
-                       CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getName()));
+           logger.warn("Something went wrong when trying to delete a raw from {} table",
+                       CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
            throw new HibernateException(ex.getMessage());
         }
     }
