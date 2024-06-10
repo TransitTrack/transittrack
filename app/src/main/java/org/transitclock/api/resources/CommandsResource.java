@@ -276,7 +276,10 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             StandardParameters stdParameters,
             long id) {
         try {
-            commandsService.removeVehicleToBlock(id);
+            // Remove vehicle
+           var vehicleId = commandsService.removeVehicleToBlock(id);
+           // Reset vehicle
+           commandsService.setVehicleUnpredictable(vehicleId);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);

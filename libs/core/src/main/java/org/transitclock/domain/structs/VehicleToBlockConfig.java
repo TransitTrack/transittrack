@@ -97,20 +97,25 @@ public class VehicleToBlockConfig implements Serializable {
         session.merge(vehicleToBlockConfig);
     }
 
-    public static void deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
+    public static String deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
+        String vehicleId = session
+                .createQuery("FROM VehicleToBlockConfig WHERE id = :id", VehicleToBlockConfig.class)
+                .setParameter("id", id).getSingleResult().getVehicleId();
+
         Transaction transaction = session.beginTransaction();
         try {
-            session
-                    .createMutationQuery("delete from VehicleToBlockConfig where id = :id")
+            session.createMutationQuery("delete from VehicleToBlockConfig where id = :id")
                     .setParameter("id", id)
                     .executeUpdate();
 
             transaction.commit();
+            return vehicleId;
         } catch (Throwable t) {
             transaction.rollback();
             throw t;
         }
     }
+
     public static List<VehicleToBlockConfig> getActualVehicleToBlockConfigs(Session session) throws HibernateException {
         return session
                 .createQuery("FROM VehicleToBlockConfig WHERE validTo > CAST( now() AS TIMESTAMP )  ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
