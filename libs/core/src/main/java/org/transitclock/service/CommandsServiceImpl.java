@@ -1,7 +1,9 @@
 /* (C)2023 */
 package org.transitclock.service;
 
+import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -180,13 +182,12 @@ public class CommandsServiceImpl implements CommandsService {
 
     @Override
     public String removeVehicleToBlock(long id) {
-        Session session = HibernateUtils.getSession();
-        try {
-            VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
-            session.close();
+        try (Session session = HibernateUtils.getSession()) {
+           return VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
         } catch (Exception ex) {
-            session.close();
+           logger.warn("Something went wrong when trying to delete a raw from {} table",
+                       CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
+           throw new HibernateException(ex.getMessage());
         }
-        return null;
     }
 }

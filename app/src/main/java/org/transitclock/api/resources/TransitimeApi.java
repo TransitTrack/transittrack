@@ -98,16 +98,19 @@ public interface TransitimeApi {
             int numberPredictions);
 
     @Operation(
-            summary = "Returns data for vehicles assignment for specific block in current day",
-            description = "Returns data for vehicles assignment for specific block in current day")
+            summary = "Returns data for vehicles assignment for specific block id",
+            description = "Returns data for vehicles assignment for specific block id")
     @GetMapping(
             value = "/command/vehiclesToBlock",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
+            @Parameter(description = "If set 'true', returns only the data with actual time windows.")
+            @RequestParam(value = "actual", required = false, defaultValue = "false")
+            boolean actual,
             @Parameter(description = "Block id")
-            @RequestParam(value = "blockId")
+            @RequestParam(value = "blockId", required = false)
             String blockId);
 
     /**
