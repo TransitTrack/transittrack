@@ -59,7 +59,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.3.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-hibernate6")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-protobuf")
