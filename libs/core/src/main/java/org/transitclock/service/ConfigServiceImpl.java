@@ -375,6 +375,7 @@ public class ConfigServiceImpl implements ConfigService {
                 .collect(Collectors.toList());
     }
 
+    /* (non-Javadoc)
      * @see org.transitclock.ipc.interfaces.ConfigInterface#getRoutesByStopId()
      */
     @Override
@@ -390,8 +391,8 @@ public class ConfigServiceImpl implements ConfigService {
                 .collect(Collectors.toList());
     }
   
-  /* (non-Javadoc)
-     * @see org.transitclock.ipc.interfaces.ConfigInterface#getBlockIds()
+    /* (non-Javadoc)
+     * @see org.transitclock.ipc.interfaces.ConfigInterface#getServiceIdsWithBlockIds()
      */
     @Override
     public Map<String, List<String>> getServiceIdsWithBlockIds() {
