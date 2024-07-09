@@ -99,16 +99,19 @@ public interface TransitimeApi {
             int numberPredictions);
 
     @Operation(
-            summary = "Returns data for vehicles assignment for specific block in current day",
-            description = "Returns data for vehicles assignment for specific block in current day")
+            summary = "Returns data for vehicles assignment for specific block id",
+            description = "Returns data for vehicles assignment for specific block id")
     @GetMapping(
             value = "/command/vehiclesToBlock",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
+            @Parameter(description = "If set 'true', returns only the data with actual time windows.")
+            @RequestParam(value = "actual", required = false, defaultValue = "false")
+            boolean actual,
             @Parameter(description = "Block id")
-            @RequestParam(value = "blockId")
+            @RequestParam(value = "blockId", required = false)
             String blockId);
 
     /**
@@ -365,6 +368,26 @@ public interface TransitimeApi {
                     required = false)
             @RequestParam(value = "tripPattern", required = false)
             String tripPatternId);
+
+    /**
+     * Handles the "routesDetails" command for specified stop ID. Provides detailed information for a route includes all
+     * stops and paths.
+     *
+     * @param stdParameters
+     *
+     * @return
+     */
+    @GetMapping(value = "/command/routesDetailsByStopId",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @Operation(
+            summary = "Provides detailed information for a route.",
+            description = "Provides detailed information for a route includes specified stop Id "
+                    + "and paths such that it can be drawn in a map.",
+            tags = {"base data", "route"})
+    ResponseEntity<ApiRoutesDetailsResponse> getRouteDetailsByStopId(
+            StandardParameters stdParameters,
+            @Parameter(description = "Stop id") @RequestParam(value = "id")
+            String stopId);
 
     /**
      * Handles the "stops" command. Returns all stops associated with a route, grouped by direction.

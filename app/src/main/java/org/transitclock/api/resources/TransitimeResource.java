@@ -117,13 +117,19 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     @Override
     public ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
+            boolean actual,
             String blockId) {
         // Get Vehicle data from server
-        var result = vehiclesService.getVehicleToBlockConfig(blockId);
-        ApiVehicleToBlockResponse res = new ApiVehicleToBlockResponse(result);
-
+        if (actual) {
+            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs();
+            ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(actualConfigs);
+            // return actual ApiVehicles response
+            return ResponseEntity.ok(response);
+        }
+        var configs = vehiclesService.getVehicleToBlockConfigByBlockId(blockId);
+        ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(configs);
         // return ApiVehicles response
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(response);
     }
 
     @Override
@@ -387,7 +393,20 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
         // ApiRoutesDetails object
         ApiRoutesDetailsResponse routeData = new ApiRoutesDetailsResponse(ipcRoutes, agencies.get(0));
         return stdParameters.createResponse(routeData);
+    }
 
+    @Override
+    public ResponseEntity<ApiRoutesDetailsResponse> getRouteDetailsByStopId(
+            StandardParameters stdParameters,
+            String stopId) {
+        // Get agency info so can also return agency name
+        List<Agency> agencies = configService.getAgencies();
+        // Retrieve filtered routs
+        var ipcRoutes = configService.getRoutesByStopId(stopId);
+        // Take the IpcRoute data array and create and return
+        // ApiRoutesDetails object
+        ApiRoutesDetailsResponse routeData = new ApiRoutesDetailsResponse(ipcRoutes, agencies.get(0));
+        return stdParameters.createResponse(routeData);
     }
 
     @Override

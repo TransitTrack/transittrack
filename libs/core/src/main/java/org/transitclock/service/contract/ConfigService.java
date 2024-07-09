@@ -178,7 +178,15 @@ public interface ConfigService {
      */
     List<String> getBlockIds(String serviceId);
 
-
+    /**
+     * Obtains list of routes which contained stops with following stop ID
+     *
+     * @param stopId
+     * @return list of IpcRoute
+     */
+    List<IpcRoute> getRoutesByStopId(String stopId);
+  
+  
     /**
      * Returns sorted lists of block IDs what belong to all service IDs
      *
