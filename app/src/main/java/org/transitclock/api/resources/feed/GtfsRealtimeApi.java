@@ -25,7 +25,7 @@ import org.transitclock.properties.CoreProperties;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/api/v1/agency/{agency}")
+@RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
 public class GtfsRealtimeApi extends BaseApiResource {
     private final AgencyTimezoneCache agencyTimezoneCache;
     private final FeedCacheManager feedCacheManager;

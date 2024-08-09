@@ -27,7 +27,7 @@ import java.util.List;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/api/v1/agency/{agency}")
+@RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
 public class SiriApi extends BaseApiResource {
 
     /**
