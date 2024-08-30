@@ -1,15 +1,19 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.transitclock.Core;
 import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.config.data.AvlConfig;
 import org.transitclock.core.AvlProcessor;
 import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Receives AVL data from the AvlExecutor or JMS, determines if AVL should be filtered, and
@@ -57,7 +61,16 @@ public class AvlReportProcessor implements Runnable {
                 // If report the same time or older than don't need to process
                 // it
                 if (previousReportForVehicle != null && avlReport.getTime() <= previousReportForVehicle.getTime()) {
-                    logger.debug("Throwing away AVL report because it is same time or older than the previous AVL report for the vehicle. New AVL report is {}. Previous valid AVL report is {}",
+                    Calendar rightNow = Calendar.getInstance();
+                    boolean isValid = (SystemTime.getMillis() - avlReport.getTime()) > Time.HOUR_IN_MSECS / 2;
+                    // If report is old get refresh it in database every hour
+                    if (isValid && rightNow.get(Calendar.MINUTE) == 0 && rightNow.get(Calendar.SECOND) <= 7) {
+                        refreshAndPersistAvlReport();
+                        logger.debug("Refresh AVL report for vehicle id = {} what is older than 30 min.", avlReport.getVehicleId());
+                        return;
+                    }
+                    logger.debug("Throwing away AVL report because it is same time or older than the previous AVL report for the vehicle. New AVL report is {}. " +
+                                    "Previous valid AVL report is {}",
                             avlReport,
                             previousReportForVehicle);
                     return;
@@ -113,5 +126,18 @@ public class AvlReportProcessor implements Runnable {
             // Errors, such as OutOfMemory errors, through.
             logger.error("Something happened while processing {} for agencyId={}.", avlReport, AgencyConfig.getAgencyId(), e);
         }
+    }
+
+    private void refreshAndPersistAvlReport() {
+        AvlReport refreshReport = new AvlReport(
+                avlReport.getVehicleId(),
+                SystemTime.getMillis(),
+                avlReport.getLat(),
+                avlReport.getLon(),
+                avlReport.getSpeed(),
+                avlReport.getHeading(),
+                avlReport.getSource());
+        refreshReport.setTimeProcessed();
+        Core.getInstance().getDbLogger().add(refreshReport);
     }
 }
