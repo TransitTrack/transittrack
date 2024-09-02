@@ -62,7 +62,7 @@ public class AvlReportProcessor implements Runnable {
                 // it
                 if (previousReportForVehicle != null && avlReport.getTime() <= previousReportForVehicle.getTime()) {
                     Calendar rightNow = Calendar.getInstance();
-                    boolean isValid = (SystemTime.getMillis() - avlReport.getTime()) > Time.HOUR_IN_MSECS / 2;
+                    boolean isValid = (SystemTime.getMillis() - avlReport.getTime()) > Time.HOUR_IN_MSECS * 0.9F;
                     // If report is old get refresh it in database every hour
                     if (isValid && rightNow.get(Calendar.MINUTE) == 0 && rightNow.get(Calendar.SECOND) <= 7) {
                         refreshAndPersistAvlReport();

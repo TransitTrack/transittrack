@@ -90,6 +90,36 @@ public class Reports {
         return json;
     }
 
+    public static String getSingleAvlReportsForEachVehicleId (String agencyId, String date, String beginTime, String endTime) {
+
+        String sql;
+        String json;
+
+        sql = "SELECT vehicle_id, name, time, heading, assignment_id, lat, lon, speed, time_processed, source \n" +
+                "FROM ( SELECT  avl.vehicle_id,\n" +
+                "               config.name,\n" +
+                "               avl.time,\n" +
+                "               avl.assignment_id,\n" +
+                "               avl.lat,\n" +
+                "               avl.lon,\n" +
+                "               avl.speed,\n" +
+                "               avl.heading,\n" +
+                "               avl.time_processed,\n" +
+                "               avl.source,\n" +
+                "               ROW_NUMBER() OVER (PARTITION BY avl.vehicle_id ORDER BY avl.time DESC) as row\n" +
+                "         FROM avl_reports avl\n" +
+                "                  INNER JOIN vehicle_configs config ON\n" +
+                "             config.id = avl.vehicle_id\n" +
+                "         WHERE " + SqlUtils.timeRangeClause("avl.time", date, beginTime, endTime) +
+                "     ) t\n" +
+                "WHERE t.row = 1\n" +
+                "ORDER BY t.time;\n";
+
+        json = GenericJsonQuery.getJsonString(agencyId, sql);
+
+       return json;
+    }
+
     public static String getTripsFromArrivalAndDeparturesByDate(String agencyId, String date) {
         // postgresql only, should throw error if it's other database type
         String sql = "SELECT "

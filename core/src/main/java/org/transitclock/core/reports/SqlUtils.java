@@ -227,17 +227,58 @@ public class SqlUtils {
         SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
         SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
-        if (beginDate.charAt(4) != '-') {
-            beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-        } else {
-            requiredFormat.parse(beginDate);
-        }
+            if (beginDate.charAt(4) != '-') {
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
         } catch (ParseException e) {
             logger.error("Exception happened while processing time-range clause", e);
         }
 
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
+    }
+
+    /**
+     * Creates a SQL clause for specifying a time range. Looks at the request parameters
+     * "beginDate", "beginTime", and "endTime"
+     */
+    public static String timeRangeClause(
+            String timeColumnName,
+            String beginDate,
+            String beginTime,
+            String endTime
+    ) {
+        throwOnSqlInjection(beginTime);
+        throwOnSqlInjection(endTime);
+
+        // If beginTime or endTime set but not both then use default values
+        if (beginTime == null || beginTime.isEmpty()) {
+            beginTime = "08:30";
+        }
+        if (endTime == null || endTime.isEmpty()) {
+            endTime = "9:30";
+        }
+        String timeSql = "%s::time BETWEEN '%s' AND '%s' ".formatted(timeColumnName, beginTime, endTime);
+
+        throwOnSqlInjection(beginDate);
+
+
+        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (beginDate.charAt(4) != '-') {
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
+        } catch (ParseException e) {
+            logger.error("Exception happened while processing time-range clause", e);
+        }
+
+        //"avl_reports.time::date = '2024-08-30' AND avl_reports.time::time BETWEEN '15:30' AND '18:30'"
+        return "%s::date = '%s' AND %s".formatted(timeColumnName, beginDate, timeSql);
     }
 
     /**

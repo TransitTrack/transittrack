@@ -182,21 +182,27 @@ public class TransitimeApi {
 
     @Operation(
             summary = "Returns avl report.",
-            description = "Returns avl report.",
+            description = "Returns avl report. Default time parameters: Begin = '0:00', End = '23:59'; \"For Screenshot\" option: Begin = '8:30', End = '09:30'",
             tags = {"report", "vehicle"})
     @Path("/reports/avlReport")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getAvlReport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Vehicle id") @QueryParam(value = "v") String vehicleId,
+            @Parameter(description = "Vehicle id", required = false) @QueryParam(value = "v") String vehicleId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @QueryParam(value = "numDays") int numDays,
+            @Parameter(description = "Num days.",required = false) @QueryParam(value = "numDays") int numDays,
             @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
-            @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
+            @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime,
+            @Parameter(description = "For Screenshot", required = false) @QueryParam(value = "screenShot") boolean isForScreenShot)
             throws WebApplicationException {
         stdParameters.validate();
         try {
+        if (isForScreenShot) {
+            String response = Reports.getSingleAvlReportsForEachVehicleId(
+                    stdParameters.getAgencyId(), beginDate, beginTime, endTime);
+            return stdParameters.createResponse(response);
+        }
             String response = Reports.getAvlJson(
                     stdParameters.getAgencyId(), vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
             return stdParameters.createResponse(response);
