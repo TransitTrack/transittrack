@@ -6,11 +6,14 @@ import org.json.JSONObject;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.utils.Time;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Reports {
 
-    private static final int MAX_ROWS = 50000;
+    private static final int MAX_ROWS = 200000;
 
     private static final int MAX_NUM_DAYS = 7;
 
@@ -67,7 +70,7 @@ public class Reports {
         }
 
         // If only want data for single vehicle then specify so in SQL
-        if (vehicleId != null && !vehicleId.isEmpty()) sql += " AND vehicle_id='" + vehicleId + "' ";
+        if (vehicleId != null && !vehicleId.isEmpty()) sql += " AND vehicle_id = '" + vehicleId + "' ";
 
         // Make sure data is ordered by vehicleId so that can draw lines
         // connecting the AVL reports per vehicle properly. Also then need
@@ -78,19 +81,24 @@ public class Reports {
         sql += "ORDER BY vehicle_id, time LIMIT " + MAX_ROWS;
 
         String json = null;
+        Date startdate = null;
+
         try {
-            java.util.Date startdate = Time.parseDate(beginDate);
-
-            json = GenericJsonQuery.getJsonString(agencyId, sql, startdate, startdate);
-
+            if (beginDate.charAt(4) != '-') {
+                startdate = Time.parseDate(beginDate);
+            } else {
+                DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                startdate = altDateFormat.parse(beginDate);
+            }
         } catch (ParseException e) {
             json = e.getMessage();
         }
+        json = GenericJsonQuery.getJsonString(agencyId, sql, startdate, startdate);
 
         return json;
     }
 
-    public static String getSingleAvlReportsForEachVehicleId (String agencyId, String date, String beginTime, String endTime) {
+    public static String getSingleAvlReportsForEachVehicleId(String agencyId, String date, String beginTime, String endTime) {
 
         String sql;
         String json;
@@ -117,7 +125,7 @@ public class Reports {
 
         json = GenericJsonQuery.getJsonString(agencyId, sql);
 
-       return json;
+        return json;
     }
 
     public static String getTripsFromArrivalAndDeparturesByDate(String agencyId, String date) {
@@ -680,14 +688,14 @@ public class Reports {
      *
      * @return Stop reports in JSON format. Can be empty JSON array if no data meets criteria.
      */
-    public static String getReportForStopById (String agencyId,
-                                        String stop,
-                                        String beginDate,
-                                        String allowableEarly,
-                                        String allowableLate,
-                                        String beginTime,
-                                        String endTime,
-                                        int numDays) {
+    public static String getReportForStopById(String agencyId,
+                                              String stop,
+                                              String beginDate,
+                                              String allowableEarly,
+                                              String allowableLate,
+                                              String beginTime,
+                                              String endTime,
+                                              int numDays) {
         if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
         String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
 

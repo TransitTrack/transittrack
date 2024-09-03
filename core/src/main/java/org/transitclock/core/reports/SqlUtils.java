@@ -7,6 +7,7 @@ import org.transitclock.utils.Time;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * SQL utilities for creating SQL statements using parameters passed in to a page. Intended to make
@@ -224,17 +225,7 @@ public class SqlUtils {
             numDays = maxNumDays;
         }
 
-        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            if (beginDate.charAt(4) != '-') {
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } else {
-                requiredFormat.parse(beginDate);
-            }
-        } catch (ParseException e) {
-            logger.error("Exception happened while processing time-range clause", e);
-        }
+        beginDate = dateValidator(beginDate);
 
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
@@ -264,7 +255,13 @@ public class SqlUtils {
 
         throwOnSqlInjection(beginDate);
 
+        beginDate = dateValidator(beginDate);
 
+        //"avl_reports.time::date = '2024-08-30' AND avl_reports.time::time BETWEEN '15:30' AND '18:30'"
+        return "%s::date = '%s' AND %s".formatted(timeColumnName, beginDate, timeSql);
+    }
+
+    private static String dateValidator(String beginDate) {
         SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
         SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -276,10 +273,9 @@ public class SqlUtils {
         } catch (ParseException e) {
             logger.error("Exception happened while processing time-range clause", e);
         }
-
-        //"avl_reports.time::date = '2024-08-30' AND avl_reports.time::time BETWEEN '15:30' AND '18:30'"
-        return "%s::date = '%s' AND %s".formatted(timeColumnName, beginDate, timeSql);
+        return beginDate;
     }
+
 
     /**
      * Converts minutes string to seconds.
