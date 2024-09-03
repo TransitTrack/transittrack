@@ -80,12 +80,13 @@ public class Reports {
 
         sql += "ORDER BY vehicle_id, time LIMIT " + MAX_ROWS;
 
-        String json = null;
+        String json;
         Date startdate = null;
 
         try {
             if (beginDate.charAt(4) != '-') {
-                startdate = Time.parseDate(beginDate);
+                DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+                startdate = defaultDateFormat.parse(beginDate);
             } else {
                 DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 startdate = altDateFormat.parse(beginDate);
