@@ -18,6 +18,7 @@ import org.transitclock.api.data.ApiRoutesResponse;
 import org.transitclock.api.data.ApiRoutesDetailsResponse;
 import org.transitclock.api.data.ApiSchedulesHorizStops;
 import org.transitclock.api.data.ApiSchedulesVertStopsResponse;
+import org.transitclock.api.data.ApiServiceIdResponse;
 import org.transitclock.api.data.ApiTrip;
 import org.transitclock.api.data.ApiTripPatternsResponse;
 import org.transitclock.api.data.ApiTripWithTravelTimes;
@@ -869,6 +870,23 @@ public interface TransitimeApi {
             description = "Retrives all service id.",
             tags = {"base data", "serviceId"})
     ResponseEntity<ApiIdsResponse> getServiceIds(StandardParameters stdParameters);
+
+    /**
+     * Handles the "serviceIds" command. Returns list of all service IDs with assigned blocks.
+     *
+     * @param stdParameters
+     *
+     * @return
+     *
+     * @
+     */
+    @GetMapping(value = "/command/serviceIdsWithBlocks",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    @Operation(
+            summary = "Retrives all service id with block ids.",
+            description = "Retrives all service id with block ids.",
+            tags = {"base data", "serviceId"})
+    ResponseEntity<ApiServiceIdResponse> getServiceIdsWithBlocks(StandardParameters stdParameters);
 
     /**
      * Handles the currentServiceIds command. Returns list of service IDs that are currently active.

@@ -685,6 +685,23 @@ public class DbConfig {
     }
 
     /**
+     * Returns sorted lists of block IDs what belong to all service IDs
+     *
+     * @return Map of all service IDs with belong to block IDs
+     */
+    public Map<String, List<String>> getBlockIdsForAllServiceIds() {
+        Map<String, List<String>> serviceIdsWithBlocks = new HashMap<>();
+
+        blocksByServiceMap.forEach((key, element) -> {
+            List<String> ids = new ArrayList<>();
+            element.forEach((innerKey, block) -> ids.add(block.getId()));
+            Collections.sort(ids);
+            serviceIdsWithBlocks.put(key, ids);
+        });
+        return serviceIdsWithBlocks;
+    }
+
+    /**
      * Returns blocks for the specified blockId for all service IDs.
      *
      * @param blockId Which blocks to return
