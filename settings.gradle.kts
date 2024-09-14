@@ -14,7 +14,7 @@ pluginManagement {
         id("io.spring.dependency-management") version "1.1.5"
 
         id("com.google.cloud.tools.jib") version jibPluginVersion
-        id("com.palantir.git-version") version "3.0.0"
+        id("com.palantir.git-version") version "3.1.0"
         id("com.gorylenko.gradle-git-properties") version gitPropertiesPluginVersion
 
         id("com.google.protobuf") version "0.9.4"
