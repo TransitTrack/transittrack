@@ -43,7 +43,9 @@ public class GtfsRoute extends CsvBase {
     private final Integer breakTime;
     private final Double maxDistance;
 
-    /** For creating a GtfsStop object from scratch. */
+    /**
+     * For creating a GtfsStop object from scratch.
+     */
     public GtfsRoute(
             String routeId,
             String agencyId,
@@ -86,7 +88,9 @@ public class GtfsRoute extends CsvBase {
         agencyId = getOptionalValue(record, "agency_id");
         routeShortName = getOptionalValue(record, "route_short_name");
         routeLongName = getOptionalValue(record, "route_long_name");
-        routeDesc = getOptionalValue(record, "route_desc");
+        routeDesc = getOptionalValue(record, "route_desc").length() < 1024
+                ? getOptionalValue(record, "route_desc")
+                : truncateToLimitSize(getOptionalValue(record, "route_desc"), 1024);
         routeType = getRequiredUnlessSupplementalValue(record, "route_type");
         routeURL = getOptionalValue(record, "route_url");
         routeColor = getOptionalValue(record, "route_color");
@@ -175,5 +179,9 @@ public class GtfsRoute extends CsvBase {
      */
     public boolean shouldCreateUnscheduledBlock() {
         return unscheduledBlockSuffix != null;
+    }
+
+    private String truncateToLimitSize(String toTruncate, int maxSize) {
+        return toTruncate.substring(0, maxSize);
     }
 }
