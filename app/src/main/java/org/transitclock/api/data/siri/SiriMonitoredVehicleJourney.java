@@ -1,12 +1,13 @@
 /* (C)2023 */
 package org.transitclock.api.data.siri;
 
-import jakarta.xml.bind.annotation.XmlElement;
+import java.text.DateFormat;
+import java.util.Date;
+
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
-import java.text.DateFormat;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For SIRI MonitoredVehicleJourney element
@@ -14,92 +15,85 @@ import java.util.Date;
  * @author SkiBu Smith
  */
 public class SiriMonitoredVehicleJourney {
-
     // Vehicle Id
-    @XmlElement(name = "VehicleRef")
+    @JsonProperty("VehicleRef")
     private String vehicleRef;
 
     // Location of vehicle
-    @XmlElement(name = "VehicleLocation")
+    @JsonProperty("VehicleLocation")
     private SiriLocation vehicleLocation;
 
     // Vehicle bearing: 0 is East, increments counter-clockwise.
     // This of course is different from heading, where 0 is north
     // and it goes clockwise.
-    @XmlElement(name = "Bearing")
+    @JsonProperty("Bearing")
     private String bearingStr;
 
     // Block ID
-    @XmlElement(name = "BlockRef")
+    @JsonProperty("BlockRef")
     private String blockRef;
 
     // The route name
-    @XmlElement(name = "LineRef")
+    @JsonProperty("LineRef")
     private String lineRef;
 
     // The GTFS direction
-    @XmlElement(name = "DirectionRef")
+    @JsonProperty("DirectionRef")
     private String directionRef;
 
     // Describes the trip
-    @XmlElement(name = "FramedVehicleJourneyRef")
+    @JsonProperty("FramedVehicleJourneyRef")
     private SiriFramedVehicleJourneyRef framedVehicleJourneyRef;
 
     // Name of route. Using short name since that is available and is
     // more relevant.
-    @XmlElement(name = "PublishedLineName")
+    @JsonProperty("PublishedLineName")
     private String publishedLineName;
 
     // Name of agency
-    @XmlElement(name = "OperatorRef")
+    @JsonProperty("OperatorRef")
     private String operatorRef;
 
-    @XmlElement(name = "OriginRef")
+    @JsonProperty("OriginRef")
     private String originRef;
 
-    @XmlElement(name = "DestinationRef")
+    @JsonProperty("DestinationRef")
     private String destinationRef;
 
-    @XmlElement(name = "DestinationName")
+    @JsonProperty("DestinationName")
     private String destinationName;
 
-    @XmlElement(name = "OriginAimedDepartureTime")
+    @JsonProperty("OriginAimedDepartureTime")
     private String originAimedDepartureTime;
 
     // Whether vehicle tracked
-    @XmlElement(name = "Monitored")
+    @JsonProperty("Monitored")
     private String monitored;
 
     // Indicator of whether the bus is making progress (i.e. moving, generally)
     // or not (with value noProgress).
-    @XmlElement(name = "ProgressRate")
+    @JsonProperty("ProgressRate")
     private String progressRate;
 
-    @XmlElement(name = "ProgressStatus")
+    @JsonProperty("ProgressStatus")
     private String progressStatus;
 
-    @XmlElement(name = "MonitoredCall")
+    @JsonProperty("MonitoredCall")
     private SiriMonitoredCall monitoredCall;
 
-    @XmlElement(name = "OnwardCalls")
+    @JsonProperty("OnwardCalls")
     private String onwardCalls;
 
-
-    /**
-     * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse "MessageBodyWriter
-     * not found for media type=application/json" exception.
-     */
-    protected SiriMonitoredVehicleJourney() {}
 
     /**
      * Constructs that massive MonitoredVehicleJourney element.
      *
      * @param ipcCompleteVehicle
-     * @param prediction For when doing stop monitoring. If doing vehicle monitoring then should be
-     *     set to null.
+     * @param prediction         For when doing stop monitoring. If doing vehicle monitoring then should be
+     *                           set to null.
      * @param agencyId
-     * @param timeFormatter For converting epoch time into a Siri time string
-     * @param dateFormatter For converting epoch time into a Siri date string
+     * @param timeFormatter      For converting epoch time into a Siri time string
+     * @param dateFormatter      For converting epoch time into a Siri date string
      */
     public SiriMonitoredVehicleJourney(
             IpcVehicleComplete ipcCompleteVehicle,
@@ -110,7 +104,9 @@ public class SiriMonitoredVehicleJourney {
         vehicleRef = ipcCompleteVehicle.getId();
         vehicleLocation = new SiriLocation(ipcCompleteVehicle.getLatitude(), ipcCompleteVehicle.getLongitude());
         double bearing = 90 - ipcCompleteVehicle.getHeading();
-        if (bearing < 0) bearing += 360.0;
+        if (bearing < 0) {
+            bearing += 360.0;
+        }
         bearingStr = Double.toString(bearing);
         blockRef = ipcCompleteVehicle.getBlockId();
         lineRef = ipcCompleteVehicle.getRouteShortName();

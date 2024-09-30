@@ -1,11 +1,12 @@
 /* (C)2023 */
 package org.transitclock.api.data.siri;
 
-import jakarta.xml.bind.annotation.XmlElement;
-import org.transitclock.service.dto.IpcVehicle;
-
 import java.text.DateFormat;
 import java.util.Date;
+
+import org.transitclock.service.dto.IpcVehicle;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Describes the trip
@@ -15,19 +16,13 @@ import java.util.Date;
 public class SiriFramedVehicleJourneyRef {
 
     // The GTFS service date for the trip the vehicle is serving
-    @XmlElement(name = "DataFrameRef")
+    @JsonProperty("DataFrameRef")
     private String dataFrameRef;
 
     // Trip ID from GTFS
-    @XmlElement(name = "DatedVehicleJourneyRef")
+    @JsonProperty("DatedVehicleJourneyRef")
     private String datedVehicleJourneyRef;
 
-
-    /**
-     * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse "MessageBodyWriter
-     * not found for media type=application/json" exception.
-     */
-    protected SiriFramedVehicleJourneyRef() {}
 
     /**
      * Constructor

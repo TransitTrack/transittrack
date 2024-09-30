@@ -1,12 +1,6 @@
 /* (C)2023 */
 package org.transitclock.api.data.siri;
 
-import jakarta.xml.bind.annotation.*;
-import lombok.Data;
-import org.transitclock.api.utils.AgencyTimezoneCache;
-import org.transitclock.service.dto.IpcVehicleComplete;
-import org.transitclock.utils.Time;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,46 +8,45 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Top level XML element for SIRI VehicleMonitoring command.
- *
- * @author SkiBu Smith
- */@Data
-@XmlRootElement(name = "Siri")
-@XmlType(propOrder = {"version", "xmlns", "delivery"})
-public class SiriVehiclesMonitoring {
+import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.Time;
 
-    @XmlAttribute
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+/**
+ * @author SkiBu Smith
+ */
+@Data
+public class SiriVehiclesMonitoring {
+    @JsonProperty
     private String version = "1.3";
 
-    @XmlAttribute
+    @JsonProperty
     private String xmlns = "http://www.siri.org.uk/siri";
 
-    @XmlElement(name = "ServiceDelivery")
+    @JsonProperty("ServiceDelivery")
     private SiriServiceDelivery delivery;
 
-    @XmlTransient
+    @JsonIgnore
     // Defines how times should be output in Siri
     private final DateFormat siriDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     // Defines how dates should be output in Siri
-    @XmlTransient
+    @JsonIgnore
     private final DateFormat siriDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriServiceDelivery {
-        @XmlElement(name = "ResponseTimestamp")
+        @JsonProperty("ResponseTimestamp")
         private String responseTimestamp;
 
-        @XmlElement(name = "VehicleMonitoringDelivery ")
+        @JsonProperty("VehicleMonitoringDelivery ")
         private SiriVehicleMonitoringDelivery vehicleMonitoringDelivery;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriServiceDelivery() {}
 
         public SiriServiceDelivery(
                 Collection<IpcVehicleComplete> vehicles,
@@ -66,29 +59,25 @@ public class SiriVehiclesMonitoring {
         }
     }
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriVehicleMonitoringDelivery {
         // Required by SIRI spec
-        @XmlAttribute
+        @JsonProperty
         private String version = "1.3";
 
         // Required by SIRI spec
-        @XmlElement(name = "ResponseTimestamp")
+        @JsonProperty("ResponseTimestamp")
         private String responseTimestamp;
 
         // Required by SIRI spec
-        @XmlElement(name = "ValidUntil")
+        @JsonProperty("ValidUntil")
         private String validUntil;
 
-        @XmlElement(name = "VehicleActivity")
+        @JsonProperty("VehicleActivity")
         private List<SiriVehicleActivity> vehicleActivityList;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriVehicleMonitoringDelivery() {}
 
         public SiriVehicleMonitoringDelivery(
                 Collection<IpcVehicleComplete> vehicles,
@@ -106,22 +95,18 @@ public class SiriVehiclesMonitoring {
         }
     }
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriVehicleActivity {
         // GPS time for vehicle
-        @XmlElement(name = "RecordedAtTime")
+        @JsonProperty("RecordedAtTime")
         private String recordedAtTime;
 
         // Addition SIRI MonitoredVehicleJourney element
-        @XmlElement(name = "MonitoredVehicleJourney")
+        @JsonProperty("MonitoredVehicleJourney")
         private SiriMonitoredVehicleJourney monitoredVehicleJourney;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriVehicleActivity() {}
 
         public SiriVehicleActivity(
                 IpcVehicleComplete ipcCompleteVehicle,
@@ -133,9 +118,6 @@ public class SiriVehiclesMonitoring {
                     new SiriMonitoredVehicleJourney(ipcCompleteVehicle, null, agencyId, timeFormatter, dateFormatter);
         }
     }
-
-    // No-args needed because this class is an XML root element
-    protected SiriVehiclesMonitoring() {}
 
     public SiriVehiclesMonitoring(Collection<IpcVehicleComplete> vehicles, String agencyId) {
         // Set the time zones for the date formatters

@@ -1,13 +1,14 @@
 /* (C)2023 */
 package org.transitclock.api.data.siri;
 
-import jakarta.xml.bind.annotation.XmlElement;
+import java.text.DateFormat;
+import java.util.Date;
+
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.StringUtils;
 
-import java.text.DateFormat;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For SIRI MonitorCall element.
@@ -16,65 +17,58 @@ import java.util.Date;
  */
 public class SiriMonitoredCall {
 
-    @XmlElement(name = "StopPointRef")
+    @JsonProperty("StopPointRef")
     private String stopPointRef;
 
-    @XmlElement(name = "VisitNumber")
+    @JsonProperty("VisitNumber")
     private int visitNumber;
 
     // The arrival/departure time elements were found in
     // http://user47094.vs.easily.co.uk/siri/schema/1.4/examples/exs_stopMonitoring_response.xml
     // Scheduled time not currently available via IPC so not available here.
-    @XmlElement(name = "AimedArrivalTime")
+    @JsonProperty("AimedArrivalTime")
     String aimedArrivalTime;
 
     // Predicted arrival time
-    @XmlElement(name = "ExpectedArrivalTime")
+    @JsonProperty("ExpectedArrivalTime")
     String expectedArrivalTime;
 
     // Scheduled time not currently available via IPC so not available here.
-    @XmlElement(name = "AimedDepartureTime")
+    @JsonProperty("AimedDepartureTime")
     String aimedDepartureTime;
 
     // Predicted departure time
-    @XmlElement(name = "ExpectedDepartureTime")
+    @JsonProperty("ExpectedDepartureTime")
     String expectedDepartureTime;
 
     // NYC MTA extensions
-    @XmlElement(name = "Extensions")
+    @JsonProperty("Extensions")
     private Extensions extensions;
 
-    /** The MTA Bus Time extensions to show distance of the vehicle from the stop */
+    /**
+     * The MTA Bus Time extensions to show distance of the vehicle from the stop
+     */
     public static class Extensions {
-        @XmlElement(name = "Distances")
+        @JsonProperty("Distances")
         private Distances distances;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        protected Extensions() {}
 
         public Extensions(IpcVehicleComplete ipcCompleteVehicle) {
             distances = new Distances(ipcCompleteVehicle);
         }
     }
 
-    /** The MTA Bus Time extensions to show distance of the vehicle from the stop */
+    /**
+     * The MTA Bus Time extensions to show distance of the vehicle from the stop
+     */
     public static class Distances {
         // The distance of the stop from the beginning of the trip/route
-        @XmlElement(name = "CallDistanceAlongRoute")
+        @JsonProperty("CallDistanceAlongRoute")
         private String callDistanceAlongRoute;
 
         // The distance from the vehicle to the stop along the route, in meters
-        @XmlElement(name = "DistanceFromCall")
+        @JsonProperty("DistanceFromCall")
         private String distanceFromCall;
-
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        protected Distances() {}
 
         public Distances(IpcVehicleComplete ipcCompleteVehicle) {
             callDistanceAlongRoute =
@@ -84,20 +78,13 @@ public class SiriMonitoredCall {
         }
     }
 
-
-    /**
-     * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse "MessageBodyWriter
-     * not found for media type=application/json" exception.
-     */
-    protected SiriMonitoredCall() {}
-
     /**
      * Constructs a MonitoredCall element.
      *
      * @param ipcCompleteVehicle
-     * @param prediction The prediction for when doing stop monitoring. When doing vehicle
-     *     monitoring should be set to null.
-     * @param timeFormatter For converting epoch time into a Siri time string
+     * @param prediction         The prediction for when doing stop monitoring. When doing vehicle
+     *                           monitoring should be set to null.
+     * @param timeFormatter      For converting epoch time into a Siri time string
      */
     public SiriMonitoredCall(
             IpcVehicleComplete ipcCompleteVehicle, IpcPrediction prediction, DateFormat timeFormatter) {
