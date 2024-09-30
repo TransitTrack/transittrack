@@ -1,14 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.resources.feed;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.transitclock.api.data.siri.SiriStopMonitoring;
 import org.transitclock.api.data.siri.SiriVehiclesMonitoring;
 import org.transitclock.api.resources.BaseApiResource;
@@ -17,9 +13,14 @@ import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The Siri API
@@ -27,7 +28,7 @@ import java.util.List;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
+@RequestMapping("/api/v1" + "${transitclock.api.old-version-path}" + "/agency/{agency}")
 public class SiriApi extends BaseApiResource {
 
     /**
@@ -36,13 +37,14 @@ public class SiriApi extends BaseApiResource {
      * for entire agency is returned.
      *
      * @param stdParameters
-     * @param vehicleIds List of vehicle IDs
+     * @param vehicleIds           List of vehicle IDs
      * @param routesIdOrShortNames List of routes
+     *
      * @return The response
      */
     @GetMapping(
-        value = "/command/siri/vehicleMonitoring",
-        produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+            value = "/command/siri/vehicleMonitoring",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     @Operation(
             summary = "Returns vehicleMonitoring vehicle information in SIRI format.",
@@ -58,6 +60,7 @@ public class SiriApi extends BaseApiResource {
             @RequestParam(value = "r", required = false) List<String> routesIdOrShortNames) {
         // Get Vehicle data from server
         Collection<IpcVehicleComplete> vehicles;
+
         if (!routesIdOrShortNames.isEmpty()) {
             vehicles = vehiclesService.getCompleteForRoute(routesIdOrShortNames);
         } else if (!vehicleIds.isEmpty()) {
@@ -65,7 +68,6 @@ public class SiriApi extends BaseApiResource {
         } else {
             vehicles = vehiclesService.getComplete();
         }
-
         // Determine and return SiriStopMonitoring response
         SiriVehiclesMonitoring siriVehicles = new SiriVehiclesMonitoring(vehicles, stdParameters.getAgencyId());
         return ResponseEntity.ok(siriVehicles);
@@ -80,11 +82,12 @@ public class SiriApi extends BaseApiResource {
      * @param routeIdOrShortName
      * @param stopId
      * @param numberPredictions
+     *
      * @return
      */
     @GetMapping(
-        value = "/command/siri/stopMonitoring",
-        produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+            value = "/command/siri/stopMonitoring",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     @Operation(
             summary = "Returns stopMonitoring vehicle information in SIRI format.",
