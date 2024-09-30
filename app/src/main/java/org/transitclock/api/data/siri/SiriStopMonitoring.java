@@ -1,14 +1,6 @@
 /* (C)2023 */
 package org.transitclock.api.data.siri;
 
-import jakarta.xml.bind.annotation.*;
-import lombok.Data;
-import org.transitclock.api.utils.AgencyTimezoneCache;
-import org.transitclock.service.dto.IpcPrediction;
-import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-import org.transitclock.service.dto.IpcVehicleComplete;
-import org.transitclock.utils.Time;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,45 +8,47 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.transitclock.service.dto.IpcPrediction;
+import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
+import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.Time;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 /**
- * Top level XML element for SIRI StopMonitoring command.
- *
  * @author SkiBu Smith
- */@Data
-@XmlRootElement(name = "Siri")
-@XmlType(propOrder = {"version", "xmlns", "delivery"})
+ */
+@Data
 public class SiriStopMonitoring {
-    @XmlAttribute
+    @JsonProperty
     private String version = "1.3";
 
-    @XmlAttribute
+    @JsonProperty
     private String xmlns = "http://www.siri.org.uk/siri";
 
-    @XmlElement(name = "ServiceDelivery")
+    @JsonProperty("ServiceDelivery")
     private SiriServiceDelivery delivery;
 
-    @XmlTransient
+    @JsonIgnore
     // Defines how times should be output in Siri
     private final DateFormat siriDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     // Defines how dates should be output in Siri
-    @XmlTransient
+    @JsonIgnore
     private final DateFormat siriDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriServiceDelivery {
-        @XmlElement(name = "ResponseTimestamp")
+        @JsonProperty("ResponseTimestamp")
         private String responseTimestamp;
 
-        @XmlElement(name = "StopMonitoringDelivery ")
+        @JsonProperty("StopMonitoringDelivery ")
         private SiriStopMonitoringDelivery stopMonitoringDelivery;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriServiceDelivery() {}
 
         public SiriServiceDelivery(
                 List<IpcPredictionsForRouteStopDest> preds,
@@ -68,30 +62,26 @@ public class SiriStopMonitoring {
         }
     }
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriStopMonitoringDelivery {
         // Required by SIRI spec
-        @XmlAttribute
+        @JsonProperty
         private String version = "1.3";
 
         // Required by SIRI spec
-        @XmlElement(name = "ResponseTimestamp")
+        @JsonProperty("ResponseTimestamp")
         private String responseTimestamp;
 
         // Required by SIRI spec
-        @XmlElement(name = "ValidUntil")
+        @JsonProperty("ValidUntil")
         private String validUntil;
 
         // Contains prediction and vehicle info. One per prediction
-        @XmlElement(name = "MonitoredStopVisit")
+        @JsonProperty("MonitoredStopVisit")
         private List<SiriMonitoredStopVisit> monitoredStopVisitList;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriStopMonitoringDelivery() {}
 
         public SiriStopMonitoringDelivery(
                 List<IpcPredictionsForRouteStopDest> preds,
@@ -121,35 +111,33 @@ public class SiriStopMonitoring {
          * Determines IpcExtVehicle object for the specified prediction
          *
          * @param pred
-         * @param vehicleId
+         * @param vehicles
+         *
          * @return
          */
         private IpcVehicleComplete getVehicle(IpcPrediction pred, Collection<IpcVehicleComplete> vehicles) {
             String vehicleId = pred.getVehicleId();
             for (IpcVehicleComplete vehicle : vehicles) {
-                if (vehicle.getId().equals(vehicleId)) return vehicle;
+                if (vehicle.getId().equals(vehicleId)) {
+                    return vehicle;
+                }
             }
-
             // Didn't find the vehicle so return null
             return null;
         }
     }
 
-    /** Simple sub-element so using internal class. */
+    /**
+     * Simple sub-element so using internal class.
+     */
     private static class SiriMonitoredStopVisit {
         // GPS time for vehicle
-        @XmlElement(name = "RecordedAtTime")
+        @JsonProperty("RecordedAtTime")
         private String recordedAtTime;
 
-        @XmlElement(name = "MonitoredVehicleJourney")
+        @JsonProperty("MonitoredVehicleJourney")
         SiriMonitoredVehicleJourney monitoredVehicleJourney;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriMonitoredStopVisit() {}
 
         public SiriMonitoredStopVisit(
                 IpcVehicleComplete ipcCompleteVehicle,
@@ -163,8 +151,6 @@ public class SiriStopMonitoring {
         }
     }
 
-    // No-args needed because this class is an XML root element
-    protected SiriStopMonitoring() {}
 
     public SiriStopMonitoring(
             List<IpcPredictionsForRouteStopDest> preds, Collection<IpcVehicleComplete> vehicles, String agencyId) {
