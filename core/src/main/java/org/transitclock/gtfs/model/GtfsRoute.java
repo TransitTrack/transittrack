@@ -3,6 +3,7 @@ package org.transitclock.gtfs.model;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.csv.CSVRecord;
@@ -88,9 +89,7 @@ public class GtfsRoute extends CsvBase {
         agencyId = getOptionalValue(record, "agency_id");
         routeShortName = getOptionalValue(record, "route_short_name");
         routeLongName = getOptionalValue(record, "route_long_name");
-        routeDesc = getOptionalValue(record, "route_desc").length() < 1024
-                ? getOptionalValue(record, "route_desc")
-                : truncateToLimitSize(getOptionalValue(record, "route_desc"), 1024);
+        routeDesc = truncateToLimitSize(getOptionalValue(record, "route_desc"), 1024);
         routeType = getRequiredUnlessSupplementalValue(record, "route_type");
         routeURL = getOptionalValue(record, "route_url");
         routeColor = getOptionalValue(record, "route_color");
@@ -182,6 +181,10 @@ public class GtfsRoute extends CsvBase {
     }
 
     private String truncateToLimitSize(String toTruncate, int maxSize) {
-        return toTruncate.substring(0, maxSize);
+        if (Strings.isNullOrEmpty(toTruncate) || toTruncate.length() <= maxSize) {
+            return toTruncate;
+        } else {
+            return toTruncate.substring(0, maxSize);
+        }
     }
 }
