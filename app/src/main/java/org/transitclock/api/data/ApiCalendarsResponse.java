@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class ApiCalendarsResponse {
 
-    @JsonProperty
+    @JsonProperty("calendars")
     private List<ApiCalendar> data;
 
     public ApiCalendarsResponse(List<IpcCalendar> ipcCalendars) {

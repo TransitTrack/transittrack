@@ -21,7 +21,7 @@ import lombok.Data;
 @Data
 public class ApiActiveBlocksRoutesResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("routes")
     private List<ApiActiveBlocksRoute> data;
 
     /**

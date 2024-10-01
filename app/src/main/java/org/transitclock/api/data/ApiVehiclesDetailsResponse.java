@@ -23,7 +23,7 @@ import lombok.Data;
 @Data
 public class ApiVehiclesDetailsResponse {
 
-    @JsonProperty(value = "data")
+    @JsonProperty(value = "vehicles")
     private List<ApiVehicleDetails> data;
 
     /**

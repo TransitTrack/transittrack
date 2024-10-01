@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class ApiVehicleToBlockResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("vehicleToBlock")
     private List<ApiVehicleToBlockConfig> data;
 
 

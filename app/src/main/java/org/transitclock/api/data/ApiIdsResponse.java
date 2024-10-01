@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class ApiIdsResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("ids")
     private List<String> data;
 
     /**
