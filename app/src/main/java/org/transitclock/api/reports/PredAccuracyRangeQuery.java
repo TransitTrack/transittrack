@@ -167,12 +167,11 @@ public class PredAccuracyRangeQuery extends PredictionAccuracyQuery {
      * Performs the query and returns the data in an JSON string so that it can be used for a chart.
      *
      * @param beginDateStr Begin date for date range of data to use.
-     * @param endDateStr End date for date range of data to use. Since want to include data for the
-     *     end date, 1 day is added to the end date for the query.
      * @param beginTimeStr For specifying time of day between the begin and end date to use data
      *     for. Can thereby specify a date range of a week but then just look at data for particular
      *     time of day, such as 7am to 9am, for those days. Set to null or empty string to use data
      *     for entire day.
+     * @param endTimeStr
      * @param numDays How long query should be run for.
      * @param routeIds Specifies which routes to do the query for. Can be null for all routes or an
      *     array of route IDs.
