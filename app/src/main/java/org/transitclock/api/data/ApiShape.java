@@ -34,7 +34,7 @@ public class ApiShape {
     @JsonProperty
     private Boolean minor;
 
-    @JsonProperty("points")
+    @JsonProperty("loc")
     private List<ApiLocation> points;
 
     @JsonProperty

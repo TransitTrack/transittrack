@@ -22,7 +22,7 @@ public class ApiScheduleTimesForStop {
     @JsonProperty
     private String stopName;
 
-    @JsonProperty
+    @JsonProperty("time")
     private List<ApiScheduleTime> times;
 
     public ApiScheduleTimesForStop(String stopId, String stopName) {

@@ -26,7 +26,7 @@ public class ApiSchedulesVertStopsResponse {
     @JsonProperty
     private String routeName;
 
-    @JsonProperty
+    @JsonProperty("schedule")
     private List<ApiScheduleVertStops> schedules;
 
 

@@ -20,7 +20,7 @@ public class ApiDirection {
     @JsonProperty
     private String title;
 
-    @JsonProperty
+    @JsonProperty("stop")
     private List<ApiStop> stops;
 
     /**

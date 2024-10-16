@@ -29,7 +29,7 @@ public class ApiScheduleTimesForTrip {
     @JsonProperty
     private String blockId;
 
-    @JsonProperty
+    @JsonProperty("time")
     private List<ApiScheduleTime> times;
 
     public ApiScheduleTimesForTrip(IpcSchedTrip ipcSchedTrip) {

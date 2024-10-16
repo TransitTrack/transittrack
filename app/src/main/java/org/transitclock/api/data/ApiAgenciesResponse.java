@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class ApiAgenciesResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("agency")
     private List<ApiAgency> data;
 
     public ApiAgenciesResponse(List<ApiAgency> apiAgencies) {

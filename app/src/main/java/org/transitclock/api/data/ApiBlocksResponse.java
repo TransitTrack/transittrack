@@ -11,7 +11,7 @@ import lombok.Data;
 
 @Data
 public class ApiBlocksResponse {
-    @JsonProperty("data")
+    @JsonProperty("block")
     private List<ApiBlock> data;
 
     public ApiBlocksResponse(Collection<IpcBlock> blocks) {

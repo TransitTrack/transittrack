@@ -17,7 +17,7 @@ public class ApiSchedulesHorizStops {
     @JsonProperty
     private String routeName;
 
-    @JsonProperty
+    @JsonProperty("schedule")
     private List<ApiScheduleHorizStops> schedules;
 
 

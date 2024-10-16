@@ -42,10 +42,10 @@ public class ApiRouteDetails {
     @JsonProperty
     private String type;
 
-    @JsonProperty
+    @JsonProperty("direction")
     private List<ApiDirection> directions;
 
-    @JsonProperty
+    @JsonProperty("shape")
     private List<ApiShape> shapes;
 
     @JsonProperty

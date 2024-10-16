@@ -36,7 +36,7 @@ public class ApiScheduleVertStops {
     @JsonProperty
     private String routeName;
 
-    @JsonProperty
+    @JsonProperty("trip")
     private List<ApiScheduleTrip> trips;
 
     @JsonProperty

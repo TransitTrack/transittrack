@@ -35,7 +35,7 @@ public class ApiActiveBlock implements Serializable {
     @JsonProperty("trip")
     private ApiTripTerse trip;
 
-    @JsonProperty("vehicles")
+    @JsonProperty("vehicle")
     private List<ApiVehicleDetails> vehicles;
 
 

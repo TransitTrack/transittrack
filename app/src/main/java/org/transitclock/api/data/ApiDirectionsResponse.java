@@ -16,7 +16,7 @@ import lombok.Data;
 @Data
 public class ApiDirectionsResponse {
 
-    @JsonProperty
+    @JsonProperty("direction")
     private List<ApiDirection> data;
 
     public ApiDirectionsResponse(IpcDirectionsForRoute stopsForRoute) {
