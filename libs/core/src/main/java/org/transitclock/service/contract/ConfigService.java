@@ -185,8 +185,8 @@ public interface ConfigService {
      * @return list of IpcRoute
      */
     List<IpcRoute> getRoutesByStopId(String stopId);
-
-
+  
+  
     /**
      * Returns sorted lists of block IDs what belong to all service IDs
      *
