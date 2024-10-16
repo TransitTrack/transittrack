@@ -184,7 +184,7 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
                 beginDate = new Timestamp(altDateFormat.parse(beginDateStr).getTime());
             }
         } catch (ParseException e) {
-            logger.warn("Date is not valid. Please use following formats: MM-dd-yyyy or yyyy-MM-dd");
+            logger.warn("Date is not valid. Please use following formats: MM-dd-yyyy or yyyy-MM-dd " + e.getMessage());
         }
         String timeSql = "";
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");

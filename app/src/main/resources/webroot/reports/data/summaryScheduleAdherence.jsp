@@ -1,12 +1,12 @@
-<%@ page import="org.transitclock.api.reports.ScheduleAdherenceController" %>
-<%@ page import="org.transitclock.utils.Time" %>
-<%@ page import="java.sql.Timestamp" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="org.json.JSONArray" %>
 <%@ page import="org.apache.commons.lang3.StringUtils" %>
+<%@ page import="org.json.JSONObject" %>
+<%@ page import="org.transitclock.api.reports.ScheduleAdherenceController" %>
+<%@ page import="java.sql.Timestamp" %>
+<%@ page import="java.text.DateFormat" %>
+<%@ page import="java.text.ParseException" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.Date" %><%@ page import="java.util.List"%><%@ page import="java.util.Map"%>
 
 <%@ page contentType="application/json" %>
 <%
@@ -31,7 +31,7 @@ else
 	endTime += ":00";
 
 if (!StringUtils.isEmpty(earlyLimitStr)) {
-	earlyLimit = Double.parseDouble(earlyLimitStr) * 60;
+	earlyLimit = Double.parseDouble(earlyLimitStr) * -60;
 }
 if (!StringUtils.isEmpty(lateLimitStr)) {
 	lateLimit = Double.parseDouble(lateLimitStr) * 60;
@@ -40,15 +40,24 @@ if (!StringUtils.isEmpty(lateLimitStr)) {
 
 String routeIdList = request.getParameter("r");
 List<String> routeIds = routeIdList == null ? null : Arrays.asList(routeIdList.split(","));
+Date startDate = null;
+        try {
+            if (startDateStr.charAt(4) != '-') {
+        DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+                startDate = new Timestamp(defaultDateFormat.parse(startDateStr).getTime());
+            } else {
+        DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                startDate = new Timestamp(altDateFormat.parse(startDateStr).getTime());
+            }
+        } catch (ParseException e) {
+           e.printStackTrace();
+        }
 
-
-SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-Date startDate = dateFormat.parse(startDateStr);
-
-List<Integer> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(startDate,
+Map<String, String> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(startDate,
 		Integer.parseInt(numDaysStr), startTime, endTime, earlyLimit, lateLimit, routeIds);
 
-JSONArray json = new JSONArray(results);
+response.setHeader("Access-Control-Allow-Origin", "*");
+JSONObject json = new JSONObject(results);
 json.write(out);
 
 %>

@@ -176,13 +176,8 @@ public class SqlUtils {
                 numDays = maxNumDays;
             }
 
-            SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-            SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } catch (ParseException e) {
-                logger.error("Exception occurred while processing time-range clause.", e);
-            }
+            beginDate = dateValidator(beginDate);
+
             return " AND %s BETWEEN '%s'  AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                     .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
         }

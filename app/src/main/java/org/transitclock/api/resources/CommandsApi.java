@@ -460,14 +460,17 @@ public class CommandsApi {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addAVLReport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "AVL date(MM-DD-YYYY).") @QueryParam(value = "avlDate") String avlDate)
+            @Parameter(description = "AVL date(MM-DD-YYYY or YYYY-MM-DD).") @QueryParam(value = "avlDate") String avlDate)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
 
         try {
-            ExportTable.create(new SimpleDateFormat("MM-dd-yyyy").parse(avlDate), 1, "avl_" + avlDate + ".csv");
-
+            if (avlDate.charAt(4) != '-') {
+                ExportTable.create(new SimpleDateFormat("MM-dd-yyyy").parse(avlDate), 1, "avl_" + avlDate + ".csv");
+            } else {
+                ExportTable.create(new SimpleDateFormat("yyyy-MM-dd").parse(avlDate), 1, "avl_" + avlDate + ".csv");
+            }
         } catch (Exception ex) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(ex);

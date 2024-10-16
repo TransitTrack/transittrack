@@ -56,9 +56,9 @@
 // predictions for all sources
     String sourceSql = "";
     if (source != null && !source.isEmpty()) {
-        if (source.equals("Transitime")) {
+        if (source.equals("TransitClock")) {
             // Only "Transitime" predictions
-            sourceSql = " AND prediction_source='Transitime'";
+            sourceSql = " AND prediction_source='TransitClock'";
         } else {
             // Anything but "Transitime"
             sourceSql = " AND prediction_source<>'Transitime'";
@@ -93,7 +93,7 @@
                         + "affectedByLayover=%s', "
                         + "   CAST(prediction_accuracy_msecs || ' msec' AS INTERVAL), predicted_time-prediction_read_time,"
                         + "   stop_id, route_id, trip_id, "
-                        + "   to_char(arrival_departure_time, 'HH24:MI:SS.MS MM/DD/YYYY'),"
+                        + "   to_char(arrival_departure_time, 'HH24:MI:SS.MS YYYY/MM/DD'),"
                         + "   to_char(predicted_time, 'HH24:MI:SS.MS'),"
                         + "   to_char(prediction_read_time, 'HH24:MI:SS.MS'),"
                         + "   vehicle_id,"
