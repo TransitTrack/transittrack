@@ -16,7 +16,7 @@ import org.transitclock.api.data.ApiIdsResponse;
 import org.transitclock.api.data.ApiPredictionsResponse;
 import org.transitclock.api.data.ApiRoutesResponse;
 import org.transitclock.api.data.ApiRoutesDetailsResponse;
-import org.transitclock.api.data.ApiSchedulesHorizStops;
+import org.transitclock.api.data.ApiSchedulesHorizStopsResponse;
 import org.transitclock.api.data.ApiSchedulesVertStopsResponse;
 import org.transitclock.api.data.ApiServiceIdResponse;
 import org.transitclock.api.data.ApiTrip;
@@ -798,7 +798,7 @@ public interface TransitimeApi {
                     + " there are a good number of stops but not as many trips, such as for"
                     + " commuter rail.",
             tags = {"base data", "schedule"})
-    ResponseEntity<ApiSchedulesHorizStops> getScheduleHorizStops(
+    ResponseEntity<ApiSchedulesHorizStopsResponse> getScheduleHorizStops(
             StandardParameters stdParameters,
             @Parameter(description = "Specifies the routeId or routeShortName.", required = true)
             @RequestParam(value = "r")

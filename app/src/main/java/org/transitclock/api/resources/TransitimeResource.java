@@ -22,7 +22,7 @@ import org.transitclock.api.data.ApiIdsResponse;
 import org.transitclock.api.data.ApiPredictionsResponse;
 import org.transitclock.api.data.ApiRoutesDetailsResponse;
 import org.transitclock.api.data.ApiRoutesResponse;
-import org.transitclock.api.data.ApiSchedulesHorizStops;
+import org.transitclock.api.data.ApiSchedulesHorizStopsResponse;
 import org.transitclock.api.data.ApiSchedulesVertStopsResponse;
 import org.transitclock.api.data.ApiServiceIdResponse;
 import org.transitclock.api.data.ApiTrip;
@@ -789,7 +789,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     }
 
     @Override
-    public ResponseEntity<ApiSchedulesHorizStops> getScheduleHorizStops(
+    public ResponseEntity<ApiSchedulesHorizStopsResponse> getScheduleHorizStops(
             StandardParameters stdParameters,
             String routesIdOrShortNames) {
 
@@ -804,7 +804,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             }
 
             // Create and return ApiSchedules response
-            ApiSchedulesHorizStops apiSchedules = new ApiSchedulesHorizStops(ipcSchedules);
+            ApiSchedulesHorizStopsResponse apiSchedules = new ApiSchedulesHorizStopsResponse(ipcSchedules);
             return stdParameters.createResponse(apiSchedules);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request

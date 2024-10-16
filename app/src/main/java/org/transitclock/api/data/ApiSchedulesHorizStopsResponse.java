@@ -9,7 +9,7 @@ import org.transitclock.service.dto.IpcSchedule;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 @Data
-public class ApiSchedulesHorizStops {
+public class ApiSchedulesHorizStopsResponse {
 
     @JsonProperty
     private String routeId;
@@ -25,9 +25,9 @@ public class ApiSchedulesHorizStops {
      * Need a no-arg constructor for Jersey. Otherwise get really obtuse "MessageBodyWriter not
      * found for media type=application/json" exception.
      */
-    protected ApiSchedulesHorizStops() {}
+    protected ApiSchedulesHorizStopsResponse() {}
 
-    public ApiSchedulesHorizStops(List<IpcSchedule> schedules) {
+    public ApiSchedulesHorizStopsResponse(List<IpcSchedule> schedules) {
         this.routeId = schedules.get(0).getRouteId();
         this.routeName = schedules.get(0).getRouteName();
 
