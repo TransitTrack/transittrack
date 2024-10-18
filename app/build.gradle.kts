@@ -1,8 +1,21 @@
+import org.rodnansol.core.generator.template.TemplateType
+import org.rodnansol.gradle.tasks.GeneratePropertyDocumentTask
+import org.rodnansol.gradle.tasks.customization.MarkdownTemplateCustomization
+import org.rodnansol.gradle.tasks.customization.TemplateMode
+
+buildscript {
+    dependencies {
+        classpath("org.rodnansol:spring-configuration-property-documenter-gradle-plugin:0.7.1") // (1)
+    }
+}
+
 plugins {
     id("java")
     id("org.springframework.boot")
     id("com.google.cloud.tools.jib")
 }
+
+apply(plugin = "org.rodnansol.spring-configuration-property-documenter")
 
 jib {
     from {
@@ -74,4 +87,21 @@ dependencies {
 
 springBoot {
     mainClass = "org.transitclock.Application"
+}
+
+tasks.register<GeneratePropertyDocumentTask>("generateProperties") {
+    documentName = "Transit Track configuration parameters"
+    documentDescription = "Configuration parameters with their default values for transit-track realtime generator application."
+    type = TemplateType.MARKDOWN
+    isFailOnMissingInput = true
+
+    markdownCustomization(delegateClosureOf<MarkdownTemplateCustomization> {
+        isIncludeUnknownGroup = false
+        isRemoveEmptyGroups = true
+        templateMode = TemplateMode.STANDARD
+        locale = "en_US"
+        outputFile = file("../docs/config-properties.md")
+    })
+
+    outputs.upToDateWhen { false }
 }
