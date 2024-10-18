@@ -2,13 +2,13 @@
 package org.transitclock.core.reports;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.transitclock.utils.Time;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 /**
  * SQL utilities for creating SQL statements using parameters passed in to a page. Intended to make
@@ -23,19 +23,20 @@ public class SqlUtils {
      * To be called on request parameters to make sure they don't contain any SQL injection
      * trickery.
      *
-     * @param parameter
+     * @param parameters
      * @throws RuntimeException if problem characters detected
      */
-    public static void throwOnSqlInjection(String parameter) {
-        // If null then it is not a problem
-        if (parameter == null) {
+    public static void throwOnSqlInjection(String... parameters) {
+        if (parameters == null) {
             return;
         }
 
-        // If parameter contains a ' or a ; then throw error to
-        // prevent possible SQL injection attack
-        if (parameter.contains("'") || parameter.contains(";")) {
-            throw new IllegalArgumentException("Parameter \"" + parameter + "\" not valid.");
+        for (String parameter : parameters) {
+            // If parameter contains an ' or an ; then throw error to
+            // prevent possible SQL injection attack
+            if (parameter.contains("'") || parameter.contains(";")) {
+                throw new IllegalArgumentException("Parameter \"" + parameter + "\" not valid.");
+            }
         }
     }
 
@@ -81,7 +82,7 @@ public class SqlUtils {
      *     NULL AND (ad.routeshortname IN ('21','5') OR ad.routeid IN ('21','5') )"
      */
     public static String routeClause(String r, String tableAliasName) {
-        if (StringUtils.isEmpty(r))
+        if (StringUtils.hasText(r))
             return "";
 
         String routeIdentifiers = routeIdentifiersList(r);
@@ -95,7 +96,7 @@ public class SqlUtils {
     }
 
     public static String stopClause(String id, String tableAliasName) {
-        if (StringUtils.isEmpty(id))
+        if (StringUtils.hasText(id))
             return "";
 
         String tableAlias = "";
@@ -117,10 +118,9 @@ public class SqlUtils {
      */
     public static String timeRangeClause(HttpServletRequest request, String timeColumnName, int maxNumDays) {
         String beginTime = request.getParameter("beginTime");
-        throwOnSqlInjection(beginTime);
-
         String endTime = request.getParameter("endTime");
-        throwOnSqlInjection(endTime);
+
+        throwOnSqlInjection(beginTime, endTime);
 
         // Determine the time portion of the SQL
         // If beginTime or endTime set but not both then use default values
@@ -160,10 +160,9 @@ public class SqlUtils {
                     .formatted(timeColumnName, beginDateStr, endDateStr, timeSql);
         } else { // Not using dateRange so must be using beginDate and numDays params
             String beginDate = request.getParameter("beginDate");
-            throwOnSqlInjection(beginDate);
-
             String numDaysStr = request.getParameter("numDays");
-            throwOnSqlInjection(numDaysStr);
+
+            throwOnSqlInjection(beginDate, numDaysStr);
 
             if (numDaysStr == null) {
                 numDaysStr = "1";
@@ -176,14 +175,8 @@ public class SqlUtils {
             if (numDays > maxNumDays) {
                 numDays = maxNumDays;
             }
+            beginDate = validateDate(beginDate);
 
-            SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-            SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } catch (ParseException e) {
-                logger.error("Exception occurred while processing time-range clause.", e);
-            }
             return " AND %s BETWEEN '%s'  AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                     .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
         }
@@ -193,7 +186,6 @@ public class SqlUtils {
      * Creates a SQL clause for specifying a time range. Looks at the request parameters
      * "beginDate", "numDays", "beginTime", and "endTime"
      *
-     * @param request Http request containing parameters for the query
      * @param timeColumnName name of time column for that for query
      * @param maxNumDays maximum number of days for query. Request parameter numDays is limited to
      *     this value in order to make sure that query doesn't try to process too much data.
@@ -207,8 +199,7 @@ public class SqlUtils {
             String beginTime,
             String endTime,
             String beginDate) {
-        throwOnSqlInjection(beginTime);
-        throwOnSqlInjection(endTime);
+        throwOnSqlInjection(beginTime, endTime, beginDate);
 
         // If beginTime or endTime set but not both then use default values
         if (beginTime == null || beginTime.isEmpty()) {
@@ -220,24 +211,13 @@ public class SqlUtils {
 
         String timeSql = " AND " + timeColumnName + "::time BETWEEN '" + beginTime + "' AND '" + endTime + "' ";
 
-        throwOnSqlInjection(beginDate);
+        beginDate = validateDate(beginDate);
 
         if (numDays > maxNumDays) {
             numDays = maxNumDays;
         }
 
-        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        try {
-            if (beginDate.charAt(4) != '-') { // for two patterns MM-dd-yyyy & yyyy-MM-dd
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } else {
-                requiredFormat.parse(beginDate);
-            }
-        } catch (ParseException e) {
-            logger.error("Exception happened while processing time-range clause", e);
-        }
 
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
@@ -251,5 +231,20 @@ public class SqlUtils {
      */
     public static int convertMinutesToSecs(String minutes) {
         return (int) Double.parseDouble(minutes) * Time.SEC_PER_MIN;
+    }
+
+    private static String validateDate(String date) {
+        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (date.charAt(4) != '-') {
+                date = requiredFormat.format(currentFormat.parse(date));
+            } else {
+                requiredFormat.parse(date);
+            }
+        } catch (ParseException e) {
+            logger.error("Exception happened while processing time-range clause", e);
+        }
+        return date;
     }
 }

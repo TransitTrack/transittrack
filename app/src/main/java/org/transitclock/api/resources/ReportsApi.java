@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 import org.transitclock.api.utils.StandardParameters;
 
@@ -42,11 +43,12 @@ public interface ReportsApi {
             summary = "Returns avl report.",
             description = "Returns avl report.",
             tags = {"report", "vehicle"})
+
     @GetMapping(value = "/reports/avlReport",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     ResponseEntity<String> getAvlReport(
             StandardParameters stdParameters,
-            @Parameter(description = "Vehicle id") @RequestParam(value = "v") String vehicleId,
+            @Parameter(description = "Vehicle id") @RequestParam(value = "v", required = false) String vehicleId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)", required = false) @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -121,7 +123,7 @@ public interface ReportsApi {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     ResponseEntity<String> reportForStopById(
             StandardParameters stdParameters,
-            @Parameter(description = "Stop id") @RequestParam(value = "stopId") String stopId,
+            @Parameter(description = "Stop id") @RequestParam(value = "id") String stopId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
@@ -146,7 +148,7 @@ public interface ReportsApi {
     ResponseEntity<String> predAccuracyRangeData(HttpServletRequest request) throws SQLException, ParseException;
 
     @GetMapping(value = "/reports/data/summaryScheduleAdherence.jsp")
-    ResponseEntity<List<Integer>> summaryScheduleAdherence(HttpServletRequest request) throws ParseException;
+    ResponseEntity<Map<String, String>> summaryScheduleAdherence(HttpServletRequest request) throws ParseException;
 
     @GetMapping(value = "/reports/predAccuracyScatterData.jsp")
     ResponseEntity<String> predAccuracyScatterData(HttpServletRequest request) throws ParseException, SQLException;
