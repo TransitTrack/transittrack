@@ -1,16 +1,21 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import com.google.common.base.Strings;
+
+import org.transitclock.domain.webstructs.WebAgency;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.transitclock.domain.webstructs.WebAgency;
-import org.transitclock.utils.Time;
 
 public class Reports {
 
     private static final int MAX_ROWS = 50000;
-
     private static final int MAX_NUM_DAYS = 7;
 
     /**
@@ -19,11 +24,12 @@ public class Reports {
      *
      * @param agencyId
      * @param vehicleId Which vehicle to get data for. Set to null or empty string to get data for
-     *     all vehicles
+     *                  all vehicles
      * @param beginDate date to start query
-     * @param numdays of days to collect data for
+     * @param numdays   of days to collect data for
      * @param beginTime optional time of day during the date range
-     * @param endTime optional time of day during the date range
+     * @param endTime   optional time of day during the date range
+     *
      * @return AVL reports in JSON format. Can be empty JSON array if no data meets criteria.
      */
     public static String getAvlJson(
@@ -32,12 +38,16 @@ public class Reports {
         String timeSql = "";
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
         // If beginTime or endTime set but not both then use default values
-        if ((beginTime != null && !beginTime.isEmpty()) || (endTime != null && !endTime.isEmpty())) {
-            if (beginTime == null || beginTime.isEmpty()) beginTime = "00:00";
-            if (endTime == null || endTime.isEmpty()) endTime = "24:00";
+        if (Strings.isNullOrEmpty(beginTime) || Strings.isNullOrEmpty(endTime)) {
+            if (Strings.isNullOrEmpty(beginTime)) {
+                beginTime = "00:00";
+            }
+            if (Strings.isNullOrEmpty(endTime)) {
+                endTime = "24:00";
+            }
         }
         // cast('2000-01-01 01:12:00'::timestamp as time);
-        if (beginTime != null && !beginTime.isEmpty() && endTime != null && !endTime.isEmpty()) {
+        if (!Strings.isNullOrEmpty(beginTime) && !Strings.isNullOrEmpty(endTime)) {
             if ("mysql".equals(agency.getDbType())) {
                 timeSql = " AND time(time) BETWEEN '" + beginTime + "' AND '" + endTime + "' ";
             } else {
@@ -66,7 +76,9 @@ public class Reports {
         }
 
         // If only want data for single vehicle then specify so in SQL
-        if (vehicleId != null && !vehicleId.isEmpty()) sql += " AND vehicle_id='" + vehicleId + "' ";
+        if (vehicleId != null && !vehicleId.isEmpty()) {
+            sql += " AND vehicle_id='" + vehicleId + "' ";
+        }
 
         // Make sure data is ordered by vehicleId so that can draw lines
         // connecting the AVL reports per vehicle properly. Also then need
@@ -76,16 +88,20 @@ public class Reports {
 
         sql += "ORDER BY vehicle_id, time LIMIT " + MAX_ROWS;
 
-        String json = null;
+        String json;
+        Date startdate;
         try {
-            java.util.Date startdate = Time.parseDate(beginDate);
-
+            if (beginDate.charAt(4) != '-') {
+                DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+                startdate = defaultDateFormat.parse(beginDate);
+            } else {
+                DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                startdate = altDateFormat.parse(beginDate);
+            }
             json = GenericJsonQuery.getJsonString(agencyId, sql, startdate, startdate);
-
         } catch (ParseException e) {
-            json = e.getMessage();
+            return json = e.getMessage();
         }
-
         return json;
     }
 
@@ -238,10 +254,14 @@ public class Reports {
             String beginTime,
             String endTime,
             int numDays) {
-        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        if (allowableEarly == null || allowableEarly.isEmpty()) {
+            allowableEarly = "1.0";
+        }
         String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
 
-        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
+        if (allowableLate == null || allowableLate.isEmpty()) {
+            allowableLate = "4.0";
+        }
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
 
         String sql = "WITH trips_early_query_with_time AS ( SELECT trip_id AS trips_early, 	"
@@ -461,10 +481,14 @@ public class Reports {
             String beginTime,
             String endTime,
             int numDays) {
-        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        if (allowableEarly == null || allowableEarly.isEmpty()) {
+            allowableEarly = "1.0";
+        }
         String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
 
-        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
+        if (allowableLate == null || allowableLate.isEmpty()) {
+            allowableLate = "4.0";
+        }
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
 
         String sql = "WITH trips_early_query_with_time AS ( SELECT trip_id AS trips_early, 	"
@@ -648,18 +672,22 @@ public class Reports {
      *
      * @return Stop reports in JSON format. Can be empty JSON array if no data meets criteria.
      */
-    public static String getReportForStopById (String agencyId,
-                                               String stop,
-                                               String beginDate,
-                                               String allowableEarly,
-                                               String allowableLate,
-                                               String beginTime,
-                                               String endTime,
-                                               int numDays) {
-        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+    public static String getReportForStopById(String agencyId,
+                                              String stop,
+                                              String beginDate,
+                                              String allowableEarly,
+                                              String allowableLate,
+                                              String beginTime,
+                                              String endTime,
+                                              int numDays) {
+        if (allowableEarly == null || allowableEarly.isEmpty()) {
+            allowableEarly = "1.0";
+        }
         String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
 
-        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
+        if (allowableLate == null || allowableLate.isEmpty()) {
+            allowableLate = "4.0";
+        }
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
 
         String sql = " WITH early AS (SELECT time                   AS early,\n" +
@@ -754,7 +782,7 @@ public class Reports {
 
     /**
      * Queries agency for AVL data and returns result as a JSON string. Limited to returning
-
+     * <p>
      * MAX_ROWS (50,000) data points.
      *
      * @return Last AVL reports in JSON format. Can be empty JSON array if no data meets criteria.
