@@ -5,12 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.List;
 import java.util.Objects;
 
 import lombok.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 
 /**
@@ -87,31 +84,6 @@ public class VehicleConfig {
         crushCapacity = null;
         nonPassengerVehicle = null;
         name = null;
-    }
-
-    /**
-     * Reads List of VehicleConfig objects from database
-     *
-     * @param session
-     * @return List of VehicleConfig objects
-     * @throws HibernateException
-     */
-    public static List<VehicleConfig> getVehicleConfigs(Session session) throws HibernateException {
-        return session
-                .createQuery("FROM VehicleConfig", VehicleConfig.class)
-                .list();
-    }
-
-    /**
-     * Reads List of VehicleConfig objects from database
-     *
-     * @param vehicleConfig, session
-     * @throws HibernateException
-     */
-    public static void updateVehicleConfig(VehicleConfig vehicleConfig, Session session) throws HibernateException {
-        // Transaction tx = session.beginTransaction();
-        session.merge(vehicleConfig);
-        // tx.commit();
     }
 
     @Override

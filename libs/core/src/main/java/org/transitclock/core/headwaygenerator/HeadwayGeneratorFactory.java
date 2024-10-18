@@ -10,6 +10,7 @@ import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 
 /**
  * For instantiating a HeadwayGenerator object that generates headway info when a new match is
@@ -26,13 +27,14 @@ public class HeadwayGeneratorFactory {
     @Bean
     @Lazy
     public HeadwayGenerator headwayGenerator(VehicleDataCache vehicleDataCache,
-                                                          VehicleStatusManager vehicleStatusManager,
-                                                          StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
-                                                          DbConfig dbConfig) {
+                                              VehicleStatusManager vehicleStatusManager,
+                                              StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
+                                              DbConfig dbConfig,
+                                             CoreProperties coreProperties) {
         if (neededClass == LastArrivalsHeadwayGenerator.class) {
-            return new LastArrivalsHeadwayGenerator(vehicleDataCache, vehicleStatusManager, stopArrivalDepartureCacheInterface, dbConfig);
+            return new LastArrivalsHeadwayGenerator(vehicleDataCache, vehicleStatusManager, stopArrivalDepartureCacheInterface, dbConfig, coreProperties);
         } else if (neededClass == LastDepartureHeadwayGenerator.class) {
-            return new LastDepartureHeadwayGenerator(vehicleDataCache, vehicleStatusManager, stopArrivalDepartureCacheInterface, dbConfig);
+            return new LastDepartureHeadwayGenerator(vehicleDataCache, vehicleStatusManager, stopArrivalDepartureCacheInterface, dbConfig, coreProperties);
         }
 
         return new HeadwayGeneratorDefaultImpl();

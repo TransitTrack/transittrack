@@ -8,6 +8,7 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
@@ -32,20 +33,22 @@ class LastDepartureHeadwayGenerator implements HeadwayGenerator {
     private final VehicleStatusManager vehicleStatusManager;
     private final StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface;
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public LastDepartureHeadwayGenerator(VehicleDataCache vehicleDataCache, VehicleStatusManager vehicleStatusManager, StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface, DbConfig dbConfig) {
+    public LastDepartureHeadwayGenerator(VehicleDataCache vehicleDataCache, VehicleStatusManager vehicleStatusManager, StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface, DbConfig dbConfig, CoreProperties coreProperties) {
         this.vehicleDataCache = vehicleDataCache;
         this.vehicleStatusManager = vehicleStatusManager;
         this.stopArrivalDepartureCacheInterface = stopArrivalDepartureCacheInterface;
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     @Override
     public Headway generate(VehicleStatus vehicleStatus) {
 
         try {
-            String stopId =
-                    vehicleStatus.getMatch().getMatchAtPreviousStop().getAtStop().getStopId();
+            String stopId = vehicleStatus.getMatch()
+                            .getMatchAtPreviousStop(coreProperties).getAtStop().getStopId();
             long date = vehicleStatus.getMatch().getAvlTime();
             String vehicleId = vehicleStatus.getVehicleId();
             StopArrivalDepartureCacheKey key = new StopArrivalDepartureCacheKey(stopId, new Date(date));

@@ -2,12 +2,14 @@
 package org.transitclock.core.headwaygenerator;
 
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheKey;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
@@ -32,23 +34,25 @@ class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
     private final VehicleStatusManager vehicleStatusManager;
     private final StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface;
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public LastArrivalsHeadwayGenerator(VehicleDataCache vehicleDataCache, VehicleStatusManager vehicleStatusManager, StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface, DbConfig dbConfig) {
+    public LastArrivalsHeadwayGenerator(VehicleDataCache vehicleDataCache, VehicleStatusManager vehicleStatusManager, StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface, DbConfig dbConfig, CoreProperties coreProperties) {
         this.vehicleDataCache = vehicleDataCache;
         this.vehicleStatusManager = vehicleStatusManager;
         this.stopArrivalDepartureCacheInterface = stopArrivalDepartureCacheInterface;
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     @Override
     public Headway generate(VehicleStatus vehicleStatus) {
 
         try {
+            SpatialMatch matchAtPreviousStop = vehicleStatus.getMatch().getMatchAtPreviousStop(coreProperties);
+            if (matchAtPreviousStop == null)
+                return null;
 
-            if (vehicleStatus.getMatch().getMatchAtPreviousStop() == null) return null;
-
-            String stopId =
-                    vehicleStatus.getMatch().getMatchAtPreviousStop().getAtStop().getStopId();
+            String stopId = matchAtPreviousStop.getAtStop().getStopId();
 
             long date = vehicleStatus.getMatch().getAvlTime();
 

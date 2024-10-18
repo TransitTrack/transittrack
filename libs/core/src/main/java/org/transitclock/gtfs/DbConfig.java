@@ -12,6 +12,18 @@ import java.util.Map;
 
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.repository.BlockRepository;
+import org.transitclock.domain.repository.CalendarDateRepository;
+import org.transitclock.domain.repository.CalendarRepository;
+import org.transitclock.domain.repository.FareAttributeRepository;
+import org.transitclock.domain.repository.FareRuleRepository;
+import org.transitclock.domain.repository.FrequencyRepository;
+import org.transitclock.domain.repository.RouteRepository;
+import org.transitclock.domain.repository.StopRepository;
+import org.transitclock.domain.repository.TransferRepository;
+import org.transitclock.domain.repository.TripPatternRepository;
+import org.transitclock.domain.repository.TripRepository;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.Calendar;
@@ -88,6 +100,7 @@ public class DbConfig {
     private List<CalendarDate> calendarDates;
     // So can efficiently look up calendar dates
     private Map<Long, List<CalendarDate>> calendarDatesMap;
+    private Map<String, Calendar> calendarByServiceIdMap;
     private List<FareAttribute> fareAttributes;
     private List<FareRule> fareRules;
     private List<Frequency> frequencies;
@@ -353,7 +366,7 @@ public class DbConfig {
         // trip patterns that have already been read in as part of
         // reading in block assignments. This makes reading of the
         // trip pattern data much faster.
-        List<TripPattern> tripPatterns = TripPattern.getTripPatterns(globalSession, configRev);
+        List<TripPattern> tripPatterns = TripPatternRepository.getTripPatterns(globalSession, configRev);
         Map<String, List<TripPattern>> theTripPatternsByRouteMap = putTripPatternsIntoMap(tripPatterns);
 
         logger.debug("Reading trip patterns for all routes took {} msec", timer.elapsedMsec());
@@ -395,14 +408,14 @@ public class DbConfig {
             // pattern data, is only read serially (not read simultaneously
             // by multiple threads). Otherwise get a "force initialize loading
             // collection" error.
-            synchronized (Block.getLazyLoadingSyncObject()) {
+            synchronized (BlockRepository.getLazyLoadingSyncObject()) {
                 logger.debug("About to load trips...");
 
                 // Use the global session so that don't need to read in any
                 // trip patterns that have already been read in as part of
                 // reading in block assignments. This makes reading of the
                 // trip pattern data much faster.
-                tripsMap = Trip.getTrips(globalSession, configRev);
+                tripsMap = TripRepository.getTrips(globalSession, configRev);
             }
             logger.debug("Reading trips took {} msec", timer.elapsedMsec());
         }
@@ -431,8 +444,8 @@ public class DbConfig {
             // pattern data, is only read serially (not read simultaneously
             // by multiple threads). Otherwise get a "force initialize loading
             // collection" error.
-            synchronized (Block.getLazyLoadingSyncObject()) {
-                trip = Trip.getTrip(globalSession, configRev, tripIdOrShortName);
+            synchronized (BlockRepository.getLazyLoadingSyncObject()) {
+                trip = TripRepository.getTrip(globalSession, configRev, tripIdOrShortName);
             }
 
             if (trip != null) {
@@ -515,8 +528,8 @@ public class DbConfig {
         // pattern data, is only read serially (not read simultaneously
         // by multiple threads). Otherwise get a "force initialize loading
         // collection" error.
-        synchronized (Block.getLazyLoadingSyncObject()) {
-            trips = Trip.getTripByShortName(globalSession, configRev, tripShortName);
+        synchronized (BlockRepository.getLazyLoadingSyncObject()) {
+            trips = TripRepository.getTripByShortName(globalSession, configRev, tripShortName);
         }
 
         // Add the newly read trips to the map
@@ -597,13 +610,13 @@ public class DbConfig {
         // logger.debug("Reading stopPaths took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        blocks = Block.getBlocks(globalSession, configRev);
+        blocks = BlockRepository.getBlocks(globalSession, configRev);
         blocksByServiceMap = putBlocksIntoMap(blocks);
         blocksByRouteMap = putBlocksIntoMapByRoute(blocks);
         logger.debug("Reading blocks took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        routes = Route.getRoutes(globalSession, configRev);
+        routes = RouteRepository.getRoutes(globalSession, configRev);
         routesByRouteIdMap = putRoutesIntoMapByRouteId(routes);
         routesByRouteShortNameMap = putRoutesIntoMapByRouteShortName(routes);
         logger.debug("Reading routes took {} msec", timer.elapsedMsec());
@@ -611,28 +624,37 @@ public class DbConfig {
         tripPatternsByRouteMap = putTripPatternsInfoRouteMap();
 
         timer = new IntervalTimer();
-        List<Stop> stopsList = Stop.getStops(globalSession, configRev);
+        List<Stop> stopsList = StopRepository.getStops(globalSession, configRev);
         stopsMap = putStopsIntoMap(stopsList);
         stopsByStopCode = putStopsIntoMapByStopCode(stopsList);
         routesListByStopIdMap = putRoutesIntoMapByStopId(routes);
         logger.debug("Reading stops took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        agencies = Agency.getAgencies(globalSession, configRev);
-        calendars = Calendar.getCalendars(globalSession, configRev);
-        calendarDates = CalendarDate.getCalendarDates(globalSession, configRev);
+        agencies = AgencyRepository.getAgencies(globalSession, configRev);
+        calendars = CalendarRepository.getCalendars(globalSession, configRev);
+        calendarDates = CalendarDateRepository.getCalendarDates(globalSession, configRev);
 
-        calendarDatesMap = new HashMap<Long, List<CalendarDate>>();
+        calendarByServiceIdMap = new HashMap<>();
+        for (Calendar calendar : calendars) {
+            if(calendarByServiceIdMap.get(calendar.getServiceId()) == null){
+                calendarByServiceIdMap.put(calendar.getServiceId(), calendar);
+            } else{
+                logger.warn("Duplicate Service Id {} in Calendar", calendar.getServiceId());
+            }
+        }
+
+        calendarDatesMap = new HashMap<>();
         for (CalendarDate calendarDate : calendarDates) {
             Long time = calendarDate.getTime();
             List<CalendarDate> calendarDatesForDate = calendarDatesMap.computeIfAbsent(time, k -> new ArrayList<>(1));
             calendarDatesForDate.add(calendarDate);
         }
 
-        fareAttributes = FareAttribute.getFareAttributes(globalSession, configRev);
-        fareRules = FareRule.getFareRules(globalSession, configRev);
-        frequencies = Frequency.getFrequencies(globalSession, configRev);
-        transfers = Transfer.getTransfers(globalSession, configRev);
+        fareAttributes = FareAttributeRepository.getFareAttributes(globalSession, configRev);
+        fareRules = FareRuleRepository.getFareRules(globalSession, configRev);
+        frequencies = FrequencyRepository.getFrequencies(globalSession, configRev);
+        transfers = TransferRepository.getTransfers(globalSession, configRev);
 
         logger.debug("Reading everything else took {} msec", timer.elapsedMsec());
     }
@@ -820,6 +842,12 @@ public class DbConfig {
      */
     public List<Calendar> getCalendars() {
         return Collections.unmodifiableList(calendars);
+    }
+
+
+
+    public Calendar getCalendarByServiceId(String serviceId) {
+        return calendarByServiceIdMap.get(serviceId);
     }
 
     /**

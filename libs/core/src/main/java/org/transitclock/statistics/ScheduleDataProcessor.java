@@ -14,6 +14,7 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.transitclock.domain.repository.ArrivalDepartureRepository;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.ArrivalDeparture.ArrivalsOrDepartures;
 import org.transitclock.gtfs.GtfsFilter;
@@ -538,7 +539,7 @@ public class ScheduleDataProcessor {
                     // Note: I tried adding a "ORDER BY time" clause to see
                     // if that would speed things up when doing multiple batches
                     // but it only served to slow things down.
-                    arrDepBatchList = ArrivalDeparture.getArrivalsDeparturesFromDb(
+                    arrDepBatchList = ArrivalDepartureRepository.getArrivalsDeparturesFromDb(
                             new Date(batchBeginTime),
                             new Date(batchEndTime),
                             null, // SQL clause

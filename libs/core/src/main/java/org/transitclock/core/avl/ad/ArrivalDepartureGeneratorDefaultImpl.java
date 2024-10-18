@@ -30,6 +30,7 @@ import org.transitclock.domain.structs.Route;
 import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.VehicleEvent;
+import org.transitclock.domain.structs.VehicleEventType;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.ArrivalsDeparturesProperties;
 import org.transitclock.properties.CoreProperties;
@@ -87,6 +88,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
     private final DbConfig dbConfig;
     private final ArrivalsDeparturesProperties arrivalsDeparturesProperties;
     private final CoreProperties coreProperties;
+    private final PredictionAccuracyModule predictionAccuracyModule;
 
     public ArrivalDepartureGeneratorDefaultImpl(ScheduleBasedHistoricalAverageCache scheduleBasedHistoricalAverageCache,
                                                 FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
@@ -100,7 +102,8 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
                                                 DataDbLogger dataDbLogger,
                                                 DbConfig dbConfig,
                                                 ArrivalsDeparturesProperties arrivalsDeparturesProperties,
-                                                CoreProperties coreProperties) {
+                                                CoreProperties coreProperties,
+                                                PredictionAccuracyModule predictionAccuracyModule) {
         this.scheduleBasedHistoricalAverageCache = scheduleBasedHistoricalAverageCache;
         this.frequencyBasedHistoricalAverageCache = frequencyBasedHistoricalAverageCache;
         this.holdingTimeCache = holdingTimeCache;
@@ -114,6 +117,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         this.dbConfig = dbConfig;
         this.arrivalsDeparturesProperties = arrivalsDeparturesProperties;
         this.coreProperties = coreProperties;
+        this.predictionAccuracyModule = predictionAccuracyModule;
     }
 
 
@@ -452,7 +456,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         vehicleStatus.incrementTripCounter(arrivalDeparture, vehicleStatusManager);
 
         // Generate prediction accuracy info as appropriate
-        PredictionAccuracyModule.handleArrivalDeparture(dbConfig, dataDbLogger, arrivalDeparture);
+        predictionAccuracyModule.handleArrivalDeparture(dbConfig, dataDbLogger, arrivalDeparture);
     }
 
     /**
@@ -493,7 +497,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
             VehicleEvent vehicleEvent = new VehicleEvent(
                     vehicleStatus.getAvlReport(),
                     vehicleStatus.getMatch(),
-                    VehicleEvent.LEFT_TERMINAL_EARLY,
+                    VehicleEventType.LEFT_TERMINAL_EARLY,
                     description,
                     true, // predictable
                     false, // becameUnpredictable
@@ -523,7 +527,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
             VehicleEvent vehicleEvent = new VehicleEvent(
                     vehicleStatus.getAvlReport(),
                     vehicleStatus.getMatch(),
-                    VehicleEvent.LEFT_TERMINAL_LATE,
+                    VehicleEventType.LEFT_TERMINAL_LATE,
                     description,
                     true, // predictable
                     false, // becameUnpredictable
@@ -579,7 +583,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
             int stopPathIndex = 0;
 
             // Determine departure time for first stop of trip
-            SpatialMatch beginningOfTrip = new SpatialMatch(0, block, tripIndex, 0, 0, 0.0, 0.0);
+            SpatialMatch beginningOfTrip = new SpatialMatch(0, block, tripIndex, 0, 0, 0.0, 0.0, coreProperties);
             long travelTimeFromFirstStopToMatch = travelTimes
                     .expectedTravelTimeBetweenMatches(vehicleId, avlReportTime, beginningOfTrip, newMatch);
             long departureTime = avlReportTime.getTime() - travelTimeFromFirstStopToMatch;
@@ -1081,7 +1085,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         Indices endIndices = newVehicleAtStopInfo != null ? newVehicleAtStopInfo.clone() : newMatch.getIndices();
 
         // Determine time to first stop
-        SpatialMatch matchAtNextStop = oldMatch.getMatchAtJustBeforeNextStop(dbConfig);
+        SpatialMatch matchAtNextStop = oldMatch.getMatchAtJustBeforeNextStop(dbConfig, coreProperties);
         long travelTimeToFirstStop = travelTimes
                 .expectedTravelTimeBetweenMatches(vehicleId, avlDate, oldMatch, matchAtNextStop);
         double timeWithoutSpeedRatio = travelTimeToFirstStop;

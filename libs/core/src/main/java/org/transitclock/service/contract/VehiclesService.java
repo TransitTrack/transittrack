@@ -175,7 +175,7 @@ public interface VehiclesService {
      */
     int getNumActiveBlocks(Collection<String> routeIds, int allowableBeforeTimeSecs);
 
-    Collection<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs();
+    Collection<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs(String blockId);
 
     Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfigByBlockId(String blockId);
 

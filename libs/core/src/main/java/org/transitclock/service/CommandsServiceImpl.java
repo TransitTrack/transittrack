@@ -16,6 +16,7 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.VehicleToBlockConfigRepository;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
@@ -183,11 +184,13 @@ public class CommandsServiceImpl implements CommandsService {
     @Override
     public String removeVehicleToBlock(long id) {
         try (Session session = HibernateUtils.getSession()) {
-           return VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
+            VehicleToBlockConfigRepository.deleteVehicleToBlockConfig(id, session);
         } catch (Exception ex) {
            logger.warn("Something went wrong when trying to delete a raw from {} table",
                        CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
            throw new HibernateException(ex.getMessage());
         }
+
+        return null;
     }
 }

@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.repository.ArrivalDepartureRepository;
+import org.transitclock.domain.repository.MatchRepository;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ArrivalDeparture;
@@ -53,7 +56,7 @@ public class DataFetcher {
         // Create the member calendar using timezone specified in db for the
         // agency. Use the currently active config rev.
         int configRev = ActiveRevision.get(dbName).getConfigRev();
-        List<Agency> agencies = Agency.getAgencies(dbName, configRev);
+        List<Agency> agencies = AgencyRepository.getAgencies(dbName, configRev);
         TimeZone timezone = agencies.get(0).getTimeZone();
         calendar = new GregorianCalendar(timezone);
     }
@@ -201,7 +204,7 @@ public class DataFetcher {
         final int batchSize = updatesProperties.getPageSize();
         final boolean pageDbReads = updatesProperties.getPageDbReads();
 
-        long count = ArrivalDeparture.getArrivalsDeparturesCountFromDb(dbName, beginTime, endTime, null);
+        long count = ArrivalDepartureRepository.getArrivalsDeparturesCountFromDb(dbName, beginTime, endTime, null);
         if (count == 0) {
             logger.warn("No arrival/departures found");
             return resultsMap;
@@ -215,7 +218,7 @@ public class DataFetcher {
             List<ArrivalDeparture> arrDepBatchList;
             do {
                 logger.info("querying a/d for between {} and {}", pageBeginTime, pageEndTime);
-                arrDepBatchList = ArrivalDeparture.getArrivalsDeparturesFromDb(
+                arrDepBatchList = ArrivalDepartureRepository.getArrivalsDeparturesFromDb(
                         pageBeginTime,
                         pageEndTime,
                         // Order results by time so that process them in the same
@@ -239,7 +242,7 @@ public class DataFetcher {
         } else {
             List<ArrivalDeparture> arrDepBatchList;
             do {
-                arrDepBatchList = ArrivalDeparture.getArrivalsDeparturesFromDb(
+                arrDepBatchList = ArrivalDepartureRepository.getArrivalsDeparturesFromDb(
                         beginTime,
                         endTime,
                         // Order results by time so that process them in the same
@@ -300,7 +303,7 @@ public class DataFetcher {
         final boolean batchReads = updatesProperties.getPageDbReads();
 
         logger.info("counting matches...");
-        Long count = Match.getMatchesCountFromDb(projectId, beginTime, endTime, "AND atStop = false");
+        Long count = MatchRepository.getMatchesCountFromDb(projectId, beginTime, endTime, "AND atStop = false");
         if (count == 0) {
             logger.info("Found 0 matches. Stopping here!");
             return resultsMap;
@@ -317,7 +320,7 @@ public class DataFetcher {
 
             do {
                 logger.info("querying matches for between {} and {}", pageBeginTime, pageEndTime);
-                matchBatchList = Match.getMatchesFromDb(projectId, pageBeginTime, pageEndTime, sqlClause, null, null);
+                matchBatchList = MatchRepository.getMatchesFromDb(projectId, pageBeginTime, pageEndTime, sqlClause, null, null);
                 // Add arrivals/departures to map
                 for (Match match : matchBatchList) {
                     addMatchToMap(resultsMap, match);
@@ -333,7 +336,7 @@ public class DataFetcher {
             List<Match> matchBatchList;
             // Read in batch of 50k rows of data and process it
             do {
-                matchBatchList = Match.getMatchesFromDb(
+                matchBatchList = MatchRepository.getMatchesFromDb(
                         projectId,
                         beginTime,
                         endTime,

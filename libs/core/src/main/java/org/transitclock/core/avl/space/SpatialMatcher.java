@@ -253,7 +253,7 @@ public class SpatialMatcher {
                                     || tripIdThatFoundTripPatternFor.equals(
                                             spatialMatch.getTrip().getId()))) {
                         foundTripPattern = true;
-                        spatialMatchesForAllTrips.add(new SpatialMatch(dbConfig, spatialMatch, trip));
+                        spatialMatchesForAllTrips.add(new SpatialMatch(dbConfig, spatialMatch, trip, coreProperties));
                         tripIdThatFoundTripPatternFor = spatialMatch.getTrip().getId();
                     } else {
                         // If trip pattern or trip ID for spatial matches is now
@@ -537,7 +537,8 @@ public class SpatialMatcher {
                 potentialMatchIndices.getStopPathIndex(),
                 potentialMatchIndices.getSegmentIndex(),
                 distanceToSegment,
-                distanceAlongSegment);
+                distanceAlongSegment,
+                coreProperties);
         logger.debug(
                 "For vehicleId={} examining match to see if it should " + "be included in list of spatial matches. {}",
                 avlReport.getVehicleId(),
@@ -786,7 +787,8 @@ public class SpatialMatcher {
                     indexOfLastStopPath,
                     indexOfLastSegment,
                     Double.NaN, // distanceToSegment set to a non-valid value
-                    segmentLength);
+                    segmentLength,
+                    coreProperties);
 
             // Add that match to list of possible SpatialMatches
             logger.debug(

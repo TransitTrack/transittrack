@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.transitclock.api.reports.ChartGenericJsonQuery;
 import org.transitclock.api.reports.PredAccuracyIntervalQuery;
 import org.transitclock.api.reports.PredAccuracyRangeQuery;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ReportsResource extends BaseApiResource implements ReportsApi {
+    @Autowired
+    ScheduleAdherenceController scheduleAdherenceController;
 
     @Override
     public ResponseEntity<String> getTripsWithTravelTimes(
@@ -310,7 +314,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date startDate = dateFormat.parse(startDateStr);
 
-        List<Integer> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(startDate,
+        List<Integer> results = scheduleAdherenceController.routeScheduleAdherenceSummary(startDate,
                                                                                           Integer.parseInt(numDaysStr),
                                                                                           startTime, endTime,
                                                                                           earlyLimit, lateLimit,

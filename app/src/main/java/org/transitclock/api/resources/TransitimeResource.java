@@ -37,6 +37,7 @@ import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.ExportTableRepository;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
@@ -121,7 +122,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String blockId) {
         // Get Vehicle data from server
         if (actual) {
-            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs();
+            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs(blockId);
             ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(actualConfigs);
             // return actual ApiVehicles response
             return ResponseEntity.ok(response);
@@ -900,7 +901,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
         ApiExportsDataResponse result;
         Session session = HibernateUtils.getSession();
         try {
-            result = new ApiExportsDataResponse(ExportTable.getExportTable(session));
+            result = new ApiExportsDataResponse(ExportTableRepository.getExportTable(session));
 
             session.close();
             return stdParameters.createResponse(result);
@@ -915,7 +916,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     public ResponseEntity<Object> getExportById(StandardParameters stdParameters, long id) {
         Session session = HibernateUtils.getSession();
         try {
-            ExportTable result = ExportTable.getExportFile(session, id).get(0);
+            ExportTable result = ExportTableRepository.getExportFile(session, id).get(0);
 
             session.close();
             // return ApiVehicles response

@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.accuracy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.config.data.PredictionAccuracyConfig;
 import org.transitclock.utils.PlaybackIntervalTimer;
 import org.transitclock.utils.SystemTime;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PlaybackPredictionAccuracyModule extends PredictionAccuracyModule {
@@ -17,7 +17,7 @@ public class PlaybackPredictionAccuracyModule extends PredictionAccuracyModule {
             // generated yet. So sleep a bit first.
 
             // Time.sleep(5000);
-            if (timer.elapsedMsec() > PredictionAccuracyConfig.timeBetweenPollingPredictionsMsec.getValue()) {
+            if (timer.elapsedMsec() > predictionAccuracyProperties.getPollingRateMsec()) {
                 try {
                     // Process data
                     getAndProcessData(getRoutesAndStops(), SystemTime.getDate());

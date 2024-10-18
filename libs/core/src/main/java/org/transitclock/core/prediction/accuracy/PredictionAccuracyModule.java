@@ -12,8 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.stereotype.Component;
+
 import org.transitclock.Module;
-import org.transitclock.config.data.PredictionAccuracyConfig;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.ArrivalDeparture;
@@ -21,6 +22,7 @@ import org.transitclock.domain.structs.PredictionAccuracy;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.PredictionAccuracyProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.utils.MapKey;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author SkiBu Smith
  */
 @Slf4j
+@Component
 public class PredictionAccuracyModule implements Module {
     // The map that contains all of the predictions to be used for prediction
     // accuracy analysis. Each value is a list of predictions because can have
@@ -52,6 +55,8 @@ public class PredictionAccuracyModule implements Module {
     protected DbConfig dbConfig;
     @Autowired
     protected DataDbLogger dataDbLogger;
+    @Autowired
+    protected PredictionAccuracyProperties predictionAccuracyProperties;
 
     @Data
     public static class RouteAndStops {
@@ -110,15 +115,15 @@ public class PredictionAccuracyModule implements Module {
                 List<String> stopIdsForTripPattern = tripPattern.getStopIds();
 
                 // If not that many stops for the trip then use all of them.
-                if (PredictionAccuracyConfig.stopsPerTrip.getValue() >= stopIdsForTripPattern.size()) {
+                if (predictionAccuracyProperties.getStopsPerTrip() >= stopIdsForTripPattern.size()) {
                     // Use all stops for this trip pattern
                     routeStopInfo.stopIds.put(tripPattern.getDirectionId(), stopIdsForTripPattern);
                 } else {
                     // Get stops for direction randomly
                     Set<String> stopsSet = new HashSet<>();
                     int tries = 0;
-                    while (stopsSet.size() < PredictionAccuracyConfig.stopsPerTrip.getValue()
-                            && tries < PredictionAccuracyConfig.maxRandomStopSelectionsPerTrip.getValue()) {
+                    while (stopsSet.size() < predictionAccuracyProperties.getStopsPerTrip()
+                            && tries < predictionAccuracyProperties.getMaxRandomStopSelectionsPerTrip()) {
                         // Randomly get a stop ID for the trip pattern
                         int index = (int) (stopIdsForTripPattern.size() * Math.random());
                         stopsSet.add(stopIdsForTripPattern.get(index));
@@ -147,7 +152,7 @@ public class PredictionAccuracyModule implements Module {
         // memory. This is important because need to limit how much
         // memory is used for prediction accuracy data collecting.
         if (pred.getPredictedTime().getTime() >
-                SystemTime.getMillis() + PredictionAccuracyConfig.maxPredTimeMinutes.getValue() * Time.MS_PER_MIN) {
+                SystemTime.getMillis() + predictionAccuracyProperties.getMaxPredTimeMinutes() * Time.MS_PER_MIN) {
             logger.debug(
                     "Prediction is too far into future so not storing "
                             + "it in memory for prediction accuracy analysis. {}",
@@ -182,7 +187,7 @@ public class PredictionAccuracyModule implements Module {
             while (iter.hasNext()) {
                 PredAccuracyPrediction pred = iter.next();
                 if (pred.getPredictedTime().getTime()
-                        < SystemTime.getMillis() - PredictionAccuracyConfig.maxPredStalenessMinutes.getValue() * Time.MS_PER_MIN) {
+                        < SystemTime.getMillis() - predictionAccuracyProperties.getMaxPredStalenessMinutes() * Time.MS_PER_MIN) {
                     // Prediction was too old so remove it from memory
                     ++numPredictionsRemoved;
                     logger.info(
@@ -270,7 +275,7 @@ public class PredictionAccuracyModule implements Module {
      *
      * @param arrivalDeparture The arrival or departure that was generated
      */
-    public static void handleArrivalDeparture(DbConfig dbConfig, DataDbLogger dataDbLogger, ArrivalDeparture arrivalDeparture) {
+    public void handleArrivalDeparture(DbConfig dbConfig, DataDbLogger dataDbLogger, ArrivalDeparture arrivalDeparture) {
         // Get the List of predictions for the vehicle/direction/stop
         PredictionKey key = new PredictionKey(
                 arrivalDeparture.getVehicleId(), arrivalDeparture.getDirectionId(), arrivalDeparture.getStopId());
@@ -312,8 +317,8 @@ public class PredictionAccuracyModule implements Module {
             // inappropriate. First determine how late vehicle arrived
             // at stop compared to the original prediction time.
             long latenessComparedToPrediction = arrivalDeparture.getTime() - pred.getPredictedTime().getTime();
-            if (latenessComparedToPrediction > PredictionAccuracyConfig.maxLatenessComparedToPredictionMsec.getValue()
-                    || latenessComparedToPrediction < -PredictionAccuracyConfig.maxEarlynessComparedToPredictionMsec.getValue()) {
+            if (latenessComparedToPrediction > predictionAccuracyProperties.getMaxLatenessComparedToPredictionMsec()
+                    || latenessComparedToPrediction < -predictionAccuracyProperties.getMaxEarlynessComparedToPredictionMsec()) {
                 continue;
             }
 

@@ -2,16 +2,13 @@
 package org.transitclock.domain.structs;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 import jakarta.persistence.*;
-import lombok.Data;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.TitleFormatter;
 import org.transitclock.gtfs.model.GtfsStop;
@@ -121,18 +118,6 @@ public class Stop implements Serializable {
         layoverStop = null;
         waitStop = null;
         hidden = false;
-    }
-
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        return session.createMutationQuery("DELETE Stop WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    public static List<Stop> getStops(Session session, int configRev) throws HibernateException {
-        return session.createQuery("FROM Stop WHERE configRev = :configRev", Stop.class)
-                .setParameter("configRev", configRev)
-                .list();
     }
 
     @Override

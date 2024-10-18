@@ -1,8 +1,8 @@
 /* (C)2023 */
 package org.transitclock.monitoring;
 
-import org.transitclock.config.data.MonitoringConfig;
 import org.transitclock.domain.hibernate.DataDbLogger;
+import org.transitclock.properties.MonitoringProperties;
 import org.transitclock.utils.StringUtils;
 
 /**
@@ -12,8 +12,8 @@ import org.transitclock.utils.StringUtils;
  * @author SkiBu Smith
  */
 public class DatabaseQueueMonitor extends MonitorBase {
-    public DatabaseQueueMonitor(String agencyId, DataDbLogger dataDbLogger) {
-        super(agencyId, dataDbLogger);
+    public DatabaseQueueMonitor(String agencyId, DataDbLogger dataDbLogger, MonitoringProperties properties) {
+        super(agencyId, dataDbLogger, properties);
     }
 
     /* (non-Javadoc)
@@ -25,7 +25,7 @@ public class DatabaseQueueMonitor extends MonitorBase {
                 "Database queue fraction="
                         + StringUtils.twoDigitFormat(dataDbLogger.queueLevel())
                         + " while max allowed fraction="
-                        + StringUtils.twoDigitFormat(MonitoringConfig.maxQueueFraction.getValue())
+                        + StringUtils.twoDigitFormat(properties.getMaxQueueFraction())
                         + ", and items in queue="
                         + dataDbLogger.queueSize()
                         + ".",
@@ -35,8 +35,8 @@ public class DatabaseQueueMonitor extends MonitorBase {
         // then lower the threshold by maxQueueFractionGap in order
         // to prevent lots of e-mail being sent out if the value is
         // dithering around maxQueueFraction.
-        double threshold = MonitoringConfig.maxQueueFraction.getValue();
-        if (wasTriggered()) threshold -= MonitoringConfig.maxQueueFractionGap.getValue();
+        double threshold = properties.getMaxQueueFraction();
+        if (wasTriggered()) threshold -= properties.getMaxQueueFractionGap();
 
         return dataDbLogger.queueLevel() > threshold;
     }

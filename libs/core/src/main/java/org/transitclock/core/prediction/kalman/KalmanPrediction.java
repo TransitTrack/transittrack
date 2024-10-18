@@ -8,9 +8,9 @@ import org.transitclock.properties.PredictionProperties;
  */
 public class KalmanPrediction {
 
-    private final PredictionProperties.Data.Kalman kalmanProperties;
+    private final PredictionProperties.PredictionData.Kalman kalmanProperties;
 
-    public KalmanPrediction(PredictionProperties.Data.Kalman kalmanProperties) {
+    public KalmanPrediction(PredictionProperties.PredictionData.Kalman kalmanProperties) {
         this.kalmanProperties = kalmanProperties;
     }
 

@@ -2,7 +2,6 @@
 package org.transitclock.domain.structs;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
@@ -10,8 +9,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.model.GtfsTransfer;
 
@@ -61,37 +58,6 @@ public class Transfer implements Serializable {
         toStopId = null;
         transferType = null;
         minTransferTime = null;
-    }
-
-    /**
-     * Deletes rev 0 from the Transfers table
-     *
-     * @param session
-     * @param configRev
-     * @return Number of rows deleted
-     * @throws HibernateException
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session
-                .createMutationQuery("DELETE Transfer WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    /**
-     * Returns List of Transfer objects for the specified database revision.
-     *
-     * @param session
-     * @param configRev
-     * @return
-     * @throws HibernateException
-     */
-    public static List<Transfer> getTransfers(Session session, int configRev) throws HibernateException {
-        return session
-                .createQuery("FROM Transfer WHERE configRev = :configRev", Transfer.class)
-                .setParameter("configRev", configRev)
-                .list();
     }
 
     @Override

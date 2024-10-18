@@ -79,8 +79,6 @@ transitclock:
     processInRealTime: false
     shouldProcessAvl: true
     unpredictableAssignmentsRegEx: ''
-  blockLoading:
-    agressive: false
   core:
     agencyId: 'transitclock' # please change this to your agency id
     afterStopDistance: 50.0
@@ -167,6 +165,7 @@ transitclock:
         linear:
           rate: 6.0E-4
           updown: -1
+    agressive-block-loading: false
   gtfs:
     url: https://data.opentransport.ro/routing/gtfs/gtfs-stpt.zip
     dirName: /var/transitclock/cache

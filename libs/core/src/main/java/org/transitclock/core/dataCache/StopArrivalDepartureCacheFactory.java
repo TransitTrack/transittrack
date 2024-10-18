@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.transitclock.config.ClassConfigValue;
 import org.transitclock.core.dataCache.ehcache.StopArrivalDepartureCache;
 
 import org.ehcache.CacheManager;

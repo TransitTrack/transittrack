@@ -16,9 +16,9 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.hibernate.collection.spi.PersistentList;
 import org.hibernate.internal.SessionImpl;
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.BlockRepository;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.utils.ExceptionUtils;
 import org.transitclock.utils.IntervalTimer;
@@ -48,10 +48,6 @@ import java.util.stream.Collectors;
 @Table(name = "blocks")
 @Slf4j
 public class Block implements Serializable {
-    // For making sure only lazy load trips collection via one thread
-    // at a time.
-    @Getter
-    private static final Object lazyLoadingSyncObject = new Object();
 
     @Column(name = "config_rev")
     @Id
@@ -151,101 +147,6 @@ public class Block implements Serializable {
         this.endTime = -1;
         this.trips = null;
         this.routeIds = null;
-    }
-
-    /**
-     * Returns list of Block objects for the specified configRev
-     *
-     * @param session
-     * @param configRev
-     * @return List of Block objects
-     * @throws HibernateException
-     */
-    public static List<Block> getBlocks(Session session, int configRev) throws HibernateException {
-        try {
-            logger.warn("caching blocks....");
-            if (Boolean.TRUE.equals(CoreConfig.blockLoading.getValue())) {
-                return getBlocksAgressively(session, configRev);
-            }
-            return getBlocksPassive(session, configRev);
-        } finally {
-            logger.warn("caching complete");
-        }
-    }
-
-    private static List<Block> getBlocksPassive(Session session, int configRev) throws HibernateException {
-        var query = session
-                .createQuery("FROM Block b WHERE b.configRev = :configRev", Block.class)
-                .setParameter("configRev", configRev);
-        return query.list();
-    }
-
-    private static List<Block> getBlocksAgressively(Session session, int configRev) throws HibernateException {
-        var query = session.createQuery("FROM Block b "
-                        + "join fetch b.trips t "
-                        + "join fetch t.travelTimes "
-                        + "join fetch t.tripPattern tp "
-                        + "join fetch tp.stopPaths sp "
-                        /*+ "join fetch sp.locations "*/
-                        // this makes the resultset REALLY big
-                        + "WHERE b.configRev = :configRev", Block.class)
-                .setParameter("configRev", configRev);
-        return query.list();
-    }
-
-    /**
-     * Deletes rev from the Blocks, Trips, and Block_to_Trip_joinTable
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // In a perfect Hibernate world one would simply call on session.delete()
-        // for each block and the block to trip join table and the associated
-        // trips would be automatically deleted by using the magic of Hibernate.
-        // But this means that would have to read in all the Blocks and sub-objects
-        // first, which of course takes lots of time and memory, often causing
-        // program to crash due to out of memory issue. And since reading in the
-        // Trips is supposed to automatically read in associated travel times
-        // we would be reading in data that isn't even needed for deletion since
-        // don't want to delete travel times (want to reuse them!). Therefore
-        // using the much, much faster solution of direct SQL calls. Can't use
-        // HQL on the join table since it is not a regularly defined table.
-        //
-        // Note: Would be great to see if can actually use HQL and delete the
-        // appropriate Blocks and have the join table and the trips table
-        // be automatically updated. I doubt this would work but would be
-        // interesting to try if had the time.
-        int totalRowsUpdated = 0;
-
-        // Delete configRev data from Block_to_Trip_joinTable
-        int rowsUpdated = session
-                .createNativeQuery("DELETE FROM block_to_trip WHERE block_config_rev=" + configRev, Void.class)
-                .executeUpdate();
-        logger.info("Deleted {} rows from Block_to_Trip_joinTable for " + "configRev={}", rowsUpdated, configRev);
-        totalRowsUpdated += rowsUpdated;
-
-        // Delete configRev data from Trip_ScheduledTimeslist
-        rowsUpdated = session
-                .createNativeQuery("DELETE FROM trip_scheduled_times_list WHERE trip_config_rev=" + configRev, Void.class)
-                .executeUpdate();
-        logger.info("Deleted {} rows from Trip_ScheduledTimeslist for configRev={}", rowsUpdated, configRev);
-        totalRowsUpdated += rowsUpdated;
-
-        // Delete configRev data from Trips
-        rowsUpdated = session
-                .createMutationQuery("DELETE FROM Trip WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-        logger.info("Deleted {} rows from Trips for configRev={}", rowsUpdated, configRev);
-        totalRowsUpdated += rowsUpdated;
-
-        // Delete configRev data from Blocks
-        rowsUpdated = session
-                .createMutationQuery("DELETE FROM Block WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-        logger.info("Deleted {} rows from Blocks for configRev={}", rowsUpdated, configRev);
-        totalRowsUpdated += rowsUpdated;
-
-        return totalRowsUpdated;
     }
 
     /* (non-Javadoc)
@@ -549,62 +450,6 @@ public class Block implements Serializable {
     }
 
     /**
-     * If the trip is active at the secsInDayForAvlReport then it is added to the tripsThatMatchTime
-     * list. Trip is considered active if it is within start time of trip minus
-     * CoreConfig.getAllowableEarlyForLayoverSeconds() and within the end time of the trip. No
-     * leniency is made for the end time since once a trip is over really don't want to assign
-     * vehicle to that trip. Yes, vehicles often run late, but that should only be taken account
-     * when matching to already predictable vehicle.
-     *
-     * @param vehicleId for logging messages
-     * @param secsInDayForAvlReport
-     * @param trip
-     * @param tripsThatMatchTime
-     * @return
-     */
-    private static boolean addTripIfActive(String vehicleId,
-                                           int secsInDayForAvlReport,
-                                           Trip trip,
-                                           List<Trip> tripsThatMatchTime,
-                                           DbConfig dbConfig) {
-        int startTime = trip.getStartTime();
-        int endTime = trip.getEndTime();
-
-        int allowableEarlyTimeSecs = CoreConfig.getAllowableEarlyForLayoverSeconds();
-        if (secsInDayForAvlReport > startTime - allowableEarlyTimeSecs && secsInDayForAvlReport < endTime) {
-            tripsThatMatchTime.add(trip);
-
-            if (logger.isDebugEnabled()) {
-                logger.debug(
-                        "Determined that for blockId={} that a trip is "
-                                + "considered to be active for AVL time. "
-                                + "TripId={}, tripIndex={} AVLTime={}, "
-                                + "startTime={}, endTime={}, "
-                                + "allowableEarlyForLayover={} secs, allowableLate={} secs, "
-                                + "vehicleId={}",
-                        trip.getBlock(dbConfig).getId(),
-                        trip.getId(),
-                        trip.getBlock(dbConfig).getTripIndex(trip),
-                        Time.timeOfDayStr(secsInDayForAvlReport),
-                        Time.timeOfDayStr(trip.getStartTime()),
-                        Time.timeOfDayStr(trip.getEndTime()),
-                        CoreConfig.getAllowableEarlyForLayoverSeconds(),
-                        CoreConfig.getAllowableLateSeconds(),
-                        vehicleId);
-            }
-
-            return true;
-        }
-
-        if (logger.isDebugEnabled())
-            logger.debug(
-                    "block {} is not active for vehicleId {}", trip.getBlock(dbConfig).getId(), vehicleId);
-
-        // Not a match so return false
-        return false;
-    }
-
-    /**
      * For this block determines which trips are currently active. Should work even for trips that
      * start before midnight or go till after midnight. Trip is considered active if it is within
      * start time of trip minus CoreConfig.getAllowableEarlyForLayoverSeconds() and within the end
@@ -629,19 +474,19 @@ public class Block implements Serializable {
             int secsInDayForAvlReport = dbConfig.getTime().getSecondsIntoDay(avlReport.getDate());
 
             // If the trip is active then add it to the list of active trips
-            boolean tripIsActive = addTripIfActive(vehicleId, secsInDayForAvlReport, trip, tripsThatMatchTime, dbConfig);
+            boolean tripIsActive = BlockRepository.addTripIfActive(vehicleId, secsInDayForAvlReport, trip, tripsThatMatchTime, dbConfig);
 
             // if trip wasn't active might be because trip actually starts before
             // midnight so should check for that special case.
             if (!tripIsActive)
                 tripIsActive =
-                        addTripIfActive(vehicleId, secsInDayForAvlReport - Time.SEC_PER_DAY, trip, tripsThatMatchTime, dbConfig);
+                        BlockRepository.addTripIfActive(vehicleId, secsInDayForAvlReport - Time.SEC_PER_DAY, trip, tripsThatMatchTime, dbConfig);
 
             // if trip still wasn't active might be because trip goes past
             // midnight so should check for that special case.
             if (!tripIsActive)
                 tripIsActive =
-                        addTripIfActive(vehicleId, secsInDayForAvlReport + Time.SEC_PER_DAY, trip, tripsThatMatchTime, dbConfig);
+                        BlockRepository.addTripIfActive(vehicleId, secsInDayForAvlReport + Time.SEC_PER_DAY, trip, tripsThatMatchTime, dbConfig);
         }
 
         // Returns results
@@ -705,7 +550,7 @@ public class Block implements Serializable {
         // trips not yet initialized so synchronize so only a single
         // thread can initialize at once and then access something
         // in trips that will cause it to be lazy loaded.
-        synchronized (lazyLoadingSyncObject) {
+        synchronized (BlockRepository.lazyLoadingSyncObject) {
             logger.debug("About to do lazy load for trips data for " + "blockId={} serviceId={}...", blockId, serviceId);
             IntervalTimer timer = new IntervalTimer();
 
@@ -1137,19 +982,5 @@ public class Block implements Serializable {
         if (match.getTripIndex() != trips.size() - 1) return false;
 
         return match.withinDistanceOfEndOfTrip(distance);
-    }
-
-    /**
-     * Returns true if this block assignment should be exclusive, such that when a vehicle is
-     * assigned to this block any other vehicles assigned to this block will have their assignments
-     * removed.
-     *
-     * <p>Current it is configured using Java property instead of in the database.
-     *
-     * @return True if this block assignment should be exclusively assigned to only a single vehicle
-     *     at a time
-     */
-    public boolean shouldBeExclusive() {
-        return CoreConfig.exclusiveBlockAssignments();
     }
 }

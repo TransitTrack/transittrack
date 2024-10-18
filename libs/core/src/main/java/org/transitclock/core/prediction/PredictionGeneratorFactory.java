@@ -19,6 +19,7 @@ import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
 import org.transitclock.core.prediction.lastvehicle.LastVehiclePredictionGeneratorImpl;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +56,8 @@ public class PredictionGeneratorFactory {
                                                    DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
                                                    FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
                                                    ScheduleBasedHistoricalAverageCache scheduleBasedHistoricalAverageCache,
-                                                   PredictionProperties predictionProperties) {
+                                                   PredictionProperties predictionProperties,
+                                                   CoreProperties coreProperties) {
         Class<?> desiredGenerator = neededClass;
         if (desiredGenerator == org.transitclock.core.prediction.scheduled.dwell.DwellTimePredictionGeneratorImpl.class) {
             return new org.transitclock.core.prediction.scheduled.dwell.DwellTimePredictionGeneratorImpl(
@@ -94,7 +96,8 @@ public class PredictionGeneratorFactory {
                     biasAdjuster,
                     frequencyBasedHistoricalAverageCache,
                     kalmanErrorCache,
-                    dwellTimeModelCacheInterface
+                    dwellTimeModelCacheInterface,
+                    coreProperties
             );
         }
 
@@ -113,7 +116,8 @@ public class PredictionGeneratorFactory {
                     holdingTimeGenerator,
                     vehicleStatusManager,
                     realTimeSchedAdhProcessor,
-                    biasAdjuster
+                    biasAdjuster,
+                    coreProperties
             );
 
 
@@ -134,7 +138,8 @@ public class PredictionGeneratorFactory {
                     realTimeSchedAdhProcessor,
                     biasAdjuster,
                     frequencyBasedHistoricalAverageCache,
-                    kalmanErrorCache
+                    kalmanErrorCache,
+                    coreProperties
             );
 
         if (desiredGenerator == org.transitclock.core.prediction.scheduled.traveltime.kalman.KalmanPredictionGeneratorImpl.class) {
@@ -172,7 +177,8 @@ public class PredictionGeneratorFactory {
                     vehicleStatusManager,
                     realTimeSchedAdhProcessor,
                     biasAdjuster,
-                    frequencyBasedHistoricalAverageCache
+                    frequencyBasedHistoricalAverageCache,
+                    coreProperties
             );
 
         if (desiredGenerator == org.transitclock.core.prediction.scheduled.average.HistoricalAveragePredictionGeneratorImpl.class) {
@@ -191,7 +197,8 @@ public class PredictionGeneratorFactory {
                     vehicleStatusManager,
                     realTimeSchedAdhProcessor,
                     biasAdjuster,
-                    scheduleBasedHistoricalAverageCache
+                    scheduleBasedHistoricalAverageCache,
+                    coreProperties
             );
         }
 

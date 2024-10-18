@@ -4,9 +4,9 @@ package org.transitclock.monitoring;
 import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
-import org.transitclock.config.data.MonitoringConfig;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.MonitoringEvent;
+import org.transitclock.properties.MonitoringProperties;
 import org.transitclock.utils.Time;
 
 /**
@@ -20,6 +20,7 @@ public abstract class MonitorBase {
 
     protected final String agencyId;
     protected final DataDbLogger dataDbLogger;
+    protected final MonitoringProperties properties;
 
     // wasTriggered indicates if last time monitor was checked whether the
     // system was triggered and the acceptableIfTriggered wasn't true. For
@@ -41,9 +42,10 @@ public abstract class MonitorBase {
      *
      * @param agencyId Identifies agency
      */
-    public MonitorBase(String agencyId, DataDbLogger dataDbLogger) {
+    public MonitorBase(String agencyId, DataDbLogger dataDbLogger, MonitoringProperties properties) {
         this.agencyId = agencyId;
         this.dataDbLogger = dataDbLogger;
+        this.properties = properties;
     }
 
     /**
@@ -92,14 +94,14 @@ public abstract class MonitorBase {
         if (!wasTriggered && isTriggered && !acceptableEvenIfTriggered) {
             // If a timeout time is configured then retry after that
             // number of seconds
-            if (MonitoringConfig.retryTimeoutSecs.getValue() != 0) {
+            if (properties.getRetryTimeoutSecs() != 0) {
                 logger.debug(
                         "Was triggered first time so trying again after " + "{} seconds. {}",
-                        MonitoringConfig.retryTimeoutSecs.getValue(),
+                        properties.getRetryTimeoutSecs(),
                         getMessage());
 
                 // Try checking whether triggered again after sleeping a bit
-                Time.sleep(MonitoringConfig.retryTimeoutSecs.getValue() * Time.MS_PER_SEC);
+                Time.sleep(properties.getRetryTimeoutSecs() * Time.MS_PER_SEC);
                 isTriggered = triggered() && !acceptableEvenIfTriggered;
 
                 // If now OK then it was a very temporary issue so do not
@@ -227,18 +229,7 @@ public abstract class MonitorBase {
      * @return E-mail addresses of who to notify
      */
     protected String recipients() {
-        return MonitoringConfig.emailRecipients.getValue();
-    }
-
-    /**
-     * Returns comma separated list of who should be notified via e-mail when trigger state changes
-     * for the monitor. Specified by the Java property transitclock.monitoring.emailRecipients . A
-     * static class so cannot be overwritten.
-     *
-     * @return E-mail addresses of who to notify
-     */
-    public static String recipientsGlobal() {
-        return MonitoringConfig.emailRecipients.getValue();
+        return properties.getEmailRecipients();
     }
 
     /**

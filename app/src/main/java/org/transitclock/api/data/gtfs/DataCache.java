@@ -1,13 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.data.gtfs;
 
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.transit.realtime.GtfsRealtime.FeedMessage;
-import org.transitclock.config.data.ApiConfig;
-
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * For caching GTFS-realtime messages. Useful because the messages are huge and take a lot of

@@ -1,19 +1,29 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.classic.Lifecycle;
-import org.transitclock.config.data.CoreConfig;
 
 /**
  * A StopPath is a set of points that defines how a vehicle gets from one stop to another. The stops
@@ -165,29 +175,6 @@ public class StopPath implements Serializable, Lifecycle {
         this.maxSpeed = null;
     }
 
-    public static List<StopPath> getPaths(Session session, int configRev) throws HibernateException {
-        return session.createQuery("FROM StopPath WHERE configRev = :configRev", StopPath.class)
-                .setParameter("configRev", configRev)
-                .list();
-    }
-
-    /**
-     * For consistently naming the path Id. It is based on the current stop ID and the previous stop
-     * Id. If previousStopId is null then will return "to_" + stopId. If not null will return
-     * previousStopId + "_to_" + stopId.
-     *
-     * @param previousStopId
-     * @param stopId
-     * @return
-     */
-    public static String determinePathId(String previousStopId, String stopId) {
-        if (previousStopId == null) {
-            return "to_" + stopId;
-        } else {
-            return previousStopId + "_to_" + stopId;
-        }
-    }
-
     /**
      * Returns the distance to travel along the path. Summation of all path segments.
      *
@@ -334,31 +321,11 @@ public class StopPath implements Serializable, Lifecycle {
      *
      * @return Layover time in seconds if layover stop, otherwise, 0.
      */
-    public int getBreakTimeSec() {
+    public Optional<Integer> getBreakTimeSec() {
         if (layoverStop) {
-            if (breakTime != null) return breakTime;
-            else return CoreConfig.getDefaultBreakTimeSec();
-        } else {
-            return 0;
+            return Optional.ofNullable(breakTime);
         }
-    }
-
-    /**
-     * How far a vehicle can be ahead of a stop and be considered to have arrived.
-     *
-     * @return
-     */
-    public double getBeforeStopDistance() {
-        return CoreConfig.getBeforeStopDistance();
-    }
-
-    /**
-     * How far a vehicle can be past a stop and still be considered at the stop.
-     *
-     * @return
-     */
-    public double getAfterStopDistance() {
-        return CoreConfig.getAfterStopDistance();
+        return Optional.of(0);
     }
 
     /*

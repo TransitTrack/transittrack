@@ -1,19 +1,33 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.scheduled.traveltime.kalman;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
-import org.transitclock.config.data.CoreConfig;
-import org.transitclock.core.*;
+import org.transitclock.core.Indices;
+import org.transitclock.core.TravelTimeDetails;
+import org.transitclock.core.TravelTimes;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.RealTimeSchedAdhProcessor;
 import org.transitclock.core.avl.space.SpatialMatch;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.ErrorCache;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.KalmanError;
+import org.transitclock.core.dataCache.KalmanErrorCacheKey;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopPathPredictionCache;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
 import org.transitclock.core.prediction.PredictionGeneratorDefaultImpl;
 import org.transitclock.core.prediction.bias.BiasAdjuster;
 import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
-import org.transitclock.core.prediction.kalman.*;
+import org.transitclock.core.prediction.kalman.KalmanPrediction;
+import org.transitclock.core.prediction.kalman.KalmanPredictionResult;
+import org.transitclock.core.prediction.kalman.TripSegment;
+import org.transitclock.core.prediction.kalman.Vehicle;
+import org.transitclock.core.prediction.kalman.VehicleStopDetail;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.PredictionEvent;
@@ -22,9 +36,8 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.utils.SystemTime;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * @author Sean Óg Crudden This is a prediction generator that uses a Kalman filter to provide
@@ -163,7 +176,7 @@ public class KalmanPredictionGeneratorImpl extends PredictionGeneratorDefaultImp
 
                         logger.debug("Using Kalman prediction: {} instead of " + alternative + " prediction: {} for : {}", predictionTime, alternatePrediction, indices);
 
-                        if (CoreConfig.storeTravelTimeStopPathPredictions.getValue()) {
+                        if (coreProperties.getStoreTravelTimeStopPathPredictions()) {
                             PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                                     vehicleStatus.getVehicleId(),
                                     SystemTime.getDate(),

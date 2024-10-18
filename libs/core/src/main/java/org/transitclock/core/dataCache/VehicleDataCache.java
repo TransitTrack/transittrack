@@ -15,10 +15,10 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Component;
-import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.VehicleConfigRepository;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.domain.structs.VehicleConfig;
@@ -94,7 +94,7 @@ public class VehicleDataCache {
     private void readVehicleConfigFromDb() {
         try (Session session = HibernateUtils.getSession()) {
             // Read VehicleConfig data from database
-            List<VehicleConfig> vehicleConfigs = VehicleConfig.getVehicleConfigs(session);
+            List<VehicleConfig> vehicleConfigs = VehicleConfigRepository.getVehicleConfigs(session);
 
             // Convert list to the maps
             for (VehicleConfig vehicleConfig : vehicleConfigs) {
@@ -161,7 +161,7 @@ public class VehicleDataCache {
                     Transaction tx = session.beginTransaction();
                     try {
                         absent.setName(vehicleName);
-                        VehicleConfig.updateVehicleConfig(absent, session);
+                        VehicleConfigRepository.updateVehicleConfig(absent, session);
                         tx.commit();
                     } catch (Exception ex) {
                         tx.rollback();

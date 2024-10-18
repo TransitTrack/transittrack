@@ -3,17 +3,22 @@ package org.transitclock.core.avl.time;
 
 import java.util.Date;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.transitclock.config.data.CoreConfig;
-import org.transitclock.core.*;
+
+import org.transitclock.core.Indices;
+import org.transitclock.core.TemporalDifference;
+import org.transitclock.core.TravelTimes;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * Singleton class that does the temporal matching to determine where an AVL report matches to the
@@ -27,10 +32,12 @@ import org.transitclock.utils.Time;
 public class TemporalMatcher {
     private final TravelTimes travelTimes;
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public TemporalMatcher(TravelTimes travelTimes, DbConfig dbConfig) {
+    public TemporalMatcher(TravelTimes travelTimes, DbConfig dbConfig, CoreProperties coreProperties) {
         this.travelTimes = travelTimes;
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     /**
@@ -59,7 +66,7 @@ public class TemporalMatcher {
             logger.debug(
                     "frequency trip has no schedule adherence, using temporalDifference of 0 {}",
                     spatialMatch.getTrip());
-            return new TemporalDifference(0);
+            return new TemporalDifference(0, coreProperties);
         }
 
         // Determine how long it should take to travel along trip to the match.
@@ -72,7 +79,8 @@ public class TemporalMatcher {
                 0, // stopPathIndex
                 0, // segmentIndex
                 0.0, // distanceToSegment
-                0.0); // distanceAlongSegment
+                0.0,
+                coreProperties); // distanceAlongSegment
         int tripStartTimeSecs = spatialMatch.getTrip().getStartTime();
         int travelTimeForCurrentTrip = travelTimes
                 .expectedTravelTimeBetweenMatches(vehicleId, tripStartTimeSecs, beginningOfTrip, spatialMatch);
@@ -85,9 +93,9 @@ public class TemporalMatcher {
 
         // Also check if 24 hours early late so that can work even for when
         // trip starts before midnight or goes after midnight.
-        TemporalDifference deltaFromSchedule = new TemporalDifference(earlyMsec);
-        TemporalDifference beforeMidnightExpectedTimeDelta = new TemporalDifference(earlyMsec - Time.MS_PER_DAY);
-        TemporalDifference afterMidnightExpectedTimeDelta = new TemporalDifference(earlyMsec + Time.MS_PER_DAY);
+        TemporalDifference deltaFromSchedule = new TemporalDifference(earlyMsec, coreProperties);
+        TemporalDifference beforeMidnightExpectedTimeDelta = new TemporalDifference((int) (earlyMsec - Time.MS_PER_DAY), coreProperties);
+        TemporalDifference afterMidnightExpectedTimeDelta = new TemporalDifference((int) (earlyMsec + Time.MS_PER_DAY), coreProperties);
         if (beforeMidnightExpectedTimeDelta.betterThan(deltaFromSchedule))
             deltaFromSchedule = beforeMidnightExpectedTimeDelta;
         if (afterMidnightExpectedTimeDelta.betterThan(deltaFromSchedule))
@@ -105,7 +113,7 @@ public class TemporalMatcher {
             // match to the layover at the beginning of the trip if vehicle
             // is getting assigned before actually starting that trip.
             if (spatialMatch.isLayover() && !isFirstSpatialMatch) {
-                deltaFromSchedule.addTime(CoreConfig.getAllowableLateSecondsForInitialMatching() * Time.MS_PER_SEC);
+                deltaFromSchedule.addTime(coreProperties.getAllowableLateSecondsForInitialMatching() * Time.MS_PER_SEC);
             }
 
             logger.debug(
@@ -119,13 +127,11 @@ public class TemporalMatcher {
                     "For vehicleId={} in "
                             + "TemporalMatcher.determineHowFarOffScheduledTime() "
                             + "expectedTimeDelta={} is not within bounds of "
-                            + "{}={} and {}={} so returning null for {}",
+                            + "{} and {} so returning null for {}",
                     vehicleId,
                     deltaFromSchedule,
-                    CoreConfig.getAllowableEarlySecondsId(),
-                    CoreConfig.getAllowableEarlySeconds(),
-                    CoreConfig.getAllowableLateSecondsId(),
-                    CoreConfig.getAllowableLateSeconds(),
+                    coreProperties.getAllowableEarlySeconds(),
+                    coreProperties.getAllowableLateSeconds(),
                     spatialMatch);
             return null;
         }
@@ -164,7 +170,7 @@ public class TemporalMatcher {
                         vehicleStatus.getVehicleId(),
                         avlTime,
                         new Date(scheduledDepartureTime));
-                return new TemporalDifference(scheduledDepartureTime - avlTime.getTime());
+                return new TemporalDifference((int) (scheduledDepartureTime - avlTime.getTime()), coreProperties);
             } else {
                 // Still at the layover stop so use time difference of 0
                 logger.debug(
@@ -172,7 +178,7 @@ public class TemporalMatcher {
                                 + "but this match is at layover but had enough "
                                 + "time to get there so temporalDifference=0. ",
                         vehicleStatus.getVehicleId());
-                return new TemporalDifference(0);
+                return new TemporalDifference(0, coreProperties);
             }
         } else {
             // Wasn't already at layover stop. But since had enough time to
@@ -183,7 +189,7 @@ public class TemporalMatcher {
                             + "there so temporalDifference=0. expectedTravelTimeMsec={}",
                     vehicleStatus.getVehicleId(),
                     expectedTravelTimeMsec);
-            return new TemporalDifference(0);
+            return new TemporalDifference(0, coreProperties);
         }
     }
 
@@ -198,7 +204,7 @@ public class TemporalMatcher {
      *     currentSpatialMatch is null.
      * @return True if current temporal match is better and should be used
      */
-    private static boolean currentMatchIsBetter(
+    private boolean currentMatchIsBetter(
             TemporalMatch bestTemporalMatchSoFar,
             SpatialMatch currentSpatialMatch,
             TemporalDifference differenceFromExpectedTime) {
@@ -220,13 +226,10 @@ public class TemporalMatcher {
         // did leave early then want to use the current match even though
         // the temporal differences show that the vehicle should match to the
         // layover.
-        boolean earlyDeparture = bestTemporalMatchSoFar.isLayover()
-                && currentSpatialMatch.distanceFromBeginningOfTrip()
-                        > CoreConfig.getDistanceFromLayoverForEarlyDeparture()
+        return bestTemporalMatchSoFar.isLayover()
+                && currentSpatialMatch.distanceFromBeginningOfTrip() > coreProperties.getDistanceFromLayoverForEarlyDeparture()
                 && differenceFromExpectedTime.early() >= 0
-                && differenceFromExpectedTime.early()
-                        < CoreConfig.getAllowableEarlyTimeForEarlyDepartureSecs() * Time.MS_PER_SEC;
-        return earlyDeparture;
+                && differenceFromExpectedTime.early() < coreProperties.getAllowableEarlyTimeForEarlyDepartureSecs() * Time.MS_PER_SEC;
     }
 
     /**
@@ -312,7 +315,7 @@ public class TemporalMatcher {
             logger.debug(
                     "greedily matching to only spatial assigment for frequency based trip {}",
                     spatialMatches.get(0).getTrip());
-            return new TemporalMatch(spatialMatches.get(0), new TemporalDifference(0));
+            return new TemporalMatch(spatialMatches.get(0), new TemporalDifference(0, coreProperties));
         }
 
         // Find the best temporal match of the spatial matches
@@ -360,7 +363,7 @@ public class TemporalMatcher {
             // location.
             if (spatialMatch.isLayover() && !previousMatch.getIndices().equalStopPath(spatialMatch.getIndices())) {
                 expectedTravelTimeMsec +=
-                        TravelTimes.travelTimeFromLayoverArrivalToNewLoc(spatialMatch, avlReport.getLocation());
+                        travelTimes.travelTimeFromLayoverArrivalToNewLoc(spatialMatch, avlReport.getLocation());
             }
 
             // Determine how far off the expected travel time. If match is
@@ -372,7 +375,7 @@ public class TemporalMatcher {
             if (!spatialMatch.isLayover() || avlTimeDifferenceMsec <= expectedTravelTimeMsec) {
                 // Not the special layover case so determine how far off travel
                 // time is from expected time the normal way
-                differenceFromExpectedTime = new TemporalDifference(expectedTravelTimeMsec - avlTimeDifferenceMsec);
+                differenceFromExpectedTime = new TemporalDifference((int) (expectedTravelTimeMsec - avlTimeDifferenceMsec), coreProperties);
                 logger.debug(
                         "For vehicleId={} not at layover so examining "
                                 + "normal temporal difference. "
@@ -467,7 +470,7 @@ public class TemporalMatcher {
             logger.debug(
                     "greedily matching to only scheduled spatial assigment for frequency based trip" + " {}",
                     spatialMatches.get(0).getTrip());
-            return new TemporalMatch(spatialMatches.get(0), new TemporalDifference(0));
+            return new TemporalMatch(spatialMatches.get(0), new TemporalDifference(0, coreProperties));
         }
 
         for (int i = 0; i < spatialMatches.size(); ++i) {
@@ -528,7 +531,7 @@ public class TemporalMatcher {
             // How far as the crow flies to the layover
             Location tripStartLoc = trip.getStopPath(0).getEndOfPathLocation();
             double distance = avlReport.getLocation().distance(tripStartLoc);
-            int crowFliesTimeMsec = TravelTimes.travelTimeAsTheCrowFlies(distance);
+            int crowFliesTimeMsec = travelTimes.travelTimeAsTheCrowFlies(distance);
             boolean canDeadhead = crowFliesTimeMsec < availableTimeMsec;
             trip.getBlock(dbConfig).getTripIndex(trip);
             logger.debug(

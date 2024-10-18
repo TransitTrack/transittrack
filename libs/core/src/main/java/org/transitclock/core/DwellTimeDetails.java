@@ -4,7 +4,8 @@ package org.transitclock.core;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.transitclock.config.data.CoreConfig;
+
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
 @Slf4j
@@ -13,6 +14,7 @@ import org.transitclock.service.dto.IpcArrivalDeparture;
 public class DwellTimeDetails {
     private final IpcArrivalDeparture arrival;
     private final IpcArrivalDeparture departure;
+    private final CoreProperties coreProperties;
 
     public long getDwellTime() {
         if (this.arrival != null && this.departure != null && arrival.isArrival() && departure.isDeparture()) {
@@ -29,7 +31,7 @@ public class DwellTimeDetails {
     public boolean sanityCheck() {
         if (this.arrival != null && this.departure != null && arrival.isArrival() && departure.isDeparture()) {
             long dwellTime = this.departure.getTime().getTime() - this.arrival.getTime().getTime();
-            return dwellTime >= 0 && dwellTime <= CoreConfig.maxDwellTime.getValue();
+            return dwellTime >= 0 && dwellTime <= coreProperties.getMaxDwellTime();
         } else {
             return false;
         }

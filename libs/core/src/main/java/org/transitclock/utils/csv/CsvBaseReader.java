@@ -200,8 +200,11 @@ public abstract class CsvBaseReader<T> {
                     fileName,
                     timer.elapsedMsec());
         } catch (FileNotFoundException e) {
-            if (required) logger.error("Required CSV file {} not found.", fileName);
-            else logger.info("CSV file {} not found but OK because this file " + "not required.", fileName);
+            if (required) {
+                logger.error("Required CSV file {} not found.", fileName);
+            } else {
+                logger.warn("CSV file {} not found but OK because this file not required.", fileName);
+            }
         } catch (IOException e) {
             logger.error("IOException occurred when reading in filename {}.", fileName, e);
         }

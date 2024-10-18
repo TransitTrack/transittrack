@@ -4,6 +4,7 @@ package org.transitclock.core.avl.space;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.VehicleAtStopInfo;
 import org.transitclock.domain.structs.Block;
@@ -15,6 +16,7 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.Vector;
 import org.transitclock.domain.structs.VectorWithHeading;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
 
@@ -35,6 +37,7 @@ public class SpatialMatch {
     protected final double distanceAlongSegment;
     protected final VehicleAtStopInfo atStop;
     protected final Location predictedLocation;
+    protected final CoreProperties coreProperties;
 
     public SpatialMatch(
             long avlTime,
@@ -43,7 +46,9 @@ public class SpatialMatch {
             int stopPathIndex,
             int segmentIndex,
             double distanceToSegment,
-            double distanceAlongSegment) {
+            double distanceAlongSegment,
+            CoreProperties coreProperties
+    ) {
         this.avlTime = avlTime;
         this.block = block;
         this.tripIndex = tripIndex;
@@ -51,6 +56,7 @@ public class SpatialMatch {
         this.segmentIndex = segmentIndex;
         this.distanceToSegment = distanceToSegment;
         this.distanceAlongSegment = distanceAlongSegment;
+        this.coreProperties = coreProperties;
 
         // Determine whether at stop
         this.atStop = atStop();
@@ -92,7 +98,8 @@ public class SpatialMatch {
      * @param newTrip The new trip to use for the copy. It is assumed to be for the same trip
      *     pattern. It can be for a separate block.
      */
-    public SpatialMatch(DbConfig dbConfig, SpatialMatch toCopy, Trip newTrip) {
+    public SpatialMatch(DbConfig dbConfig, SpatialMatch toCopy, Trip newTrip, CoreProperties coreProperties) {
+        this.coreProperties = coreProperties;
         if (toCopy.getTrip().getTripPattern() != newTrip.getTripPattern())
             logger.error(
                     "Trying to create a copy of a SpatialMatch using a "
@@ -136,6 +143,7 @@ public class SpatialMatch {
     public SpatialMatch(SpatialMatch toCopy, Indices newIndices, double distanceAlongSegment) {
         this.avlTime = toCopy.avlTime;
         this.block = toCopy.block;
+        this.coreProperties = toCopy.coreProperties;
         this.tripIndex = newIndices.getTripIndex();
         this.stopPathIndex = newIndices.getStopPathIndex();
         this.segmentIndex = newIndices.getSegmentIndex();
@@ -160,6 +168,7 @@ public class SpatialMatch {
         this.distanceAlongSegment = toCopy.distanceAlongSegment;
         this.atStop = toCopy.atStop;
         this.predictedLocation = toCopy.predictedLocation;
+        this.coreProperties = toCopy.coreProperties;
     }
 
     /**
@@ -385,7 +394,7 @@ public class SpatialMatch {
      *
      * @return
      */
-    public SpatialMatch getMatchAtJustBeforeNextStop(DbConfig dbConfig) {
+    public SpatialMatch getMatchAtJustBeforeNextStop(DbConfig dbConfig, CoreProperties coreProperties) {
         // First need to get on the proper path. If just before a stop
         // then need to get a match just after that stop.
         SpatialMatch m = getMatchAfterStopIfAtStop(dbConfig);
@@ -402,7 +411,8 @@ public class SpatialMatch {
                 m.getStopPathIndex(),
                 segmentIndex,
                 Double.NaN, // distanceToSegment not set to a valid value
-                segmentLength);
+                segmentLength,
+                coreProperties);
     }
 
     /**
@@ -433,7 +443,7 @@ public class SpatialMatch {
      * @return The SpatialMatch for the previous stop, or null if there is no previous stop (the
      *     current match is for the beginning of the block).
      */
-    public SpatialMatch getMatchAtPreviousStop() {
+    public SpatialMatch getMatchAtPreviousStop(CoreProperties coreProperties) {
         // First need to get on the proper path. If just before a stop
         // then need to get a match just after that stop.
         Indices indices = getMatchBeforeStopIfAtStop().getIndices().decrementStopPath();
@@ -453,8 +463,10 @@ public class SpatialMatch {
                 indices.getStopPathIndex(),
                 indices.getSegmentIndex(),
                 Double.NaN, // distanceToSegment not set to a valid value
-                segmentVectorLength);
+                segmentVectorLength,
+                coreProperties);
     }
+
 
     /**
      * Determines if the match means that the vehicle is considered to be at a stop. Looks forward
@@ -475,7 +487,7 @@ public class SpatialMatch {
         // anyways.
         StopPath stopPath = block.getStopPath(tripIndex, stopPathIndex);
         double distanceRemaining = getDistanceRemainingInStopPath();
-        double beforeStopDistance = stopPath.getBeforeStopDistance();
+        double beforeStopDistance = coreProperties.getBeforeStopDistance();
         if (stopPath.isLayoverStop() || distanceRemaining < beforeStopDistance) {
             // Indeed just before the stop so return the current stop/path index
             return new VehicleAtStopInfo(block, tripIndex, stopPathIndex);
@@ -485,7 +497,7 @@ public class SpatialMatch {
         Indices previousPathIndices = getIndices().decrementStopPath();
         if (!previousPathIndices.beforeBeginningOfBlock()) {
             StopPath previousStopPath = previousPathIndices.getStopPath();
-            if (previousStopPath != null && getDistanceAlongStopPath() < previousStopPath.getAfterStopDistance())
+            if (previousStopPath != null && getDistanceAlongStopPath() < coreProperties.getAfterStopDistance())
                 return new VehicleAtStopInfo(
                         block, previousPathIndices.getTripIndex(), previousPathIndices.getStopPathIndex());
         }

@@ -1,6 +1,8 @@
 package org.transitclock.core.prediction.bias;
 
 import org.junit.jupiter.api.Test;
+
+import org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Linear;
 import org.transitclock.utils.Time;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,7 +11,10 @@ class LinearBiasAdjusterTest {
 
     @Test
     void adjustPrediction() {
-        LinearBiasAdjuster adjuster = new LinearBiasAdjuster(0.0006);
+        Linear linear = new Linear();
+        linear.setRate(0.0006);
+
+        LinearBiasAdjuster adjuster = new LinearBiasAdjuster(linear);
         long result = adjuster.adjustPrediction(20 * Time.MS_PER_MIN);
         assertThat(adjuster.getPercentage()).isEqualTo(7.199999999999999);
         assertThat(result).isEqualTo(1113600L);

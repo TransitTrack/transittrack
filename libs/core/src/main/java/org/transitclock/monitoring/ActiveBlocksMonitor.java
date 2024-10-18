@@ -8,6 +8,7 @@ import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.MonitoringProperties;
 
 /**
  * For monitoring active blocks. Unlike the other monitors, this one never triggers an alarm, it
@@ -21,8 +22,12 @@ public class ActiveBlocksMonitor extends MonitorBase {
     private final BlockInfoProvider blockInfoProvider;
     private final DbConfig dbConfig;
 
-    public ActiveBlocksMonitor(String agencyId, DataDbLogger dataDbLogger, BlockInfoProvider blockInfoProvider, DbConfig dbConfig) {
-        super(agencyId, dataDbLogger);
+    public ActiveBlocksMonitor(String agencyId,
+                               DataDbLogger dataDbLogger,
+                               BlockInfoProvider blockInfoProvider,
+                               DbConfig dbConfig,
+                               MonitoringProperties properties) {
+        super(agencyId, dataDbLogger, properties);
         this.blockInfoProvider = blockInfoProvider;
         this.dbConfig = dbConfig;
     }

@@ -10,6 +10,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.transitclock.domain.repository.TravelTimesForTripRepository;
 import org.transitclock.domain.structs.*;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.HowSet;
@@ -657,7 +658,7 @@ public class TravelTimesProcessorForGtfsUpdates {
         // Read existing data from db and put into travelTimesFromDbMap member.
         // Map is keyed on trip pattern ID.
         Map<String, List<TravelTimesForTrip>> travelTimesFromDbMap =
-                TravelTimesForTrip.getTravelTimesForTrips(session, originalTravelTimesRev);
+                TravelTimesForTripRepository.getTravelTimesForTrips(session, originalTravelTimesRev);
 
         setOriginalNumberOfTravelTimes(numberOfTravelTimes(travelTimesFromDbMap));
 

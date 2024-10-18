@@ -2,13 +2,9 @@
 package org.transitclock.monitoring;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.transitclock.Module;
-import org.transitclock.config.data.AgencyConfig;
-import org.transitclock.config.data.MonitoringConfig;
-import org.transitclock.utils.Time;
 
 import java.util.concurrent.TimeUnit;
 

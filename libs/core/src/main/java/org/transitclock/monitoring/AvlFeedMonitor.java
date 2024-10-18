@@ -3,13 +3,14 @@ package org.transitclock.monitoring;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.config.data.MonitoringConfig;
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.Block;
+import org.transitclock.properties.MonitoringProperties;
 import org.transitclock.utils.Time;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * For determining if the AVL feed is up. If not getting data when blocks are active then the AVL
@@ -23,8 +24,11 @@ public class AvlFeedMonitor extends MonitorBase {
     private final AvlProcessor avlProcessor;
     private final BlockInfoProvider blockInfoProvider;
 
-    public AvlFeedMonitor(String agencyId, DataDbLogger dataDbLogger, AvlProcessor avlProcessor, BlockInfoProvider blockInfoProvider) {
-        super(agencyId, dataDbLogger);
+    public AvlFeedMonitor(String agencyId, DataDbLogger dataDbLogger,
+                          AvlProcessor avlProcessor,
+                          BlockInfoProvider blockInfoProvider,
+                          MonitoringProperties properties) {
+        super(agencyId, dataDbLogger, properties);
         this.avlProcessor = avlProcessor;
         this.blockInfoProvider = blockInfoProvider;
     }
@@ -50,14 +54,14 @@ public class AvlFeedMonitor extends MonitorBase {
                 "Last valid AVL report was "
                         + ageOfAvlReport / Time.MS_PER_SEC
                         + " secs old while allowable age is "
-                        + MonitoringConfig.allowableNoAvlSecs.getValue()
+                        + properties.getAllowableNoAvlSecs()
                         + " secs as specified by "
                         + "parameter "
-                        + MonitoringConfig.allowableNoAvlSecs.getID()
+                        + properties.getAllowableNoAvlSecs()
                         + " .",
                 ageOfAvlReport / Time.MS_PER_SEC);
 
-        if (ageOfAvlReport > MonitoringConfig.allowableNoAvlSecs.getValue() * Time.MS_PER_SEC) {
+        if (ageOfAvlReport > properties.getAllowableNoAvlSecs() * Time.MS_PER_SEC) {
             // last AVL report is too old
             return (int) (ageOfAvlReport / Time.MS_PER_SEC);
         } else {
