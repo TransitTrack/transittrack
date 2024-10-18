@@ -1,12 +1,16 @@
 package org.transitclock.api.resources;
 
+import com.google.common.base.Strings;
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.transitclock.api.reports.ChartGenericJsonQuery;
@@ -273,7 +277,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     }
 
     @Override
-    public ResponseEntity<List<Integer>> summaryScheduleAdherence(HttpServletRequest request) throws ParseException {
+    public ResponseEntity<Map<String, String>> summaryScheduleAdherence(HttpServletRequest request) throws ParseException {
         String startDateStr = request.getParameter("beginDate");
         String numDaysStr = request.getParameter("numDays");
         String startTime = request.getParameter("beginTime");
@@ -283,42 +287,45 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         double earlyLimit = -60.0;
         double lateLimit = 60.0;
 
-        if (StringUtils.hasText(startTime)) {
+        if (!StringUtils.hasText(startTime)) {
             startTime = "00:00:00";
-        } else {
+        } else if (startTime.length() < 6) {
             startTime += ":00";
         }
 
-        if (StringUtils.hasText(endTime)) {
+        if (!StringUtils.hasText(endTime)) {
             endTime = "23:59:59";
-        } else {
+        } else if (endTime.length() < 6) {
             endTime += ":00";
         }
 
-        if (!StringUtils.hasText(earlyLimitStr)) {
-            earlyLimit = Double.parseDouble(earlyLimitStr) * 60;
+        if (StringUtils.hasText(earlyLimitStr)) {
+            earlyLimit = Double.parseDouble(earlyLimitStr) * -60;
         }
-        if (!StringUtils.hasText(lateLimitStr)) {
+        if (StringUtils.hasText(lateLimitStr)) {
             lateLimit = Double.parseDouble(lateLimitStr) * 60;
         }
-
 
         String routeIdList = request.getParameter("r");
         List<String> routeIds = routeIdList == null ? null : Arrays.asList(routeIdList.split(","));
 
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date startDate = dateFormat.parse(startDateStr);
-
-        List<Integer> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(startDate,
-                                                                                          Integer.parseInt(numDaysStr),
-                                                                                          startTime, endTime,
-                                                                                          earlyLimit, lateLimit,
-                                                                                          routeIds);
-
-        return ResponseEntity.ok(results);
+    Date beginDate = null;
+    try {
+        DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+        DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        beginDate = (startDateStr.charAt(4) != '-') ? defaultDateFormat.parse(startDateStr) : altDateFormat.parse(startDateStr);
+    } catch (ParseException e) {
+            e.printStackTrace();
+        throw e;
     }
 
+        Map<String, String> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(beginDate,
+                                                                                                Integer.parseInt(numDaysStr),
+                                                                                                startTime, endTime,
+                                                                                                earlyLimit, lateLimit,
+                                                                                                routeIds);
+        return ResponseEntity.ok(results);
+    }
 
     @Override
     public ResponseEntity<String> predAccuracyScatterData(HttpServletRequest request) throws ParseException, SQLException {
@@ -347,20 +354,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
             throw new ParseException("Number of days of " + numDays + " spans more than a month", 0);
         }
 
-        // Determine the time portion of the SQL
-        String timeSql = "";
-        if ((beginTime != null && !beginTime.isEmpty()) || (endTime != null && !endTime.isEmpty())) {
-            // If only begin or only end time set then use default value
-            if (beginTime == null || beginTime.isEmpty()) {
-                beginTime = "00:00:00";
-            }
-            if (endTime == null || endTime.isEmpty()) {
-                endTime = "23:59:59";
-            }
-
-            timeSql = SqlUtils.timeRangeClause(request, "arrival_depature_time", Integer.parseInt(numDays));
-        }
-
         // Determine route portion of SQL. Default is to provide info for all routes.
         String routeSql = "";
         if (routeId != null && !routeId.trim().isEmpty()) {
@@ -369,19 +362,19 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
 
         // Determine the source portion of the SQL. Default is to provide predictions for all sources
         String sourceSql = "";
-        if (source != null && !source.isEmpty()) {
+        if (!Strings.isNullOrEmpty(source)) {
             if (source.equals("Transitime")) {
                 // Only "Transitime" predictions
-                sourceSql = " AND prediction_source='Transitime'";
+                sourceSql = " AND prediction_source = 'Transitime'";
             } else {
                 // Anything but "Transitime"
-                sourceSql = " AND prediction_source<>'Transitime'";
+                sourceSql = " AND prediction_source <> 'Transitime'";
             }
         }
 
         // Determine SQL for prediction type
         String predTypeSql = "";
-        if (predictionType != null && !predictionType.isEmpty()) {
+        if (!Strings.isNullOrEmpty(predictionType)) {
             if (Objects.equals(source, "AffectedByWaitStop")) {
                 // Only "AffectedByLayover" predictions
                 predTypeSql = " AND affected_by_wait_stop = true ";
@@ -417,26 +410,29 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         String predLengthSql = "     to_char(predicted_time-prediction_read_time, 'SSSS')::integer ";
         String predAccuracySql = "     prediction_accuracy_msecs/1000 as predAccuracy ";
 
-        String sql = "SELECT "
-                + predLengthSql + " as predLength,"
-                + predAccuracySql
-                + tooltipsSql
-                + " FROM prediction_accuracy "
-                + "WHERE "
-                + "1=1 "
-                + SqlUtils.timeRangeClause(request, "arrival_departure_time", 30)
-                + "  AND " + predLengthSql + " < 900 "
-                + routeSql
-                + sourceSql
-                + predTypeSql
-                // Filter out MBTA_seconds source since it is isn't significantly different from MBTA_epoch.
-                // TODO should clean this up by not having MBTA_seconds source at all
-                // in the prediction accuracy module for MBTA.
-                + "  AND prediction_source <> 'MBTA_seconds' ";
+        // Filter out MBTA_seconds source since it is isn't significantly different from MBTA_epoch.
+        // TODO should clean this up by not having MBTA_seconds source at all
+        // in the prediction accuracy module for MBTA.
 
+        var sql = new StringBuilder("SELECT ")
+                .append(predLengthSql)
+                .append(" as predLength,")
+                .append(predAccuracySql)
+                .append(tooltipsSql)
+                .append(" FROM prediction_accuracy ")
+                .append("WHERE ")
+                .append("1=1 ")
+                .append(SqlUtils.timeRangeClause(request, "arrival_departure_time", 30))
+                .append("  AND ")
+                .append(predLengthSql)
+                .append(" < 900 ")
+                .append(routeSql)
+                .append(sourceSql)
+                .append(predTypeSql)
+                .append("  AND prediction_source <> 'MBTA_seconds' ");
 
         // Determine the json data by running the query
-        String jsonString = ChartGenericJsonQuery.getJsonString(agencyId, sql);
+        String jsonString = ChartGenericJsonQuery.getJsonString(agencyId, sql.toString());
 
 
         // If no data then return error status with an error message
@@ -454,5 +450,4 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         // Return the JSON data
         return ResponseEntity.ok(jsonString);
     }
-
 }

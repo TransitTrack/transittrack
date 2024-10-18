@@ -176,14 +176,8 @@ public class SqlUtils {
             if (numDays > maxNumDays) {
                 numDays = maxNumDays;
             }
+            beginDate = dateValidator(beginDate);
 
-            SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-            SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } catch (ParseException e) {
-                logger.error("Exception occurred while processing time-range clause.", e);
-            }
             return " AND %s BETWEEN '%s'  AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                     .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
         }
@@ -193,7 +187,6 @@ public class SqlUtils {
      * Creates a SQL clause for specifying a time range. Looks at the request parameters
      * "beginDate", "numDays", "beginTime", and "endTime"
      *
-     * @param request Http request containing parameters for the query
      * @param timeColumnName name of time column for that for query
      * @param maxNumDays maximum number of days for query. Request parameter numDays is limited to
      *     this value in order to make sure that query doesn't try to process too much data.
@@ -221,23 +214,13 @@ public class SqlUtils {
         String timeSql = " AND " + timeColumnName + "::time BETWEEN '" + beginTime + "' AND '" + endTime + "' ";
 
         throwOnSqlInjection(beginDate);
+        beginDate = dateValidator(beginDate);
 
         if (numDays > maxNumDays) {
             numDays = maxNumDays;
         }
 
-        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        try {
-            if (beginDate.charAt(4) != '-') { // for two patterns MM-dd-yyyy & yyyy-MM-dd
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } else {
-                requiredFormat.parse(beginDate);
-            }
-        } catch (ParseException e) {
-            logger.error("Exception happened while processing time-range clause", e);
-        }
 
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
@@ -251,5 +234,20 @@ public class SqlUtils {
      */
     public static int convertMinutesToSecs(String minutes) {
         return (int) Double.parseDouble(minutes) * Time.SEC_PER_MIN;
+    }
+
+    private static String dateValidator(String beginDate) {
+        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (beginDate.charAt(4) != '-') {
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
+        } catch (ParseException e) {
+            logger.error("Exception happened while processing time-range clause", e);
+        }
+        return beginDate;
     }
 }
