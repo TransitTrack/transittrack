@@ -6,10 +6,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.google.common.base.Strings;
-
 import org.transitclock.domain.webstructs.WebAgency;
 
+import com.google.common.base.Strings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -100,8 +99,9 @@ public class Reports {
             }
             json = GenericJsonQuery.getJsonString(agencyId, sql, startdate, startdate);
         } catch (ParseException e) {
-            return json = e.getMessage();
+            return e.getMessage();
         }
+
         return json;
     }
 

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.transitclock.api.reports.ChartGenericJsonQuery;
 import org.transitclock.api.reports.PredAccuracyIntervalQuery;
 import org.transitclock.api.reports.PredAccuracyRangeQuery;
@@ -31,6 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ReportsResource extends BaseApiResource implements ReportsApi {
+
+    @Autowired
+    ScheduleAdherenceController scheduleAdherenceController;
 
     @Override
     public ResponseEntity<String> getTripsWithTravelTimes(
@@ -197,9 +202,8 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         }
 
         // Respond with the JSON string
-        ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(jsonString);
-        return response;
     }
 
     @Override
@@ -218,7 +222,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
 
         String predictionType = request.getParameter("predictionType");
 
-        int allowableEarlySec = (int) 1.5 * Time.SEC_PER_MIN; // Default value
+        int allowableEarlySec = Time.SEC_PER_MIN; // Default value
         String allowableEarlyStr = request.getParameter("allowableEarly");
         try {
             if (allowableEarlyStr != null && !allowableEarlyStr.isEmpty()) {
@@ -309,17 +313,16 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         String routeIdList = request.getParameter("r");
         List<String> routeIds = routeIdList == null ? null : Arrays.asList(routeIdList.split(","));
 
-    Date beginDate = null;
-    try {
-        DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
-        DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        beginDate = (startDateStr.charAt(4) != '-') ? defaultDateFormat.parse(startDateStr) : altDateFormat.parse(startDateStr);
-    } catch (ParseException e) {
-            e.printStackTrace();
-        throw e;
-    }
+        Date beginDate;
+        try {
+            DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+            DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            beginDate = (startDateStr.charAt(4) != '-') ? defaultDateFormat.parse(startDateStr) : altDateFormat.parse(startDateStr);
+        } catch (ParseException e) {
+            throw e;
+        }
 
-        Map<String, String> results = ScheduleAdherenceController.routeScheduleAdherenceSummary(beginDate,
+        Map<String, String> results = scheduleAdherenceController.routeScheduleAdherenceSummary(beginDate,
                                                                                                 Integer.parseInt(numDaysStr),
                                                                                                 startTime, endTime,
                                                                                                 earlyLimit, lateLimit,
@@ -414,25 +417,18 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         // TODO should clean this up by not having MBTA_seconds source at all
         // in the prediction accuracy module for MBTA.
 
-        var sql = new StringBuilder("SELECT ")
-                .append(predLengthSql)
-                .append(" as predLength,")
-                .append(predAccuracySql)
-                .append(tooltipsSql)
-                .append(" FROM prediction_accuracy ")
-                .append("WHERE ")
-                .append("1=1 ")
-                .append(SqlUtils.timeRangeClause(request, "arrival_departure_time", 30))
-                .append("  AND ")
-                .append(predLengthSql)
-                .append(" < 900 ")
-                .append(routeSql)
-                .append(sourceSql)
-                .append(predTypeSql)
-                .append("  AND prediction_source <> 'MBTA_seconds' ");
+        String sql = "SELECT %s as predLength,%s%s FROM prediction_accuracy WHERE 1=1 %s  AND %s < 900 %s%s%s  AND prediction_source <> 'MBTA_seconds'".formatted(
+                predLengthSql,
+                predAccuracySql,
+                tooltipsSql,
+                SqlUtils.timeRangeClause(request, "arrival_departure_time", 30),
+                predLengthSql,
+                routeSql,
+                sourceSql,
+                predTypeSql);
 
         // Determine the json data by running the query
-        String jsonString = ChartGenericJsonQuery.getJsonString(agencyId, sql.toString());
+        String jsonString = ChartGenericJsonQuery.getJsonString(agencyId, sql);
 
 
         // If no data then return error status with an error message

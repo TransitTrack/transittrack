@@ -6,57 +6,45 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.structs.ArrivalDeparture;
+import org.transitclock.properties.WebProperties;
+import org.transitclock.utils.Time;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import org.transitclock.config.BooleanConfigValue;
-import org.transitclock.config.IntegerConfigValue;
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.ArrivalDeparture;
-import org.transitclock.utils.Time;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class ScheduleAdherenceController {
 
     // TODO: Combine routeScheduleAdherence and stopScheduleAdherence
     // - Make this a REST endpoint
     // problem - negative schedule adherence means we're late
 
-    private static IntegerConfigValue scheduleEarlySeconds =
-            new IntegerConfigValue("transitclock.web.scheduleEarlyMinutes", -120, "Schedule Adherence early limit");
-
-    public static int getScheduleEarlySeconds() {
-        return scheduleEarlySeconds.getValue();
-    }
-
-    private static IntegerConfigValue scheduleLateSeconds =
-            new IntegerConfigValue("transitclock.web.scheduleLateMinutes", 420, "Schedule Adherence late limit");
-
-    public static int getScheduleLateSeconds() {
-        return scheduleLateSeconds.getValue();
-    }
-
-    private static BooleanConfigValue usePredictionLimits = new BooleanConfigValue(
-            "transitme.web.userPredictionLimits",
-            Boolean.TRUE,
-            "use the allowable early/late report params or use configured schedule limits");
-
+    private final WebProperties webProperties;
 //    private static final String ADHERENCE_SQL = "(time - scheduledTime) AS scheduleAdherence";
 //    private static final Projection ADHERENCE_PROJECTION = Projections.sqlProjection(
 //            ADHERENCE_SQL, new String[] {"scheduleAdherence"}, new Type[] {DoubleType.INSTANCE});
 //    private static final Projection AVG_ADHERENCE_PROJECTION = Projections.sqlProjection(
 //            "avg" + ADHERENCE_SQL, new String[] {"scheduleAdherence"}, new Type[] {DoubleType.INSTANCE});
 
-    public static List<Object> stopScheduleAdherence(
+    public List<Object> stopScheduleAdherence(
             Date startDate,
             int numDays,
             String startTime,
@@ -68,7 +56,7 @@ public class ScheduleAdherenceController {
         return groupScheduleAdherence(startDate, numDays, startTime, endTime, "stopId", stopIds, byStop, datatype);
     }
 
-    public static List<Object> routeScheduleAdherence(
+    public List<Object> routeScheduleAdherence(
             Date startDate,
             int numDays,
             String startTime,
@@ -80,15 +68,15 @@ public class ScheduleAdherenceController {
         return groupScheduleAdherence(startDate, numDays, startTime, endTime, "routeId", routeIds, byRoute, datatype);
     }
 
-    public static Map<String, String> routeScheduleAdherenceSummary(Date startDate, int numDays, String startTime, String endTime, Double earlyLimitParam, Double lateLimitParam, List<String> routeIds) {
+    public Map<String, String> routeScheduleAdherenceSummary(Date startDate, int numDays, String startTime, String endTime, Double earlyLimitParam, Double lateLimitParam, List<String> routeIds) {
 
         int count = 0;
         int early = 0;
         int late = 0;
         int ontime = 0;
 
-        var earlyLimit = (usePredictionLimits.getValue() ? earlyLimitParam : (double) scheduleEarlySeconds.getValue());
-        var lateLimit = (usePredictionLimits.getValue() ? lateLimitParam : (double) scheduleLateSeconds.getValue());
+        var earlyLimit = (webProperties.getUsePredictionLimits() ? earlyLimitParam : (double) webProperties.getScheduleEarlyMinutes());
+        var lateLimit = (webProperties.getUsePredictionLimits() ? lateLimitParam : (double) webProperties.getScheduleLateMinutes());
 
         List<Object> results = routeScheduleAdherence(startDate, numDays, startTime, endTime, routeIds, false, null);
         Map <String, String> result = new HashMap<>();
@@ -119,7 +107,7 @@ public class ScheduleAdherenceController {
         double earlyPercent = (1.0 - (double) (count - early) / count) * 100;
         double onTimePercent = (1.0 - (double) (count - ontime) / count) * 100;
         double latePercent = (1.0 - (double) (count - late) / count) * 100;
-        logger.info( "count={} earlyPercent={} onTimePercent={} latePercent={}",
+        logger.info( "count=static{} earlyPercent={} onTimePercent={} latePercent={}",
                      count,
                      earlyPercent,
                      onTimePercent,
@@ -134,7 +122,7 @@ public class ScheduleAdherenceController {
         return result;
     }
 
-    private static List<Object> groupScheduleAdherence(Date startDate, int numDays, String startTime, String endTime, String groupName, List<String> idsOrEmpty, boolean byGroup, String datatype) {
+    private List<Object> groupScheduleAdherence(Date startDate, int numDays, String startTime, String endTime, String groupName, List<String> idsOrEmpty, boolean byGroup, String datatype) {
 
         List<String> ids = new ArrayList<>();
         if (idsOrEmpty != null) {
