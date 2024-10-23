@@ -19,7 +19,7 @@ pluginManagement {
 
         id("com.google.protobuf") version "0.9.4"
         id("com.diffplug.spotless") version "6.25.0"
-        id("com.github.andygoossens.gradle-modernizer-plugin") version "1.9.2"
+        id("com.github.andygoossens.gradle-modernizer-plugin") version "1.9.3"
     }
     repositories {
         mavenCentral()
