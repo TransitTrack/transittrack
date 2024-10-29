@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.config.data;
 
+import org.transitclock.config.BooleanConfigValue;
 import org.transitclock.config.StringConfigValue;
 
 
@@ -22,4 +23,6 @@ public class TraccarConfig {
     public static final StringConfigValue TRACCARSOURCE = new StringConfigValue("transitclock.avl.traccar.source",
             "TRACCAR", "This is the value recorded in the source for the AVL Report.");
 
+    public static final BooleanConfigValue nameInsteadOfId = new BooleanConfigValue("transitclock.avl.traccar.nameInsteadOfId",
+            false, "True if is wanted to receive a name from the server instead of an ID.");
 }

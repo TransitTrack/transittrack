@@ -16,6 +16,7 @@
  */
 package org.transitclock.core.avl;
 
+import com.google.common.base.Strings;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.auth.AuthCache;
@@ -97,8 +98,9 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     @Override
     protected void getAndProcessData() throws Exception {
 
-        Collection<AvlReport> avlReportsReadIn = new ArrayList<>();
+        boolean isName = nameInsteadOfId.getValue();
 
+        Collection<AvlReport> avlReportsReadIn = new ArrayList<>();
         List<DeviceDto> devices = api.devicesGet(true, user.getId(), null, null);
         List<PositionDto> results = api.positionsGet(null, null, null, null);
 
@@ -108,9 +110,11 @@ public class TraccarAVLModule extends PollUrlAvlModule {
             AvlReport avlReport;
 
             // If have device details use name.
-            if (device != null && device.getUniqueId() != null && !device.getUniqueId().isEmpty()) {
+            if (device != null && !Strings.isNullOrEmpty(device.getUniqueId())
+                               && !Strings.isNullOrEmpty(device.getName())) {
                 //Traccar return speed in kt
-                avlReport = new AvlReport(device.getUniqueId(), device.getName(),
+                avlReport = new AvlReport(isName ? device.getName() : device.getUniqueId(),
+                        device.getName(),
                         result.getDeviceTime().toEpochSecond() * 1000,
                         result.getLatitude().doubleValue(),
                         result.getLongitude().doubleValue(),
