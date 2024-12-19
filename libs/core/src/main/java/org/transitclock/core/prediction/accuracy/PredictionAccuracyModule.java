@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import org.transitclock.Module;
@@ -42,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(value = "transitclock.pred-accuracy.enabled", matchIfMissing = false)
 public class PredictionAccuracyModule implements Module {
     // The map that contains all of the predictions to be used for prediction
     // accuracy analysis. Each value is a list of predictions because can have
@@ -80,6 +84,7 @@ public class PredictionAccuracyModule implements Module {
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
      */
+    @Scheduled(fixedRateString = "${transitclock.pred-accuracy.pollingRateMsec:240000}", timeUnit = TimeUnit.MILLISECONDS)
     public void run() {
         try {
             getAndProcessData(getRoutesAndStops(), SystemTime.getDate());
