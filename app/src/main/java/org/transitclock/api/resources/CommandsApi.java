@@ -171,7 +171,7 @@ public interface CommandsApi {
     @Operation(
             summary = "Cancel a trip in order to be shown in GTFS realtime.",
             description = "<font color=\"#FF0000\">Experimental. It will work olny with the correct"
-                    + " version.</font> It cancel a trip that has no vechilce assigned.",
+                    + " version.</font> It cancel a trip that has no vehicle assigned.",
             tags = {"command", "trip"})
     ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,
@@ -190,7 +190,7 @@ public interface CommandsApi {
             tags = {"command", "trip"})
     ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
-            @Parameter(description = "tripId to remove calceled satate.", required = true) @PathVariable("tripId")
+            @Parameter(description = "tripId to remove canceled satate.", required = true) @PathVariable("tripId")
             String tripId,
             @Parameter(description = "start trip time", required = false) @RequestParam(value = "at", required = false) DateTimeParam at);
 
