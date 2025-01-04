@@ -456,7 +456,7 @@ public class ArrivalDepartureGeneratorDefaultImpl implements ArrivalDepartureGen
         vehicleStatus.incrementTripCounter(arrivalDeparture, vehicleStatusManager);
 
         // Generate prediction accuracy info as appropriate
-        predictionAccuracyModule.handleArrivalDeparture(dbConfig, dataDbLogger, arrivalDeparture);
+        predictionAccuracyModule.handleArrivalDeparture(arrivalDeparture);
     }
 
     /**

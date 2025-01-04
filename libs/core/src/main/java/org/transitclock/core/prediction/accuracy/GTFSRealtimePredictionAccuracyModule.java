@@ -1,16 +1,17 @@
 /* (C)2023 */
-package org.transitclock.core.prediction.accuracy.gtfsrt;
+package org.transitclock.core.prediction.accuracy;
 
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.transitclock.core.prediction.accuracy.PredAccuracyPrediction;
-import org.transitclock.core.prediction.accuracy.PredictionAccuracyModule;
+import org.transitclock.core.dataCache.PredictionDataCache;
+import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.ScheduleTime;
 import org.transitclock.domain.structs.StopPath;
 import org.transitclock.domain.structs.Trip;
+import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.GtfsProperties;
 
 import com.google.transit.realtime.GtfsRealtime.FeedEntity;
@@ -18,7 +19,8 @@ import com.google.transit.realtime.GtfsRealtime.FeedMessage;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.transitclock.properties.PredictionAccuracyProperties;
 
 /**
  * Reads in external prediction data from a GTFS realtime trip updates feed and stores the data in
@@ -27,10 +29,20 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Sean Og Crudden
  */
 @Slf4j
-public class GTFSRealtimePredictionAccuracyModule extends PredictionAccuracyModule {
+public class GTFSRealtimePredictionAccuracyModule extends DefaultPredictionAccuracyModule {
 
-    @Autowired
-    GtfsProperties gtfsProperties;
+    private final GtfsProperties gtfsProperties;
+
+    public GTFSRealtimePredictionAccuracyModule(PredictionDataCache predictionDataCache,
+                                                DbConfig dbConfig,
+                                                DataDbLogger dataDbLogger,
+                                                PredictionAccuracyProperties predictionAccuracyProperties,
+                                                GtfsProperties gtfsProperties) {
+        super(predictionDataCache, dbConfig, dataDbLogger, predictionAccuracyProperties);
+        this.gtfsProperties = gtfsProperties;
+    }
+
+
     /**
      * Gets GTFS realtime feed all routes from URL and return FeedMessage
      *
