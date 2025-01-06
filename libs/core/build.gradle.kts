@@ -48,7 +48,7 @@ dependencies {
     implementation("commons-codec:commons-codec")
 
     protobuf(files("src/proto"))
-    api("com.google.protobuf:protobuf-java:4.28.2")
+    api("com.google.protobuf:protobuf-java:4.29.2")
 
     testImplementation("org.assertj:assertj-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
