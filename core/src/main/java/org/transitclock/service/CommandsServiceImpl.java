@@ -10,14 +10,17 @@ import org.transitclock.core.avl.AvlExecutor;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
+import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
+import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
+import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -196,5 +199,33 @@ public class CommandsServiceImpl implements CommandsInterface {
             session.close();
         }
         return null;
+    }
+
+    @Override
+    public String addApiKey(String applicationName, String applicationUrl,
+                            String email, String phone, String description, boolean secret) throws RuntimeException {
+        try {
+            ApiKey key = ApiKeyManager.getInstance()
+                    .generateApiKey(applicationName, applicationUrl, email, phone, description, secret);
+            logger.info("Successfully created and added application key for {} to database. ", key.getApplicationName());
+            return key.getApplicationKey();
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    @Override
+    public String removeApiKey(String apiKey) throws RuntimeException {
+
+        try {
+            String result = ApiKeyManager.getInstance().deleteKey(apiKey);
+            logger.info("Successfully deleted key for {} from database. ", apiKey);
+            return result;
+
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
     }
 }

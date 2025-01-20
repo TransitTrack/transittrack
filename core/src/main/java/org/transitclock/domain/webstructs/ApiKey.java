@@ -101,7 +101,9 @@ public class ApiKey implements Serializable {
      */
     public void deleteApiKey(String dbName) {
         try (Session session = HibernateUtils.getSession(dbName)) {
+            Transaction transaction = session.beginTransaction();
             session.remove(this);
+            transaction.commit();
         } catch (Exception e) {
             throw e;
         }

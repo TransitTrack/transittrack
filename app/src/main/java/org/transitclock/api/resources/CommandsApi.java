@@ -7,22 +7,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.json.JSONArray;
@@ -31,6 +22,7 @@ import org.json.JSONObject;
 import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
+import org.transitclock.config.data.ApiConfig;
 import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
@@ -156,7 +148,7 @@ public class CommandsApi {
      * @throws IOException
      * @throws JSONException
      */
-    private static JSONObject getJsonObject(InputStream requestBody) throws IOException, JSONException {
+     static JSONObject getJsonObject(InputStream requestBody) throws IOException, JSONException {
         // Read in the request body to a string
         BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
         StringBuilder strBuilder = new StringBuilder();
@@ -476,5 +468,63 @@ public class CommandsApi {
             throw WebUtils.badRequestException(ex);
         }
         return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
+    }
+
+    @Operation(summary="Create api key", description="Create api key", tags= {"key"})
+    @Path("/command/createApiKey")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createApiKey(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description="Fields of application key:", required = true) InputStream requestBody) throws WebApplicationException
+    {
+        stdParameters.validate();
+        String response = null;
+
+        try {
+            JSONObject jsonBody = getJsonObject(requestBody);
+            String applicationName = jsonBody.getString("name");
+            String applicationUrl = jsonBody.getString("url");
+            String email = jsonBody.getString("email");
+            String phone = jsonBody.getString("phone");
+            String description = jsonBody.getString("description");
+            String secret = jsonBody.getString("secret");
+            CommandsInterface inter = stdParameters.getCommandsInterface();
+
+            if (secret.equals(ApiConfig.getSecret())) response = inter.addApiKey(applicationName, applicationUrl, email, phone, description, true);
+
+        } catch (Exception ex) {
+            throw WebUtils.badRequestException(ex.getMessage());
+        }
+        if(response != null)
+            return stdParameters.createResponse(new ApiCommandAck(true,"Created key: " + response));
+        else
+            return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
+    }
+
+    @Operation(summary="Delete an api key", description="Delete an outdated application keys", tags= {"key"})
+    @Path("/command/deleteApiKey")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteApiKey(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description="insert api key to delete", required = true)
+            @QueryParam(value = "apiKey") String apiKey) throws WebApplicationException
+    {
+        stdParameters.validate();
+        String response = null;
+
+        try {
+            CommandsInterface inter = stdParameters.getCommandsInterface();
+            response = inter.removeApiKey(apiKey);
+
+        } catch (Exception ex) {
+            throw WebUtils.badRequestException(ex.getMessage());
+        }
+        if(response != null)
+            return stdParameters.createResponse(new ApiCommandAck(true,response));
+        else
+            return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again!"));
     }
 }

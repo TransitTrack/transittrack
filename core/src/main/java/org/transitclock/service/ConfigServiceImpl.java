@@ -4,15 +4,15 @@ package org.transitclock.service;
 import lombok.extern.slf4j.Slf4j;
 import org.transitclock.Core;
 import org.transitclock.core.dataCache.VehicleDataCache;
+import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.structs.*;
+import org.transitclock.domain.structs.Calendar;
+import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.service.contract.ConfigInterface;
 import org.transitclock.service.dto.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -376,5 +376,47 @@ public class ConfigServiceImpl implements ConfigInterface {
                     .collect(Collectors.toList());
         }
         return routes;
+    }
+
+    /* (non-Javadoc)
+     * @see org.transitclock.ipc.interfaces.ConfigInterface#getAllAppKeys()
+     */
+    @Override
+    public List<ApiKey> getAllApiKeys() throws RuntimeException {
+        try{
+            List <ApiKey> apiKeysList = ApiKeyManager.getInstance().getApiKeys();
+            logger.info("Successfully fetch: {} keys from database", apiKeysList.size());
+            return apiKeysList;
+
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.transitclock.ipc.interfaces.ConfigInterface#getAppKey()
+     */
+    @Override
+    public ApiKey getApiKey(String email) throws RuntimeException {
+
+        try{
+            List <ApiKey> apiKeysList = ApiKeyManager.getInstance().getApiKeys();
+            if (!apiKeysList.isEmpty()) {
+                logger.info("Successfully fetched: {} keys from database", apiKeysList.size());
+                Optional<ApiKey> foundKey = apiKeysList
+                        .stream()
+                        .filter(key -> key.getEmail().equals(email))
+                        .findFirst();
+                return foundKey.orElseThrow(() ->
+                        new IllegalArgumentException("Could not find key for: "+email+" because it is not in database."));
+            }
+            logger.error("Could not find key {} because it was not in database", email);
+            throw new IllegalArgumentException("Could not find key for: "+email+" because it is not in database.");
+
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
     }
 }

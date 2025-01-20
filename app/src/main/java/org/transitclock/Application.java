@@ -152,7 +152,7 @@ public class Application {
                             "http://www.transitclock.org",
                             "og.crudden@gmail.com",
                             "123456",
-                            "foo");
+                            "foo", false);
         } catch (IllegalArgumentException ignored) {
 
         }

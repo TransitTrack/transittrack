@@ -11,25 +11,31 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.json.JSONObject;
 import org.transitclock.api.data.*;
 import org.transitclock.api.utils.PredsByLoc;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
+import org.transitclock.config.data.ApiConfig;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.reports.Reports;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
+import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.service.contract.ConfigInterface;
 import org.transitclock.service.contract.PredictionsInterface;
 import org.transitclock.service.contract.ServerStatusInterface;
 import org.transitclock.service.contract.VehiclesInterface;
 import org.transitclock.service.dto.*;
 
+import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.transitclock.api.resources.CommandsApi.getJsonObject;
 
 /**
  * Contains the API commands for the Transitime API for getting real-time vehicle and prediction
@@ -2185,35 +2191,47 @@ public class TransitimeApi {
             throw WebUtils.badRequestException(e);
         }
     }
-    // /**
-    // * For creating response of list of vehicles. Would like to make this a
-    // * generic type but due to type erasure cannot do so since GenericEntity
-    // * somehow works differently with generic types.
-    // * <p>
-    // * Deprecated because found that much better off using a special
-    // * container class for lists of items since that way can control the
-    // * name of the list element.
-    // *
-    // * @param collection
-    // * Collection of Vehicle objects to be returned in XML or JSON.
-    // * Must be ArrayList so can use GenericEntity to create Response.
-    // * @param stdParameters
-    // * For specifying media type.
-    // * @return The created response in the proper media type.
-    // */
-    // private static Response createListResponse(Collection<ApiVehicle>
-    // collection,
-    // StdParametersBean stdParameters) {
-    // // Must be ArrayList so can use GenericEntity to create Response.
-    // ArrayList<ApiVehicle> arrayList = (ArrayList<ApiVehicle>) collection;
-    //
-    // // Create a GenericEntity that can handle list of the appropriate
-    // // type.
-    // GenericEntity<List<ApiVehicle>> entity =
-    // new GenericEntity<List<ApiVehicle>>(arrayList) {};
-    //
-    // // Return the response using the generic entity
-    // return createResponse(entity, stdParameters);
-    // }
 
+    @Path("/command/apiKeys")
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Operation(summary="Show api keys.",description="Show api keys for single user or all users ", tags= {"key"})
+    public Response getApiKeyOrKeys(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description="Secret and email:", required = true) InputStream requestBody) throws WebApplicationException
+    {
+        // Make sure request is valid
+        stdParameters.validate();
+
+        List <ApiKey> allApiKeys;
+        try {
+            JSONObject jsonBody = getJsonObject(requestBody);
+            String email = jsonBody.getString("email");
+            String secret = jsonBody.getString("secret");
+            ConfigInterface inter = stdParameters.getConfigInterface();
+
+            if (secret.equals(ApiConfig.getSecret())) {
+                if (StringUtils.isBlank(email)) {
+                    allApiKeys = inter.getAllApiKeys();
+
+                    // return ApiKeyList response.
+                    return stdParameters.createResponse(new ApiAppKeys(allApiKeys));
+                }
+                // key from server by email
+                ApiKey foundKey = inter.getApiKey(email);
+                // If the key doesn't exist then throw exception such that
+                // Bad Request with an appropriate message is returned.
+                if (foundKey == null)
+                    throw WebUtils.badRequestException("Key with email: \"" + email + "\" does not exist.");
+
+                // Create and return ApiKey response.
+                return stdParameters.createResponse(new ApiAppKey(foundKey));
+            }
+            else return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
+        } catch (Exception ex) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(ex.getMessage() + ex.getCause());
+        }
+    }
 }

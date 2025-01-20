@@ -2,9 +2,11 @@
 package org.transitclock.domain;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.transitclock.config.IntegerConfigValue;
+import org.transitclock.config.data.ApiConfig;
 import org.transitclock.config.data.DbSetupConfig;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.webstructs.ApiKey;
@@ -127,6 +129,11 @@ public class ApiKeyManager {
         return Integer.toHexString(saltedApplicationName.hashCode());
     }
 
+    private String generateKey(String applicationName, String salt) {
+        String saltedApplicationName = applicationName + salt;
+        return Integer.toHexString(saltedApplicationName.hashCode());
+    }
+
     /**
      * Generates the new ApiKey and stores it in the db.
      *
@@ -140,9 +147,10 @@ public class ApiKeyManager {
      * @throws HibernateException
      */
     public ApiKey generateApiKey(
-            String applicationName, String applicationUrl, String email, String phone, String description)
+            String applicationName, String applicationUrl, String email, String phone, String description, boolean secret)
             throws IllegalArgumentException, HibernateException {
         // Make sure don't already have key for this application name
+
         List<ApiKey> currentApiKeys = getApiKeys();
         for (ApiKey currentApiKey : currentApiKeys) {
             if (currentApiKey.getApplicationName().equals(applicationName)) {
@@ -152,10 +160,11 @@ public class ApiKeyManager {
                         "Already have key for " + "application name \"" + applicationName + "\"");
             }
         }
-
-        // Determine what the key should be
-        String key = generateKey(applicationName);
-
+        String key;
+        if (!secret) key = generateKey(applicationName);
+        else if (!StringUtils.isBlank(ApiConfig.getSecret()) && secret) key = generateKey(applicationName, ApiConfig.getSecret());
+        else throw new IllegalArgumentException(
+                    "Something went wrong. Try again!");
         // Create the new ApiKey
         ApiKey newApiKey = new ApiKey(applicationName, key, applicationUrl, email, phone, description);
 
@@ -171,9 +180,10 @@ public class ApiKeyManager {
      *
      * @param key
      */
-    public void deleteKey(String key) {
-        List<ApiKey> apiKeys = getApiKeys();
-        for (ApiKey apiKey : apiKeys) {
+    public String deleteKey(String key) {
+        List<ApiKey> beforeDeleteApiKeys = getApiKeys();
+        if (beforeDeleteApiKeys.size() != 1)
+        for (ApiKey apiKey : beforeDeleteApiKeys) {
             if (apiKey.getApplicationKey().equals(key)) {
                 // Found the right key. Delete from database
                 apiKey.deleteApiKey(dbName);
@@ -181,12 +191,16 @@ public class ApiKeyManager {
                 // Also delete key from the cache
                 apiKeyCache.remove(key);
 
-                // Found the key so done here
-                return;
+                List<ApiKey> afterDeleteApiKeys = getApiKeys();
+                if (!afterDeleteApiKeys.contains(apiKey))
+                    return "Api Key successfully deleted for user: "+ apiKey.getApplicationName();
+                else
+                    throw new IllegalArgumentException("Api Key for user: " + apiKey.getApplicationName() + " is still in the db. Try again!");
             }
         }
-
         // That key not found in database so report error
-        logger.error("Could not delete key {} because it was not in database", key);
+        logger.warn("Could not delete key {} because it's last key or is not exist", key);
+
+        throw new IllegalArgumentException("Could not delete key because it's the last key or is not exist");
     }
 }

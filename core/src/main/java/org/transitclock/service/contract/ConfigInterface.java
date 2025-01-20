@@ -2,8 +2,10 @@
 package org.transitclock.service.contract;
 
 import org.transitclock.domain.structs.Agency;
+import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.service.dto.*;
 
+import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -184,4 +186,22 @@ public interface ConfigInterface {
      * @return list of IpcRoute
      */
     List<IpcRoute> getRoutesByStopId(String stopId);
+
+    /**
+     * Returns list of api keys, unsorted or throw exception
+     *
+     * @return ArrayList <ApiKey>
+     * @throws RemoteException
+     * @throws RuntimeException
+     */
+    List <ApiKey> getAllApiKeys() throws RemoteException, RuntimeException;
+
+    /**
+     * Returns ApiKey object for specified single key or throw exception
+     *
+     * @return ApiKey
+     * @throws RemoteException
+     * @throws RuntimeException
+     */
+    ApiKey getApiKey(String email) throws RemoteException, RuntimeException;
 }

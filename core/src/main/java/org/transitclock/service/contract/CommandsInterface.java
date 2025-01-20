@@ -59,4 +59,25 @@ public interface CommandsInterface {
      * Returns null on success
      */
     String removeVehicleToBlock(long id);
+
+    /**
+     * Add application key to db.
+     * Returns key on success or throw exception.
+     *
+     * @param applicationName name of user
+     * @param applicationUrl url of organization
+     * @param description
+     * @param email
+     * @param phone
+     */
+    String addApiKey(String applicationName, String applicationUrl,
+                            String email, String phone, String description, boolean secret) throws Exception;
+
+    /**
+     * Delete application key.
+     * Returns applicationName on success.
+     *
+     * @param apiKey
+     */
+    String removeApiKey(String apiKey) throws Exception;
 }
