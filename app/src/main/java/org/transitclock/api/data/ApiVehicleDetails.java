@@ -12,6 +12,8 @@ import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.Time;
 
+import static org.transitclock.config.data.TraccarConfig.OCCUPANCY_SOURCE_URL;
+
 /**
  * Contains data for a single vehicle with additional info that is meant more for management than
  * for passengers.
@@ -115,6 +117,9 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     private String licensePlate;
 
     @XmlAttribute
+    private String fullness;
+
+    @XmlAttribute
     private boolean isCanceled;
 
     @XmlAttribute
@@ -182,5 +187,19 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         } else {
             this.holdingTime = null;
         }
+        this.fullness = convertFullness(vehicle);
+    }
+    private String convertFullness(IpcVehicle vehicle) {
+        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) {
+            if (vehicle.isPredictable()) {
+                final float FULLNESS = vehicle.getAvl().getPassengerFullness();
+                if (vehicle.getAvl().getPassengerCount() < 0) return new String("NO_DATA_AVAILABLE");
+                else if (FULLNESS == 0) return new String("EMPTY");
+                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return new String("MANY_SEATS_AVAILABLE");
+                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return new String("FEW_SEATS_AVAILABLE");
+                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return new String("STANDING_ROOM_ONLY");
+                else if (FULLNESS >= 100) return new String("FULL");
+            } else return new String("NO_DATA_AVAILABLE");
+        } return null;
     }
 }

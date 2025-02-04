@@ -36,8 +36,7 @@ public class ServiceUtils {
     /**
      * ServiceUtils constructor. Creates reusable GregorianCalendar and sets the timezone so that
      * the calendar can be reused.
-     *
-     * @param timezoneName See http://en.wikipedia.org/wiki/List_of_tz_zones
+     * See http://en.wikipedia.org/wiki/List_of_tz_zones
      */
     public ServiceUtils(DbConfig dbConfig) {
 

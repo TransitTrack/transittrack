@@ -11,17 +11,20 @@ public class TraccarConfig {
      *
      * @return
      */
-    public static final StringConfigValue TRACCAREMAIL = new StringConfigValue("transitclock.avl.traccar.email", null,
+    public static final StringConfigValue TRACCAR_EMAIL = new StringConfigValue("transitclock.avl.traccar.email", null,
             "This is the username for the traccar server api.");
 
-    public static final StringConfigValue TRACCARPASSWORD = new StringConfigValue("transitclock.avl.traccar.password",
+    public static final StringConfigValue TRACCAR_PASSWORD = new StringConfigValue("transitclock.avl.traccar.password",
             null, "This is the password for the traccar server api");
 
-    public static final StringConfigValue TRACCARBASEURL = new StringConfigValue("transitclock.avl.traccar.baseurl",
+    public static final StringConfigValue TRACCAR_BASEURL = new StringConfigValue("transitclock.avl.traccar.baseurl",
             null, "This is the url for the traccar server api.");
 
-    public static final StringConfigValue TRACCARSOURCE = new StringConfigValue("transitclock.avl.traccar.source",
+    public static final StringConfigValue TRACCAR_SOURCE = new StringConfigValue("transitclock.avl.traccar.source",
             "TRACCAR", "This is the value recorded in the source for the AVL Report.");
+
+    public static final StringConfigValue OCCUPANCY_SOURCE_URL = new StringConfigValue("transitclock.avl.occupancy.baseurl",
+            " ", "This is the url for the traccar server api.");
 
     public static final BooleanConfigValue nameInsteadOfId = new BooleanConfigValue("transitclock.avl.traccar.nameInsteadOfId",
             false, "True if is wanted to receive a name from the server instead of an ID.");

@@ -27,6 +27,7 @@ import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHost;
+import org.transitclock.core.dataCache.HoldingTimeCache;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.extension.traccar.ApiClient;
 import org.transitclock.extension.traccar.ApiException;
@@ -38,12 +39,11 @@ import org.transitclock.extension.traccar.model.UserDto;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.transitclock.config.data.TraccarConfig.*;
+import static org.transitclock.core.avl.OccupancyStatusSource.BusLoadDto;
+import static org.transitclock.core.avl.OccupancyStatusSource.fetchBusLoads;
 
 
 /**
@@ -67,14 +67,14 @@ public class TraccarAVLModule extends PollUrlAvlModule {
         useCompression = false;
         ApiClient client;
         try {
-            var host = HttpHost.create(TRACCARBASEURL.getValue());
+            var host = HttpHost.create(TRACCAR_BASEURL.getValue());
             var httpClientBuilder = HttpClientBuilder.create();
 
             final AuthCache authCache = new BasicAuthCache();
             authCache.put(host, new BasicScheme());
 
             var provider = new BasicCredentialsProvider();
-            provider.setCredentials(new AuthScope(host), new UsernamePasswordCredentials(TRACCAREMAIL.getValue(), TRACCARPASSWORD.getValue().toCharArray()));
+            provider.setCredentials(new AuthScope(host), new UsernamePasswordCredentials(TRACCAR_EMAIL.getValue(), TRACCAR_PASSWORD.getValue().toCharArray()));
             httpClientBuilder.setDefaultCredentialsProvider(provider);
 
             client = new ApiClient(httpClientBuilder.build());
@@ -82,14 +82,14 @@ public class TraccarAVLModule extends PollUrlAvlModule {
             logger.warn("Unsuccessful traccar authorisation: {} ", ex.toString());
             client = new ApiClient();
         }
-        client.setBasePath(TRACCARBASEURL.getValue());
-        client.setUsername(TRACCAREMAIL.getValue());
-        client.setPassword(TRACCARPASSWORD.getValue());
+        client.setBasePath(TRACCAR_BASEURL.getValue());
+        client.setUsername(TRACCAR_EMAIL.getValue());
+        client.setPassword(TRACCAR_PASSWORD.getValue());
         this.api = new DefaultApi(client);
 
         try {
             this.user = this.api
-                    .sessionPost(TRACCAREMAIL.getValue(), TRACCARPASSWORD.getValue());
+                    .sessionPost(TRACCAR_EMAIL.getValue(), TRACCAR_PASSWORD.getValue());
         } catch (ApiException e) {
             throw new RuntimeException("Traccar login denied", e);
         }
@@ -98,7 +98,10 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     @Override
     protected void getAndProcessData() throws Exception {
 
-        boolean isName = nameInsteadOfId.getValue();
+        boolean isIdAsName = nameInsteadOfId.getValue();
+
+        Map<String, BusLoadDto> occupancies = null;
+        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) occupancies = fetchBusLoads(OCCUPANCY_SOURCE_URL.getValue());
 
         Collection<AvlReport> avlReportsReadIn = new ArrayList<>();
         List<DeviceDto> devices = api.devicesGet(true, user.getId(), null, null);
@@ -108,25 +111,24 @@ public class TraccarAVLModule extends PollUrlAvlModule {
             DeviceDto device = findDeviceById(devices, result.getDeviceId());
 
             AvlReport avlReport;
-
             // If have device details use name.
             if (device != null && !Strings.isNullOrEmpty(device.getUniqueId())
-                               && !Strings.isNullOrEmpty(device.getName())) {
+                    && occupancies == null && !Strings.isNullOrEmpty(device.getName())) {
+                avlReport = getAvlReport(result, isIdAsName, device);
+                // If have details of occupancy.
+            } else if (device != null && !Strings.isNullOrEmpty(device.getUniqueId()) &&
+                    occupancies != null && !Strings.isNullOrEmpty(device.getName())) {
                 //Traccar return speed in kt
-                avlReport = new AvlReport(isName ? device.getName() : device.getUniqueId(),
-                        device.getName(),
-                        result.getDeviceTime().toEpochSecond() * 1000,
-                        result.getLatitude().doubleValue(),
-                        result.getLongitude().doubleValue(),
-                        result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
-                        result.getCourse().floatValue(), TRACCARSOURCE.toString());
+                avlReport = getAvlReportWithOccupancy(result, isIdAsName, device, occupancies);
+                //Check local time of remote service.
+                HoldingTimeCache.setRemoteTimeCheckAPC(occupancies.get("time").getVehicleName());
             } else {
-                avlReport = new AvlReport(result.getDeviceId().toString(),
+                avlReport = new AvlReport(result.getDeviceId().toString(), "",
                         result.getDeviceTime().toEpochSecond() * 1000,
                         result.getLatitude().doubleValue(),
                         result.getLongitude().doubleValue(),
                         result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
-                        result.getCourse().floatValue(), TRACCARSOURCE.toString());
+                        result.getCourse().floatValue(), TRACCAR_SOURCE.toString());
             }
             avlReportsReadIn.add(avlReport);
         }
@@ -135,6 +137,34 @@ public class TraccarAVLModule extends PollUrlAvlModule {
 
     protected void forwardAvlReports(Collection<AvlReport> avlReportsReadIn) {
         processAvlReports(avlReportsReadIn);
+    }
+
+    private static AvlReport getAvlReport(PositionDto result, boolean isIdAsName, DeviceDto device) {
+        AvlReport avlReport;
+        avlReport = new AvlReport(isIdAsName ? device.getName() : device.getUniqueId(),
+                device.getName(),
+                result.getDeviceTime().toEpochSecond() * 1000,
+                result.getLatitude().doubleValue(),
+                result.getLongitude().doubleValue(),
+                result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
+                result.getCourse().floatValue(),
+                TRACCAR_SOURCE.toString());
+        return avlReport;
+    }
+
+    private static AvlReport getAvlReportWithOccupancy(PositionDto result, boolean isIdAsName, DeviceDto device, Map<String, BusLoadDto> occupancies) {
+        AvlReport avlReport;
+        avlReport = new AvlReport(isIdAsName ? device.getName() : device.getUniqueId(),
+                device.getName(),
+                result.getDeviceTime().toEpochSecond() * 1000,
+                result.getLatitude().doubleValue(),
+                result.getLongitude().doubleValue(),
+                result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
+                result.getCourse().floatValue(),
+                occupancies.get(device.getName()) != null ? occupancies.get(device.getName()).getCurrentCount() : -1,
+                occupancies.get(device.getName()) != null ? occupancies.get(device.getName()).getCurrentFullness() : Float.NaN,
+                TRACCAR_SOURCE.toString());
+        return avlReport;
     }
 
     private DeviceDto findDeviceById(List<DeviceDto> devices, Integer id) {
@@ -151,5 +181,4 @@ public class TraccarAVLModule extends PollUrlAvlModule {
         // Auto-generated method stub
         return null;
     }
-
 }

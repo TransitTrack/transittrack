@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 
+import static org.transitclock.config.data.TraccarConfig.OCCUPANCY_SOURCE_URL;
+
 /**
  * For creating GTFS-realtime Vehicle feed. The data is obtained via RMI.
  *
@@ -60,7 +62,10 @@ public class GtfsRtVehicleFeed {
                     .setRouteId(vehicleData.getRouteId())
                     .setTripId(vehicleData.getTripId())
                     .setStartDate(tripStartDateStr);
-            if (vehicleData.isCanceled()) tripDescriptor.setScheduleRelationship(ScheduleRelationship.CANCELED);
+            if (vehicleData.isCanceled()) {
+                tripDescriptor.setScheduleRelationship(ScheduleRelationship.CANCELED);
+                vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NOT_BOARDABLE);
+            }
             if (vehicleData.getFreqStartTime() > 0) {
                 String tripStartTimeStr = gtfsRealtimeTimeFormatter.format(new Date(vehicleData.getFreqStartTime()));
                 tripDescriptor.setStartTime(tripStartTimeStr);
@@ -81,7 +86,24 @@ public class GtfsRtVehicleFeed {
 
             vehiclePosition.setTrip(tripDescriptor);
         }
-
+        //  Set status if available
+        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) {
+            if (vehicleData.isPredictable()) {
+        final float FULLNESS = vehicleData.getAvl().getPassengerFullness();
+        if (vehicleData.getAvl().getPassengerCount() < 0)
+            vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
+        else if (FULLNESS == 0)
+        vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.EMPTY);
+        else if (FULLNESS <= 49 && FULLNESS >= 0.01)
+            vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.MANY_SEATS_AVAILABLE);
+        else if (FULLNESS <= 75 && FULLNESS >= 49.01)
+            vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FEW_SEATS_AVAILABLE);
+        else if (FULLNESS <= 99.99 && FULLNESS >= 75.01)
+            vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.STANDING_ROOM_ONLY);
+        else if (FULLNESS >= 100)
+            vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FULL);
+            } else vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
+        }
         // Add the VehicleDescriptor information
         VehicleDescriptor.Builder vehicleDescriptor =
                 VehicleDescriptor.newBuilder().setId(vehicleData.getId());
@@ -100,6 +122,7 @@ public class GtfsRtVehicleFeed {
         if (!Float.isNaN(vehicleData.getSpeed())) {
             position.setSpeed(vehicleData.getSpeed());
         }
+
         vehiclePosition.setPosition(position);
 
         // Convert the GPS timestamp information to an epoch time as
@@ -144,24 +167,10 @@ public class GtfsRtVehicleFeed {
 
         for (IpcVehicleGtfsRealtime vehicle : vehicles) {
 
-            IpcAvl newAvl = new IpcAvl(
-                    vehicle.getId(),
-                    vehicle.getAvl().getTime(),
-                    vehicle.getAvl().getLatitude(),
-                    vehicle.getAvl().getLongitude(),
-                    vehicle.getAvl().getSpeed(),
-                    vehicle.getAvl().getHeading(),
-                    vehicle.getAvl().getSource(),
-                    vehicle.getAvl().getAssignmentId(),
-                    vehicle.getAvl().getAssignmentType(),
-                    vehicle.getAvl().getDriverId(),
-                    vehicle.getAvl().getLicensePlate(),
-                    vehicle.getAvl().getPassengerCount());
-
             IpcVehicleGtfsRealtime newVehicle = new IpcVehicleGtfsRealtime(
                     vehicle.getBlockId(),
                     vehicle.getBlockAssignmentMethod(),
-                    newAvl,
+                    vehicle.getAvl(),
                     vehicle.getHeading(),
                     vehicle.getRouteId(),
                     vehicle.getRouteShortName(),

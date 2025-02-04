@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
+import lombok.Getter;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.slf4j.Logger;
@@ -16,6 +17,8 @@ public class HoldingTimeCache {
     private static final String cacheName = "HoldingTimeCache";
     private static final HoldingTimeCache singleton = new HoldingTimeCache();
     private final Cache<HoldingTimeCacheKey, HoldingTime> cache;
+    @Getter
+    private static String remoteTimeCheckAPC = "";
 
     /**
      * Gets the singleton instance of this class.
@@ -29,6 +32,10 @@ public class HoldingTimeCache {
     private HoldingTimeCache() {
         CacheManager cm = CacheManagerFactory.getInstance();
         cache = cm.getCache(cacheName, HoldingTimeCacheKey.class, HoldingTime.class);
+    }
+
+    public static void setRemoteTimeCheckAPC(String remoteTimeCheckAPC) {
+        HoldingTimeCache.remoteTimeCheckAPC = remoteTimeCheckAPC;
     }
 
     public void logCache(Logger logger) {
