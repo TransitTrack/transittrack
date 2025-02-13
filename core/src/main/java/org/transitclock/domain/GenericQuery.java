@@ -26,7 +26,6 @@ import java.util.List;
 @Slf4j
 public class GenericQuery {
 
-    @Getter
     private final Connection connection;
     // Number of rows read in
     private int rows;

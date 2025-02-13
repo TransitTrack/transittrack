@@ -3,7 +3,10 @@ package org.transitclock.api.reports;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.domain.GenericQuery;
+import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.utils.Time;
 
 import java.sql.PreparedStatement;
@@ -256,9 +259,15 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
         }
 
         PreparedStatement statement = null;
-        try {
+        try (var connection = HibernateUtils
+                .getSessionFactory(AgencyConfig.getAgencyId())
+                .getSessionFactoryOptions()
+                .getServiceRegistry()
+                .getService(ConnectionProvider.class)
+                .getConnection()){
+            connection.setReadOnly(true);
             logger.debug("SQL: {}", sql);
-            statement = getConnection().prepareStatement(sql.toString());
+            statement = connection.prepareStatement(sql.toString());
 
             logger.debug(
                     "beginDate {} beginDateStr {} endDateStr {} beginTime {} beginTimeStr {}"
@@ -305,16 +314,9 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
                 addDataToMap(predLength, predAccuracy, sourceResult);
                 logger.debug("predLength={} predAccuracy={} source={}", predLength, predAccuracy, sourceResult);
             }
-
             rs.close();
         } catch (SQLException e) {
             throw e;
-        } finally {
-            if (statement != null)
-                statement.close();
-            if (!getConnection().isClosed()) {
-                getConnection().close();
-            }
         }
     }
 }
