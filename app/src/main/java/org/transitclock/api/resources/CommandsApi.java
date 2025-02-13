@@ -23,6 +23,7 @@ import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.config.data.ApiConfig;
+import org.transitclock.core.reports.ScheduleAdhStopsReport;
 import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
@@ -459,10 +460,55 @@ public class CommandsApi {
 
         try {
             if (avlDate.charAt(4) != '-') {
-                ExportTable.create(new SimpleDateFormat("MM-dd-yyyy").parse(avlDate), 1, "avl_" + avlDate + ".csv");
+                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy")
+                        .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
             } else {
-                ExportTable.create(new SimpleDateFormat("yyyy-MM-dd").parse(avlDate), 1, "avl_" + avlDate + ".csv");
+                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd")
+                        .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
             }
+        } catch (Exception ex) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(ex);
+        }
+        return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
+    }
+
+    @Operation(
+            summary = "All stops Report",
+            description = "Add export for all stops schedule adherence report",
+            tags = {"report"})
+    @Path("/command/allStopsReportExport")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addStopsReport(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description="Parameters in body: { 'date' (MM-DD-YYYY or YYYY-MM-DD), \n" +
+                    "'days' - number of days, \n" +
+                    "'url' - target folder on host, \n" +
+                    "'allowableEarly' - in mins (if unset: default 1.0), \n" +
+                    "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody)
+            throws WebApplicationException, IOException {
+                   stdParameters.validate();
+
+            JSONObject jsonBody = getJsonObject(requestBody);
+            String date = jsonBody.getString("date");
+            Integer days = jsonBody.getInt("days");
+            String hostUrl = jsonBody.getString("url");
+            String allowableEarly = jsonBody.getString("allowableEarly");
+            String allowableLate = jsonBody.getString("allowableLate");
+        // Validate number of days
+        if (days > 31 || days <= 0) return stdParameters.createResponse(new ApiCommandAck(false, "Choose between 1 and 31 days!"));
+
+        String fileName = String.format("stops_adh_%s_for_%d-days.csv", date, days);
+        try {
+            if (date.charAt(4) != '-') {
+                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(date), 2, 2, fileName));
+            } else {
+                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd").parse(date), 2, 2, fileName));
+            }
+            ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport();
+            generator.createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), date, days, allowableEarly, allowableLate, fileName, hostUrl);
         } catch (Exception ex) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(ex);

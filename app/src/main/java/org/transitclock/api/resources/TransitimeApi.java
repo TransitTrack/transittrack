@@ -2169,6 +2169,25 @@ public class TransitimeApi {
         }
     }
 
+    @Operation(summary = "Returns exports list", description = "Returns exports list")
+    @Path("/command/exportType")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response getExportsByType(@BeanParam StandardParameters stdParameters,
+                                     @Parameter(description = "Fetch exports by type") @QueryParam(value = "type") int type)
+            throws WebApplicationException {
+        stdParameters.validate();
+        ApiExportsData result = null;
+
+        try (Session session = HibernateUtils.getSession()) {
+            result = new ApiExportsData(ExportTable.getExportTable(session, type));
+            return stdParameters.createResponse(result);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
     @Operation(summary = "Return export file", description = "Return export file")
     @Path("/command/getExportFile")
     @GET

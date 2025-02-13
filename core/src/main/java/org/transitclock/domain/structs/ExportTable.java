@@ -50,15 +50,11 @@ public class ExportTable implements Serializable {
     @Column(name = "file")
     private byte[] file;
 
-    public static ExportTable create(Date dataDate, int exportType, String fileName) {
-        ExportTable exportElement = new ExportTable(dataDate, exportType, fileName);
-
+    public static ExportTable create(ExportTable exportElement) {
         // Log VehicleToBlockConfig in log file
         logger.info(exportElement.toString());
-
         // Queue to write object to database
         Core.getInstance().getDbLogger().add(exportElement);
-
         // Return new VehicleToBlockConfig
         return exportElement;
     }
@@ -71,13 +67,12 @@ public class ExportTable implements Serializable {
         this.exportStatus = 1;
     }
 
-    public ExportTable(long id, Date dataDate, Date exportDate, int exportType, int exportStatus, String fileName) {
-        this.id = id;
+    public ExportTable(Date dataDate, int exportType, int exportStatus, String fileName) {
         this.dataDate = dataDate;
-        this.exportDate = exportDate;
         this.exportType = exportType;
-        this.exportStatus = exportStatus;
         this.fileName = fileName;
+        this.exportDate = new Date();
+        this.exportStatus = exportStatus;
     }
 
     /** Needed because Hibernate requires no-arg constructor */
@@ -91,7 +86,7 @@ public class ExportTable implements Serializable {
     }
 
     /**
-     * Reads List of VehicleConfig objects from database
+     * Reads List of ExportTable objects from database
      *
      * @param session
      * @return List of VehicleConfig objects
@@ -101,6 +96,32 @@ public class ExportTable implements Serializable {
         // String hql = "FROM ExportTable";
         var query = session.createQuery("FROM ExportTable ORDER BY exportDate DESC", ExportTable.class);
         return query.list();
+    }
+
+    public static List<ExportTable> getExportTable(Session session, int type) throws HibernateException {
+        var query = session.createQuery("FROM ExportTable WHERE exportType = :type ORDER BY exportDate DESC", ExportTable.class)
+         .setParameter("type", type);
+        return query.list();
+    }
+
+    public static List<ExportTable> getExportFile(Session session, long id) throws HibernateException {
+        return session.createQuery("FROM ExportTable WHERE id = :id", ExportTable.class)
+                .setParameter("id", id)
+                .list();
+    }
+
+    public static void updateStatus(Session session, String fileName, String info) {
+        Transaction transaction = session.beginTransaction();
+        try {
+        session.createMutationQuery("UPDATE  ExportTable e SET e.exportStatus = 3, e.file = :info  WHERE e.fileName = :name")
+                .setParameter("name", fileName)
+                .setParameter("info", info.getBytes())
+                .executeUpdate();
+            transaction.commit();
+        } catch (Throwable t) {
+            transaction.rollback();
+            throw t;
+        }
     }
 
     public static void deleteExportTableRecord(long id, Session session) throws HibernateException {
@@ -116,12 +137,6 @@ public class ExportTable implements Serializable {
             transaction.rollback();
             throw t;
         }
-    }
-
-    public static List<ExportTable> getExportFile(Session session, long id) throws HibernateException {
-        return session.createQuery("FROM ExportTable WHERE id = :id", ExportTable.class)
-                .setParameter("id", id)
-                .list();
     }
 
     public long getId() {

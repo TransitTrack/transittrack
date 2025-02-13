@@ -4,11 +4,12 @@ package org.transitclock.core.reports;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.transitclock.domain.webstructs.WebAgency;
-import org.transitclock.utils.Time;
 
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Reports {
@@ -823,22 +824,91 @@ public class Reports {
         return json;
     }
 
-    public static boolean hasLastAvlJsonInHours(String agencyId, String vehicleId, int hours) {
+    public static String getSqlForAllStopsSchedAdh (String agencyId,
+                                               LocalDate date,
+                                               String allowableEarly,
+                                               String allowableLate) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+
+        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
+
+        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
+        String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
+
         String sql = "";
         if (agency.getDbType().equals("postgresql")) {
-            // sql query should be better
-            sql = "select a.vehicle_id as \"vehicleId\", vC.name as \"name\", a.maxTime as"
-                    + " \"maxTime\", lat, lon from ( SELECT vehicle_id, max(time) AS maxTime"
-                    + " FROM avl_reports WHERE time > now() + '-"
-                    + hours + " hours' AND vehicle_id = '" + vehicleId
-                    + "' "
-                    + "GROUP BY vehicle_id) a "
-                    + "JOIN avl_reports b ON a.vehicle_id=b.vehicle_id AND a.maxTime = b.time "
-                    + "JOIN vehicle_configs vC ON a.vehicle_id=vC.id";
+            sql = "WITH early AS (\n" +
+                    "    SELECT time,\n" +
+                    "           s.name AS name,\n" +
+                    "           ad.route_id AS route,\n" +
+                    "           ad.trip_id AS trip,\n" +
+                    "           ad.block_id AS block,\n" +
+                    "           ad.vehicle_id AS vehicle,\n" +
+                    "           ad.scheduled_time AS schedule,\n" +
+                    "           regexp_replace(\n" +
+                    "                   CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n" +
+                    "                   '^00:', ''\n" +
+                    "           ) AS difference,\n" +
+                    "           'early' AS category_order  -- Added order indicator\n" +
+                    "    FROM arrivals_departures ad\n" +
+                    "             JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n" +
+                    "    WHERE ad.scheduled_time IS NOT NULL\n" +
+                    SqlUtils.timeRangeClause(date, date) +
+                    "      AND scheduled_time - time > " + allowableEarlyMinutesStr +
+                    " \n" +
+                    "),\n" +
+                    "     on_time AS (\n" +
+                    "         SELECT time,\n" +
+                    "                s.name AS name,\n" +
+                    "                ad.route_id AS route,\n" +
+                    "                ad.trip_id AS trip,\n" +
+                    "                ad.block_id AS block,\n" +
+                    "                ad.vehicle_id AS vehicle,\n" +
+                    "                ad.scheduled_time AS schedule,\n" +
+                    "                regexp_replace(\n" +
+                    "                        CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n" +
+                    "                        '^(-)?00:', '\\1'\n" +
+                    "                ) AS difference,\n" +
+                    "                ' on_time' AS category_order  -- Added order indicator\n" +
+                    "         FROM arrivals_departures ad\n" +
+                    "                  JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n" +
+                    "         WHERE ad.scheduled_time IS NOT NULL\n" +
+                    SqlUtils.timeRangeClause(date, date) +
+                    "           AND scheduled_time - time <= " + allowableEarlyMinutesStr +
+                    " \n" +
+                    "           AND time - scheduled_time <= " + allowableLateMinutesStr +
+                    " \n" +
+                    "     ),\n" +
+                    "     late AS (\n" +
+                    "         SELECT time ,\n" +
+                    "                s.name AS name,\n" +
+                    "                ad.route_id AS route,\n" +
+                    "                ad.trip_id AS trip,\n" +
+                    "                ad.block_id AS block,\n" +
+                    "                ad.vehicle_id AS vehicle,\n" +
+                    "                ad.scheduled_time AS schedule,\n" +
+                    "                regexp_replace(\n" +
+                    "                        CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n" +
+                    "                        '^(-)00:', '\\1'\n" +
+                    "                ) AS difference,\n" +
+                    "                'late' AS category_order\n" +
+                    "         FROM arrivals_departures ad\n" +
+                    "                  JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n" +
+                    "         WHERE ad.scheduled_time IS NOT NULL\n" +
+                    SqlUtils.timeRangeClause(date, date) +
+                    "           AND time - scheduled_time > " + allowableLateMinutesStr +
+                    " )\n" +
+                    "SELECT *\n" +
+                    "FROM (\n" +
+                    "         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM early\n" +
+                    "         UNION ALL\n" +
+                    "         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM on_time\n" +
+                    "         UNION ALL\n" +
+                    "         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n" +
+                    "     ) AS combined_results\n" +
+                    "ORDER BY category_order, time;\n";
         }
-
-        String json = GenericJsonQuery.getJsonString(agencyId, sql);
-        return json.length() > 50;
+        return sql;
     }
 }

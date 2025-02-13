@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      TZ: "America/New_York"
+      POSTGRES_PASSWORD: transitclock
+      POSTGRES_DB: transitclock
+    ports:
+      - "5432:5432"
+
+  transitclock:
+    image: wkulesza/transitclock-server:apc
+    depends_on:
+      - db
+    environment:
+      TZ: "America/New_York"
+    volumes:
+      - /Users/timur/IdeaProjects/transittrack-main/tc.properties:/app/config/transitclock.properties
+    command:
+      - --gtfs-url
+      - https://data.tracktrolley.com/gtfs/mdtshapes.zip
+    ports:
+      - "8080:8080"
+
+
+  apc:
+    image: wkulesza/apc-worker:latest
+    environment:
+      TZ: "America/New_York"
+    volumes:
+      - /Users/timur/IdeaProjects/converter-gtfs-rt/src/main/resources/application.yml:/app/application.yml
