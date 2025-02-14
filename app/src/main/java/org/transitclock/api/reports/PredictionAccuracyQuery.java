@@ -3,7 +3,9 @@ package org.transitclock.api.reports;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
-import org.transitclock.domain.GenericQuery;
+import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.transitclock.config.data.AgencyConfig;
+import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.utils.Time;
 
 import java.sql.PreparedStatement;
@@ -25,7 +27,7 @@ import java.util.*;
  * @author SkiBu Smith
  */
 @Slf4j
-public abstract class PredictionAccuracyQuery extends GenericQuery {
+public abstract class PredictionAccuracyQuery {
     protected static final int MAX_PRED_LENGTH = 900;
     protected static final int PREDICTION_LENGTH_BUCKET_SIZE = 30;
 
@@ -77,11 +79,6 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
         public String toString() {
             return text;
         }
-    }
-
-
-    public PredictionAccuracyQuery(String agencyId) throws SQLException {
-        super(agencyId);
     }
 
     /**
@@ -256,9 +253,15 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
         }
 
         PreparedStatement statement = null;
-        try {
+        try (var connection = HibernateUtils
+                .getSessionFactory(AgencyConfig.getAgencyId())
+                .getSessionFactoryOptions()
+                .getServiceRegistry()
+                .getService(ConnectionProvider.class)
+                .getConnection()){
+            connection.setReadOnly(true);
             logger.debug("SQL: {}", sql);
-            statement = getConnection().prepareStatement(sql.toString());
+            statement = connection.prepareStatement(sql.toString());
 
             logger.debug(
                     "beginDate {} beginDateStr {} endDateStr {} beginTime {} beginTimeStr {}"
@@ -305,16 +308,9 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
                 addDataToMap(predLength, predAccuracy, sourceResult);
                 logger.debug("predLength={} predAccuracy={} source={}", predLength, predAccuracy, sourceResult);
             }
-
             rs.close();
         } catch (SQLException e) {
             throw e;
-        } finally {
-            if (statement != null)
-                statement.close();
-            if (!getConnection().isClosed()) {
-                getConnection().close();
-            }
         }
     }
 }

@@ -25,11 +25,10 @@ public class PredAccuracyRangeQuery extends PredictionAccuracyQuery {
     /**
      * Creates connection to database specified by the agencyId.
      *
-     * @param agencyId
-     * @throws SQLException
+     * @param
+     * @throws
      */
-    public PredAccuracyRangeQuery(String agencyId) throws SQLException {
-        super(agencyId);
+    public PredAccuracyRangeQuery() {
         labels = ResourceBundle.getBundle("org.transitclock.i18n.text", Locale.getDefault());
     }
 

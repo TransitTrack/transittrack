@@ -58,7 +58,7 @@
 
     try {
         // Perform the query.
-        PredAccuracyRangeQuery query = new PredAccuracyRangeQuery(agencyId);
+        PredAccuracyRangeQuery query = new PredAccuracyRangeQuery();
 
         // Convert results of query to a JSON string
         String jsonString = query.getJson(beginDate, numDays, beginTime, endTime,
