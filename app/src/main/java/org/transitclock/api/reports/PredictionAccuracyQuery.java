@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.transitclock.config.data.AgencyConfig;
-import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.utils.Time;
 
@@ -28,7 +27,7 @@ import java.util.*;
  * @author SkiBu Smith
  */
 @Slf4j
-public abstract class PredictionAccuracyQuery extends GenericQuery {
+public abstract class PredictionAccuracyQuery {
     protected static final int MAX_PRED_LENGTH = 900;
     protected static final int PREDICTION_LENGTH_BUCKET_SIZE = 30;
 
@@ -80,11 +79,6 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
         public String toString() {
             return text;
         }
-    }
-
-
-    public PredictionAccuracyQuery(String agencyId) throws SQLException {
-        super(agencyId);
     }
 
     /**
