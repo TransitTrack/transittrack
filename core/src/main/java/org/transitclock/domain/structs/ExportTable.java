@@ -89,7 +89,7 @@ public class ExportTable implements Serializable {
      * Reads List of ExportTable objects from database
      *
      * @param session
-     * @return List of VehicleConfig objects
+     * @return List of ExportTable objects
      * @throws HibernateException
      */
     public static List<ExportTable> getExportTable(Session session) throws HibernateException {
@@ -124,7 +124,7 @@ public class ExportTable implements Serializable {
         }
     }
 
-    public static void deleteExportTableRecord(long id, Session session) throws HibernateException {
+    public static void deleteExportTableRecord(int id, Session session) throws HibernateException {
         Transaction transaction = session.beginTransaction();
         try {
             var q = session

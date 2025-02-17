@@ -2152,35 +2152,23 @@ public class TransitimeApi {
         return stdParameters.createResponse(new ApiCurrentServerDate(currentTime));
     }
 
-    @Operation(summary = "Returns exports list", description = "Returns exports list")
+    @Operation(summary = "Returns exports list", description = "Returns list of all exports or by type" , tags = {"export"})
     @Path("/command/exports")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getExports(@BeanParam StandardParameters stdParameters) throws WebApplicationException {
+    public Response getExports(@BeanParam StandardParameters stdParameters,
+                               @Parameter(description = "Entire list, if unset or '0'; '1' - avl; '2' - stops")
+                               @QueryParam(value = "type")
+                               @DefaultValue("0") int type
+    ) throws WebApplicationException {
         stdParameters.validate();
         ApiExportsData result = null;
 
         try (Session session = HibernateUtils.getSession()) {
-            result = new ApiExportsData(ExportTable.getExportTable(session));
-            return stdParameters.createResponse(result);
-        } catch (Exception e) {
-            // If problem getting data then return a Bad Request
-            throw WebUtils.badRequestException(e);
-        }
-    }
-
-    @Operation(summary = "Returns exports list", description = "Returns exports list")
-    @Path("/command/exportType")
-    @GET
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getExportsByType(@BeanParam StandardParameters stdParameters,
-                                     @Parameter(description = "Fetch exports by type") @QueryParam(value = "type") int type)
-            throws WebApplicationException {
-        stdParameters.validate();
-        ApiExportsData result = null;
-
-        try (Session session = HibernateUtils.getSession()) {
-            result = new ApiExportsData(ExportTable.getExportTable(session, type));
+            if (type == 0)
+                result = new ApiExportsData(ExportTable.getExportTable(session));
+            else
+                result = new ApiExportsData(ExportTable.getExportTable(session, type));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request

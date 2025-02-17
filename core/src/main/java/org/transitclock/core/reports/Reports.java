@@ -870,7 +870,7 @@ public class Reports {
                     "                        CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n" +
                     "                        '^(-)?00:', '\\1'\n" +
                     "                ) AS difference,\n" +
-                    "                ' on_time' AS category_order  -- Added order indicator\n" +
+                    "                'on_time' AS category_order  -- Added order indicator\n" +
                     "         FROM arrivals_departures ad\n" +
                     "                  JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n" +
                     "         WHERE ad.scheduled_time IS NOT NULL\n" +

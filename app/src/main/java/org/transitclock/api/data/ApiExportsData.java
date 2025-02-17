@@ -23,8 +23,8 @@ public class ApiExportsData implements Serializable {
      */
     private static final long serialVersionUID = -9106451522038837974L;
 
-    @XmlElement(name = "exports")
-    private List<ApiExportData> apiExportData;
+    @XmlElement(name = "exportsData")
+    private List<ApiExportData> exportsData;
 
     /********************** Member Functions **************************/
 
@@ -38,17 +38,17 @@ public class ApiExportsData implements Serializable {
     /**
      *
      */
-    public ApiExportsData(List<ExportTable> exportData) {
-        apiExportData = exportData.stream()
+    public ApiExportsData(List<ExportTable> exports) {
+        exportsData = exports.stream()
                 .map(ApiExportData::new)
                 .collect(Collectors.toList());
     }
 
     public List<ApiExportData> getExportsData() {
-        return apiExportData;
+        return exportsData;
     }
 
-    public void setExportsData(List<ApiExportData> exportsData) {
-        this.apiExportData = exportsData;
+    public void setExportsData(List<ApiExportData> exports) {
+        this.exportsData = exports;
     }
 }

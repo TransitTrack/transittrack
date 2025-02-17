@@ -25,6 +25,7 @@ import org.transitclock.api.utils.WebUtils;
 import org.transitclock.config.data.ApiConfig;
 import org.transitclock.core.reports.ScheduleAdhStopsReport;
 import org.transitclock.domain.GenericQuery;
+import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
 import org.transitclock.domain.structs.ExportTable;
@@ -446,7 +447,7 @@ public class CommandsApi {
     @Operation(
             summary = "Add AVL export",
             description = "Add AVL export",
-            tags = {"report", "avl"})
+            tags = {"report", "export"})
     @Path("/command/addAVLExport")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -473,18 +474,37 @@ public class CommandsApi {
         return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
     }
 
+    @Operation(summary="Delete an export", description="Delete exports by IDs", tags= {"export"})
+    @Path("/command/export")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteExport(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description="Id to delete", required = true)
+            @QueryParam(value = "id") int exportId) throws WebApplicationException
+    {
+        stdParameters.validate();
+
+        try(var session = HibernateUtils.getSession()) {
+            ExportTable.deleteExportTableRecord(exportId, session);
+            return stdParameters.createResponse(new ApiCommandAck(true, "Deleted"));
+        } catch (Exception ex) {
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
+    }
+
     @Operation(
             summary = "All stops Report",
-            description = "Add export for all stops schedule adherence report",
-            tags = {"report"})
-    @Path("/command/allStopsReportExport")
+            description = "Order export for all stops schedule adherence report",
+            tags = {"report", "export"})
+    @Path("/command/schedStopsAdhExport")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addStopsReport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="Parameters in body: { 'date' (MM-DD-YYYY or YYYY-MM-DD), \n" +
-                    "'days' - number of days, \n" +
+            @Parameter(description="Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
+                    "'endDate', \n" +
                     "'url' - target folder on host, \n" +
                     "'allowableEarly' - in mins (if unset: default 1.0), \n" +
                     "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody)
@@ -492,31 +512,31 @@ public class CommandsApi {
                    stdParameters.validate();
 
             JSONObject jsonBody = getJsonObject(requestBody);
-            String date = jsonBody.getString("date");
-            Integer days = jsonBody.getInt("days");
+            String beginDate = jsonBody.getString("beginDate");
+            String endDate = jsonBody.getString("endDate");
             String hostUrl = jsonBody.getString("url");
             String allowableEarly = jsonBody.getString("allowableEarly");
             String allowableLate = jsonBody.getString("allowableLate");
         // Validate number of days
-        if (days > 31 || days <= 0) return stdParameters.createResponse(new ApiCommandAck(false, "Choose between 1 and 31 days!"));
 
-        String fileName = String.format("stops_adh_%s_for_%d-days.csv", date, days);
+        String fileName = String.format("stops_adh_%s-%s.csv", beginDate, endDate);
         try {
-            if (date.charAt(4) != '-') {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(date), 2, 2, fileName));
+            if (beginDate.charAt(4) != '-') {
+                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(beginDate), 2, 2, fileName));
             } else {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd").parse(date), 2, 2, fileName));
+                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd").parse(beginDate), 2, 2, fileName));
             }
             ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport();
-            generator.createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), date, days, allowableEarly, allowableLate, fileName, hostUrl);
+            generator
+                    .createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, endDate, allowableEarly, allowableLate, fileName, hostUrl);
+            return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
         } catch (Exception ex) {
-            // If problem getting data then return a Bad Request
-            throw WebUtils.badRequestException(ex);
+            // If problem getting data then return a message
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
         }
-        return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
     }
 
-    @Operation(summary="Create api key", description="Create api key", tags= {"key"})
+    @Operation(summary="Create an api key", description="Create api key", tags= {"key"})
     @Path("/command/createApiKey")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -564,13 +584,9 @@ public class CommandsApi {
         try {
             CommandsInterface inter = stdParameters.getCommandsInterface();
             response = inter.removeApiKey(apiKey);
-
-        } catch (Exception ex) {
-            throw WebUtils.badRequestException(ex.getMessage());
-        }
-        if(response != null)
             return stdParameters.createResponse(new ApiCommandAck(true,response));
-        else
-            return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again!"));
+        } catch (Exception ex) {
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
     }
 }
