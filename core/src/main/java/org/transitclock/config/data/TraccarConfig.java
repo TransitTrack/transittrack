@@ -25,7 +25,10 @@ public class TraccarConfig {
 
     public static final StringConfigValue OCCUPANCY_SOURCE_URL = new StringConfigValue("transitclock.avl.occupancy.baseurl",
             " ", "This is the url for the traccar server api.");
-
+// Set ID like vehicleName
     public static final BooleanConfigValue nameInsteadOfId = new BooleanConfigValue("transitclock.avl.traccar.nameInsteadOfId",
-            false, "True if is wanted to receive a name from the server instead of an ID.");
+            false, "True if want to set an ID like a name as well.");
+// Traccar send the speed as knot therefore should convert it to mille or kilometer
+    public static final BooleanConfigValue mphIsteadOfKmh = new BooleanConfigValue("transitclock.avl.traccar.speedInMiles",
+            false, "True if want to convert a MPH Istead to a KMH.");
 }

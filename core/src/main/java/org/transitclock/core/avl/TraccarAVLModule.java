@@ -37,10 +37,10 @@ import org.transitclock.extension.traccar.model.PositionDto;
 import org.transitclock.extension.traccar.model.UserDto;
 
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.*;
 
+import static java.math.BigDecimal.valueOf;
 import static org.transitclock.config.data.TraccarConfig.*;
 import static org.transitclock.core.avl.OccupancyStatusSource.BusLoadDto;
 import static org.transitclock.core.avl.OccupancyStatusSource.fetchBusLoads;
@@ -61,6 +61,9 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     private final DefaultApi api;
     @NonNull
     private final UserDto user;
+
+    private static final boolean isIdAsName = nameInsteadOfId.getValue();
+    private static final boolean isMiles = mphIsteadOfKmh.getValue();
 
     public TraccarAVLModule(String agencyId) throws URISyntaxException {
         super(agencyId);
@@ -98,7 +101,6 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     @Override
     protected void getAndProcessData() throws Exception {
 
-        boolean isIdAsName = nameInsteadOfId.getValue();
 
         Map<String, BusLoadDto> occupancies = null;
         if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) occupancies = fetchBusLoads(OCCUPANCY_SOURCE_URL.getValue());
@@ -114,12 +116,12 @@ public class TraccarAVLModule extends PollUrlAvlModule {
             // If have device details use name.
             if (device != null && !Strings.isNullOrEmpty(device.getUniqueId())
                     && occupancies == null && !Strings.isNullOrEmpty(device.getName())) {
-                avlReport = getAvlReport(result, isIdAsName, device);
+                avlReport = getAvlReport(result, device);
                 // If have details of occupancy.
             } else if (device != null && !Strings.isNullOrEmpty(device.getUniqueId()) &&
                     occupancies != null && !Strings.isNullOrEmpty(device.getName())) {
                 //Traccar return speed in kt
-                avlReport = getAvlReportWithOccupancy(result, isIdAsName, device, occupancies);
+                avlReport = getAvlReportWithOccupancy(result, device, occupancies);
                 //Check local time of remote service.
                 HoldingTimeCache.setRemoteTimeCheckAPC(occupancies.get("time").getVehicleName());
             } else {
@@ -127,7 +129,7 @@ public class TraccarAVLModule extends PollUrlAvlModule {
                         result.getDeviceTime().toEpochSecond() * 1000,
                         result.getLatitude().doubleValue(),
                         result.getLongitude().doubleValue(),
-                        result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
+                        result.getSpeed().multiply(isMiles ? valueOf(1.15077945) : valueOf(1.852)).floatValue(),
                         result.getCourse().floatValue(), TRACCAR_SOURCE.toString());
             }
             avlReportsReadIn.add(avlReport);
@@ -139,27 +141,27 @@ public class TraccarAVLModule extends PollUrlAvlModule {
         processAvlReports(avlReportsReadIn);
     }
 
-    private static AvlReport getAvlReport(PositionDto result, boolean isIdAsName, DeviceDto device) {
+    private static AvlReport getAvlReport(PositionDto result, DeviceDto device) {
         AvlReport avlReport;
         avlReport = new AvlReport(isIdAsName ? device.getName() : device.getUniqueId(),
                 device.getName(),
                 result.getDeviceTime().toEpochSecond() * 1000,
                 result.getLatitude().doubleValue(),
                 result.getLongitude().doubleValue(),
-                result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
+                result.getSpeed().multiply(isMiles ? valueOf(1.15077945) : valueOf(1.852)).floatValue(),
                 result.getCourse().floatValue(),
                 TRACCAR_SOURCE.toString());
         return avlReport;
     }
 
-    private static AvlReport getAvlReportWithOccupancy(PositionDto result, boolean isIdAsName, DeviceDto device, Map<String, BusLoadDto> occupancies) {
+    private static AvlReport getAvlReportWithOccupancy(PositionDto result, DeviceDto device, Map<String, BusLoadDto> occupancies) {
         AvlReport avlReport;
         avlReport = new AvlReport(isIdAsName ? device.getName() : device.getUniqueId(),
                 device.getName(),
                 result.getDeviceTime().toEpochSecond() * 1000,
                 result.getLatitude().doubleValue(),
                 result.getLongitude().doubleValue(),
-                result.getSpeed().multiply(BigDecimal.valueOf(0.5144444)).floatValue(),
+                result.getSpeed().multiply(isMiles ? valueOf(1.15077945) : valueOf(1.852)).floatValue(),
                 result.getCourse().floatValue(),
                 occupancies.get(device.getName()) != null ? occupancies.get(device.getName()).getCurrentCount() : -1,
                 occupancies.get(device.getName()) != null ? occupancies.get(device.getName()).getCurrentFullness() : Float.NaN,
