@@ -203,57 +203,64 @@ public class Reports {
     }
 
     public static String getTripsWithTravelTimes(String agencyId, String date) {
-        String sql = "SELECT"
-                + "	arrivals_departures.trip_id as tripId"
-                + "	,arrivals_departures.direction_id as directionId"
-                + "	,arrivals_departures.stop_id as stopId"
-                + "	,stops.code as stopCode"
-                + "	,stops.name as stopName"
-                + "	,stops.lat as lat"
-                + "	,stops.lon as lon"
-                + "	,arrivals_departures.stop_order as stopOrder"
-                + "	,arrivals_departures.vehicle_id as vehicleId"
-                + "	,vehicle_configs.name as vehicleName"
-                + "	,arrivals_departures.time as arrivalTime"
-                + "	,ADDeparture.time as departureTime"
-                + "	,CASE WHEN ADDeparture.scheduled_time ISNULL"
-                + "	 THEN DATE('"
-                + date
-                + "') + trip_scheduled_times_list.arrival_time * interval '1 second'"
-                + "	 ELSE ADDeparture.scheduled_time"
-                + "	 END AS scheduledTime"
-                + "	,CASE WHEN ADDeparture.scheduled_time ISNULL"
-                + "	 THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('"
-                + date
-                + "') + trip_scheduled_times_list.arrival_time * interval '1 second') -"
-                + " DATE_TRUNC('second', arrivals_departures.time::timestamp) AS VARCHAR),"
-                + " '^00:', '')      ELSE regexp_replace(CAST(DATE_TRUNC('second',"
-                + " ADDeparture.scheduled_time::timestamp) - DATE_TRUNC('second',"
-                + " ADDeparture.time::timestamp) AS VARCHAR), '^00:', '') 	 END AS"
-                + " difference_in_seconds	FROM arrivals_departures LEFT JOIN stops ON"
-                + " stops.id = arrivals_departures.stop_id 	and stops.config_rev ="
-                + " arrivals_departures.config_rev LEFT JOIN vehicle_configs on"
-                + " vehicle_configs.id = arrivals_departures.vehicle_id LEFT JOIN"
-                + " LATERAL(SELECT * from arrivals_departures ad where ad.trip_id ="
-                + " arrivals_departures.trip_id 	AND ad.direction_id ="
-                + " arrivals_departures.direction_id 	AND ad.stop_id ="
-                + " arrivals_departures.stop_id 	AND LOWER(ad.type) = LOWER('DEPARTURE') 	AND"
-                + " DATE(ad.avl_time) = DATE(arrivals_departures.avl_time) 	AND ad.time >="
-                + " arrivals_departures.time 	ORDER BY ad.time ASC LIMIT 1) ADDeparture ON"
-                + " True LEFT JOIN trip_scheduled_times_list ON"
-                + " trip_scheduled_times_list.trip_trip_id = arrivals_departures.trip_id 	AND"
-                + " trip_scheduled_times_list.trip_config_rev = arrivals_departures.config_rev "
-                + "	AND trip_scheduled_times_list.list_index ="
-                + " arrivals_departures.stop_order WHERE arrivals_departures.is_arrival ="
-                + " 'True' and Date(arrivals_departures.time) = DATE('"
-                + date
-                + "')ORDER BY arrivals_departures.trip_id asc, arrivals_departures.gtfs_stop_seq"
-                + " asc, arrivals_departures.time asc";
+        // postgresql only, should throw error if it's other database type
+        StringBuilder sqlBuilder = new StringBuilder();
+        sqlBuilder.append("SELECT arrivals_departures.trip_id             AS tripId,\n");
+        sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
+        sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
+        sqlBuilder.append("       stops.code                              AS stopCode,\n");
+        sqlBuilder.append("       stops.name                              AS stopName,\n");
+        sqlBuilder.append("       stops.lat                               AS lat,\n");
+        sqlBuilder.append("       stops.lon                               AS lon,\n");
+        sqlBuilder.append("       arrivals_departures.stop_order          AS stopOrder,\n");
+        sqlBuilder.append("       arrivals_departures.vehicle_id          AS vehicleId,\n");
+        sqlBuilder.append("       vehicle_configs.name                    AS vehicleName,\n");
+        sqlBuilder.append("       arrivals_departures.time                AS arrivalTime,\n");
+        sqlBuilder.append("       ADDeparture.time                        AS departureTime,\n");
+        sqlBuilder.append("       CASE\n");
+        sqlBuilder.append("           WHEN avl_reports.passenger_count = -1 THEN NULL\n");
+        sqlBuilder.append("           ELSE avl_reports.passenger_count END AS passenger_count,");
+        sqlBuilder.append("	 CASE WHEN ADDeparture.scheduled_time ISNULL");
+        sqlBuilder.append("	 THEN DATE('");
+        sqlBuilder.append(date);
+        sqlBuilder.append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
+        sqlBuilder.append("         ELSE ADDeparture.scheduled_time END AS scheduledTime,\n");
+        sqlBuilder.append("    CASE\n");
+        sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('");
+        sqlBuilder.append(date);
+        sqlBuilder.append("') + \n");
+        sqlBuilder.append("                                                         trip_scheduled_times_list.arrival_time *\n");
+        sqlBuilder.append("                                                         interval '1 second') -\n");
+        sqlBuilder.append("                                    DATE_TRUNC('second', arrivals_departures.time::timestamp) AS VARCHAR),\n");
+        sqlBuilder.append("                                                                    '^00:', '')\n");
+        sqlBuilder.append("         ELSE regexp_replace(CAST(DATE_TRUNC('second', ADDeparture.scheduled_time::timestamp) -\n");
+        sqlBuilder.append("                                    DATE_TRUNC('second', ADDeparture.time::timestamp) AS VARCHAR), '^00:',\n");
+        sqlBuilder.append("                               '') END         AS difference_in_seconds\n");
+        sqlBuilder.append("FROM arrivals_departures\n");
+        sqlBuilder.append("         LEFT JOIN stops ON stops.id = arrivals_departures.stop_id AND stops.config_rev = arrivals_departures.config_rev\n");
+        sqlBuilder.append("         LEFT JOIN vehicle_configs ON vehicle_configs.id = arrivals_departures.vehicle_id\n");
+        sqlBuilder.append("         LEFT JOIN avl_reports ON arrivals_departures.avl_time = avl_reports.time AND arrivals_departures.vehicle_id = avl_reports.vehicle_id\n");
+        sqlBuilder.append("         LEFT JOIN LATERAL (SELECT *\n");
+        sqlBuilder.append("                            FROM arrivals_departures ad\n");
+        sqlBuilder.append("                            WHERE ad.trip_id = arrivals_departures.trip_id\n");
+        sqlBuilder.append("                              AND ad.direction_id = arrivals_departures.direction_id\n");
+        sqlBuilder.append("                              AND ad.stop_id = arrivals_departures.stop_id\n");
+        sqlBuilder.append("                              AND LOWER(ad.type) = LOWER('DEPARTURE')\n");
+        sqlBuilder.append("                              AND DATE(ad.avl_time) = DATE(arrivals_departures.avl_time)\n");
+        sqlBuilder.append("                              AND ad.time >= arrivals_departures.time\n");
+        sqlBuilder.append("                            ORDER BY ad.time ASC\n");
+        sqlBuilder.append("                            LIMIT 1) ADDeparture ON True\n");
+        sqlBuilder.append("         LEFT JOIN trip_scheduled_times_list ON trip_scheduled_times_list.trip_trip_id = arrivals_departures.trip_id AND\n");
+        sqlBuilder.append("                                                trip_scheduled_times_list.trip_config_rev =\n");
+        sqlBuilder.append("                                                arrivals_departures.config_rev AND\n");
+        sqlBuilder.append("                                                trip_scheduled_times_list.list_index = arrivals_departures.stop_order\n");
+        sqlBuilder.append("WHERE arrivals_departures.is_arrival = 'True'\n");
+        sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('");
+        sqlBuilder.append(date);
+        sqlBuilder.append("')\n");
+        sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC");
 
-        String json = null;
-        json = GenericJsonQuery.getJsonString(agencyId, sql, date, date, date);
-
-        return json;
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
     }
 
     /* Provides schedule adherence data in JSON format. Provides for
