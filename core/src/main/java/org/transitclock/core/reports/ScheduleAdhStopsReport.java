@@ -78,7 +78,7 @@ public class ScheduleAdhStopsReport {
                     throw new IllegalArgumentException(ex);
                 }
 
-                try (CSVWriter writer = new CSVWriter(new FileWriter("/Users/timur/Desktop/" + fileName, StandardCharsets.UTF_8));
+                try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
                      Session session = HibernateUtils.getSession();
                 ) {
                     writer.writeAll(fullExport);

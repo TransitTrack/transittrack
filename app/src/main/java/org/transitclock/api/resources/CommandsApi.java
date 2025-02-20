@@ -519,7 +519,7 @@ public class CommandsApi {
             String allowableLate = jsonBody.getString("allowableLate");
         // Validate number of days
 
-        String fileName = String.format("stops_adh_%s-%s.csv", beginDate, endDate);
+        String fileName = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
         try {
             if (beginDate.charAt(4) != '-') {
                 ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(beginDate), 2, 2, fileName));
