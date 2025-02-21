@@ -508,19 +508,19 @@ public class CommandsApi {
                     "'url' - target folder on host, \n" +
                     "'allowableEarly' - in mins (if unset: default 1.0), \n" +
                     "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody)
-            throws WebApplicationException, IOException {
+            throws WebApplicationException {
                    stdParameters.validate();
 
+        try {
             JSONObject jsonBody = getJsonObject(requestBody);
             String beginDate = jsonBody.getString("beginDate");
             String endDate = jsonBody.getString("endDate");
             String hostUrl = jsonBody.getString("url");
             String allowableEarly = jsonBody.getString("allowableEarly");
             String allowableLate = jsonBody.getString("allowableLate");
-        // Validate number of days
 
-        String fileName = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
-        try {
+            String fileName = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
+
             if (beginDate.charAt(4) != '-') {
                 ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(beginDate), 2, 2, fileName));
             } else {
