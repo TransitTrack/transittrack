@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.utils.IntervalTimer;
 
 import java.io.FileWriter;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -40,20 +42,24 @@ public class ScheduleAdhStopsReport {
                                                    String endDate,
                                                    String allowableEarly,
                                                    String allowableLate,
-                                                   String fileName,
                                                    String hostUrl
     ) {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
+
+        final String FILE_NAME = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
+        final String HOST = hostUrl;
 
         // Validate date
         LocalDate date1 = validate(beginDate);
         LocalDate date2 = validate(endDate);
         long numDays = ChronoUnit.DAYS.between(date1, date2);
         // Validate date range
-        if (numDays > 30 || numDays < 0)
+        if (numDays > 30 || numDays < 0) {
             throw new IllegalArgumentException(beginDate + " - " + endDate + ": more then 31 days or less then 1.");
+        }
 
+        ExportTable.create(new ExportTable(new Date(), 2, 2, FILE_NAME));
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -78,12 +84,12 @@ public class ScheduleAdhStopsReport {
                     throw new IllegalArgumentException(ex);
                 }
 
-                try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
+                try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + FILE_NAME, StandardCharsets.UTF_8));
                      Session session = HibernateUtils.getSession();
                 ) {
                     writer.writeAll(fullExport);
-                    updateStatus(session, fileName, hostUrl + fileName);
-                    logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), fileName, timer.elapsedMsec() / 1000);
+                    updateStatus(session, FILE_NAME, HOST + FILE_NAME);
+                    logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), FILE_NAME, timer.elapsedMsec() / 1000);
                 } catch (Exception e) {
                     logger.warn(e.getMessage());
                 }

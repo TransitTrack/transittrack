@@ -519,16 +519,9 @@ public class CommandsApi {
             String allowableEarly = jsonBody.getString("allowableEarly");
             String allowableLate = jsonBody.getString("allowableLate");
 
-            String fileName = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
-
-            if (beginDate.charAt(4) != '-') {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(beginDate), 2, 2, fileName));
-            } else {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd").parse(beginDate), 2, 2, fileName));
-            }
             ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport();
             generator
-                    .createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, endDate, allowableEarly, allowableLate, fileName, hostUrl);
+                    .createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, endDate, allowableEarly, allowableLate, hostUrl);
             return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
         } catch (Exception ex) {
             // If problem getting data then return a message
