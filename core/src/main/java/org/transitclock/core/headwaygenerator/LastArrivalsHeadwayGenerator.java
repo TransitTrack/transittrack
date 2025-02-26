@@ -1,9 +1,7 @@
 /* (C)2023 */
 package org.transitclock.core.headwaygenerator;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.transitclock.core.HeadwayGenerator;
 import org.transitclock.core.VehicleState;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheFactory;
@@ -12,17 +10,21 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-import org.transitclock.service.dto.IpcVehicleComplete;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Sean Óg Crudden
- *     <p>This is a first pass at generating a Headway value. It will find the last arrival time at
- *     the last stop for the vehicle and then get the vehicle ahead of it and check when it arrived
- *     at the same stop. The difference will be used as the headway.
- *     <p>This is a WIP
- *     <p>Maybe should be a list and have a predicted headway at each stop along the route. So key
- *     for headway could be (stop, vehicle, trip, start_time).
+ * <p>This is a first pass at generating a Headway value. It will find the last arrival time at
+ * the last stop for the vehicle and then get the vehicle ahead of it and check when it arrived
+ * at the same stop. The difference will be used as the headway.
+ * <p>This is a WIP
+ * <p>Maybe should be a list and have a predicted headway at each stop along the route. So key
+ * for headway could be (stop, vehicle, trip, start_time).
  */
+@Slf4j
 public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
 
     @Override
@@ -53,10 +55,10 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             && arrivalDepature.getStopId().equals(stopId)
                             && arrivalDepature.getVehicleId().equals(vehicleId)
                             && (vehicleState.getTrip().getDirectionId() == null
-                                    || vehicleState
-                                            .getTrip()
-                                            .getDirectionId()
-                                            .equals(arrivalDepature.getDirectionId()))) {
+                            || vehicleState
+                            .getTrip()
+                            .getDirectionId()
+                            .equals(arrivalDepature.getDirectionId()))) {
                         // This the arrival of this vehicle now the next arrival in the list will be
                         // the previous vehicle (The arrival of the vehicle ahead).
                         lastStopArrivalIndex = i;
@@ -66,10 +68,10 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             && arrivalDepature.getStopId().equals(stopId)
                             && !arrivalDepature.getVehicleId().equals(vehicleId)
                             && (vehicleState.getTrip().getDirectionId() == null
-                                    || vehicleState
-                                            .getTrip()
-                                            .getDirectionId()
-                                            .equals(arrivalDepature.getDirectionId()))) {
+                            || vehicleState
+                            .getTrip()
+                            .getDirectionId()
+                            .equals(arrivalDepature.getDirectionId()))) {
                         previousVehicleArrivalIndex = i;
                     }
                 }
@@ -77,8 +79,8 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                     long headwayTime = Math.abs(
                             stopList.get(lastStopArrivalIndex).getTime().getTime()
                                     - stopList.get(previousVehicleArrivalIndex)
-                                            .getTime()
-                                            .getTime());
+                                    .getTime()
+                                    .getTime());
 
                     Headway headway = new Headway(
                             headwayTime,
@@ -93,39 +95,47 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             new Date(stopList.get(previousVehicleArrivalIndex)
                                     .getTime()
                                     .getTime()));
-                    // TODO Core.getInstance().getDbLogger().add(headway);
                     setSystemVariance(headway);
                     return headway;
                 }
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+           logger.warn("Something went wrong when try to generate headway: {}", e.getMessage());
         }
         return null;
     }
 
     private void setSystemVariance(Headway headway) {
-        List<Headway> headways = new ArrayList<>();
-        for (IpcVehicleComplete currentVehicle : VehicleDataCache.getInstance().getVehicles()) {
-            VehicleState vehicleState = VehicleStateManager.getInstance().getVehicleState(currentVehicle.getId());
-            if (vehicleState.getHeadway() != null) {
-                headways.add(vehicleState.getHeadway());
-            }
-        }
-        // ONLY SET IF HAVE VALES FOR ALL VEHICLES ON ROUTE.
-        if (VehicleDataCache.getInstance().getVehicles().size() == headways.size()) {
+        List<VehicleState> vehicleStates = VehicleDataCache.getInstance().getVehicles().stream()
+                .map(currentVehicle -> VehicleStateManager.getInstance()
+                        .getVehicleState(currentVehicle.getId())).toList();
+        int totalVehicles = vehicleStates.size();
+
+        var headways = vehicleStates.stream()
+                .map(VehicleState::getHeadway)
+                .filter(Objects::nonNull)
+                .toList();
+        int totalWithHeadway = headways.size();
+
+        // ONLY SET IF HAVE VALUES FOR ALL VEHICLES ON ROUTE.
+        if (VehicleDataCache.getInstance().getVehicles().size() == headways.size()
+                && totalVehicles == totalWithHeadway) {
             headway.setAverage(average(headways));
             headway.setVariance(variance(headways));
             headway.setCoefficientOfVariation(coefficientOfVariance(headways));
-            headway.setNumVehicles(headways.size());
+            headway.setNumVehicles(totalWithHeadway);
+        } else {
+            headway.setAverage(-1);
+            headway.setVariance(-1);
+            headway.setCoefficientOfVariation(-1);
+            headway.setNumVehicles(totalWithHeadway);
         }
     }
 
     private double average(List<Headway> headways) {
         double total = 0;
         for (Headway headway : headways) {
-            total = total + headway.getHeadway();
+            total += headway.getHeadway();
         }
         return total / headways.size();
     }
@@ -134,7 +144,7 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
         double topline = 0;
         double average = average(headways);
         for (Headway headway : headways) {
-            topline = topline + ((headway.getHeadway() - average) * (headway.getHeadway() - average));
+            topline += ((headway.getHeadway() - average) * (headway.getHeadway() - average));
         }
         return topline / headways.size();
     }
