@@ -55,10 +55,8 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             && arrivalDepature.getStopId().equals(stopId)
                             && arrivalDepature.getVehicleId().equals(vehicleId)
                             && (vehicleState.getTrip().getDirectionId() == null
-                            || vehicleState
-                            .getTrip()
-                            .getDirectionId()
-                            .equals(arrivalDepature.getDirectionId()))) {
+                                || vehicleState.getTrip().getDirectionId().equals(arrivalDepature.getDirectionId()))
+                    ) {
                         // This the arrival of this vehicle now the next arrival in the list will be
                         // the previous vehicle (The arrival of the vehicle ahead).
                         lastStopArrivalIndex = i;
@@ -68,18 +66,15 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             && arrivalDepature.getStopId().equals(stopId)
                             && !arrivalDepature.getVehicleId().equals(vehicleId)
                             && (vehicleState.getTrip().getDirectionId() == null
-                            || vehicleState
-                            .getTrip()
-                            .getDirectionId()
-                            .equals(arrivalDepature.getDirectionId()))) {
+                                || vehicleState.getTrip().getDirectionId().equals(arrivalDepature.getDirectionId()))
+                    ) {
                         previousVehicleArrivalIndex = i;
                     }
                 }
                 if (previousVehicleArrivalIndex != -1 && lastStopArrivalIndex != -1) {
                     long headwayTime = Math.abs(
                             stopList.get(lastStopArrivalIndex).getTime().getTime()
-                                    - stopList.get(previousVehicleArrivalIndex)
-                                    .getTime()
+                                    - stopList.get(previousVehicleArrivalIndex).getTime()
                                     .getTime());
 
                     Headway headway = new Headway(
@@ -90,11 +85,10 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                             stopId,
                             vehicleState.getTrip().getId(),
                             vehicleState.getTrip().getRouteId(),
-                            new Date(
-                                    stopList.get(lastStopArrivalIndex).getTime().getTime()),
-                            new Date(stopList.get(previousVehicleArrivalIndex)
-                                    .getTime()
-                                    .getTime()));
+                            new Date(stopList.get(lastStopArrivalIndex).getTime().getTime())
+                            ,
+                            new Date(stopList.get(previousVehicleArrivalIndex).getTime().getTime()));
+
                     setSystemVariance(headway);
                     return headway;
                 }
