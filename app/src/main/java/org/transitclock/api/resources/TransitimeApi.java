@@ -2187,7 +2187,7 @@ public class TransitimeApi {
         stdParameters.validate();
 
         try (Session session = HibernateUtils.getSession()) {
-            ExportTable result = ExportTable.getExportFile(session, id).get(0);
+            ExportTable result = ExportTable.getExport(session, id).get(0);
             // return ApiVehicles response
             // return stdParameters.createResponse(result);
             return Response.ok(result.getFile(), MediaType.APPLICATION_OCTET_STREAM)

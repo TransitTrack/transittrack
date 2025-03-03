@@ -13,6 +13,7 @@ import org.transitclock.core.dataCache.VehicleStateManager;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.domain.webstructs.ApiKey;
@@ -20,7 +21,6 @@ import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
-import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -199,6 +199,18 @@ public class CommandsServiceImpl implements CommandsInterface {
             session.close();
         }
         return null;
+    }
+
+    @Override
+    public ExportTable removeExportById(int id) {
+        try(var session = HibernateUtils.getSession()) {
+            var exportsToDelete = ExportTable.getExport(session, id);
+            if (!exportsToDelete.isEmpty() && exportsToDelete.get(0).getId() == id) {
+                ExportTable.deleteExportTableRecord(id, session);
+                return exportsToDelete.get(0);
+                }
+            }
+        throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
     }
 
     @Override

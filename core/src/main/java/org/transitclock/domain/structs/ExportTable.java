@@ -104,7 +104,7 @@ public class ExportTable implements Serializable {
         return query.list();
     }
 
-    public static List<ExportTable> getExportFile(Session session, long id) throws HibernateException {
+    public static List<ExportTable> getExport(Session session, long id) throws HibernateException {
         return session.createQuery("FROM ExportTable WHERE id = :id", ExportTable.class)
                 .setParameter("id", id)
                 .list();
@@ -130,6 +130,21 @@ public class ExportTable implements Serializable {
             var q = session
                     .createMutationQuery("delete from ExportTable where id = :id")
                     .setParameter("id", id);
+            q.executeUpdate();
+
+            transaction.commit();
+        } catch (Throwable t) {
+            transaction.rollback();
+            throw t;
+        }
+    }
+
+    public static void deleteExportTableRecord(String name, Session session) throws HibernateException {
+        Transaction transaction = session.beginTransaction();
+        try {
+            var q = session
+                    .createMutationQuery("delete from ExportTable e where e.fileName = :name")
+                    .setParameter("name", name);
             q.executeUpdate();
 
             transaction.commit();

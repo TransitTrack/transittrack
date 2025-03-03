@@ -35,6 +35,8 @@ import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.contract.ConfigInterface;
 
+import static org.transitclock.utils.csv.RemoveFileFromDirectory.removeFile;
+
 @Path("/key/{key}/agency/{agency}")
 public class CommandsApi {
 
@@ -485,9 +487,14 @@ public class CommandsApi {
     {
         stdParameters.validate();
 
-        try(var session = HibernateUtils.getSession()) {
-            ExportTable.deleteExportTableRecord(exportId, session);
-            return stdParameters.createResponse(new ApiCommandAck(true, "Deleted"));
+        try {
+            CommandsInterface inter = stdParameters.getCommandsInterface();
+            var export = inter.removeExportById(exportId);
+            if (export.getExportType() == 2) {
+                removeFile("/tmp/csv/", export.getFileName());
+            }
+            return stdParameters.createResponse(
+                    new ApiCommandAck(true, "Deleted: " + export.getFileName()));
         } catch (Exception ex) {
             return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
         }

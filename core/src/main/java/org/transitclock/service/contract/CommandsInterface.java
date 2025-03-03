@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.service.dto.IpcAvl;
 
 import java.time.LocalDateTime;
@@ -59,6 +60,13 @@ public interface CommandsInterface {
      * Returns null on success
      */
     String removeVehicleToBlock(long id);
+
+
+    /*
+     * Remove Export by ID from db
+     */
+    ExportTable removeExportById(int id);
+
 
     /**
      * Add application key to db.

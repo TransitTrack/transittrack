@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.transitclock.domain.structs.ExportTable.deleteExportTableRecord;
 import static org.transitclock.domain.structs.ExportTable.updateStatus;
 
 @Slf4j
@@ -79,9 +80,13 @@ public class ScheduleAdhStopsReport {
                         date = date.plusDays(1);
                         Thread.sleep(300);
                     }
-                } catch (Exception ex) {
+                } catch (Exception ex)
+                {
+                    Session session = HibernateUtils.getSession();
+                    deleteExportTableRecord(FILE_NAME, session);
+                    session.close();
                     logger.warn(ex.getMessage());
-                    throw new IllegalArgumentException(ex);
+                    throw new RuntimeException(ex);
                 }
 
                 try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + FILE_NAME, StandardCharsets.UTF_8));
@@ -90,8 +95,12 @@ public class ScheduleAdhStopsReport {
                     writer.writeAll(fullExport);
                     updateStatus(session, FILE_NAME, HOST + FILE_NAME);
                     logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), FILE_NAME, timer.elapsedMsec() / 1000);
-                } catch (Exception e) {
-                    logger.warn(e.getMessage());
+                } catch (Exception ex)
+                {
+                    Session session = HibernateUtils.getSession();
+                    deleteExportTableRecord(FILE_NAME, session);
+                    session.close();
+                    logger.warn(ex.getMessage());
                 }
             }
         }).start();
