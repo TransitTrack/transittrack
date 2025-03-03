@@ -16,9 +16,9 @@ public class RemoveFileFromDirectory {
             Files.delete(file);
             logger.info("File {} deleted successfully" , file);
         } catch (NoSuchFileException e) {
-            logger.debug("File not found: " + e.getMessage());
+            logger.debug("File not found: {}", e.getMessage());
         } catch (IOException e) {
-            logger.warn("Error deleting file: " + e.getMessage());
+            logger.warn("Error deleting file: {}", e.getMessage());
         }
     }
 }
