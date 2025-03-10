@@ -29,7 +29,7 @@ subprojects {
         }
         dependencies{
             dependency("org.apache.commons:commons-csv:1.12.0")
-            dependency("io.hypersistence:hypersistence-utils-hibernate-62:3.7.6")
+            dependency("io.hypersistence:hypersistence-utils-hibernate-62:3.9.3")
             dependency("com.google.guava:guava:33.3.1-jre")
         }
     }
