@@ -19,12 +19,16 @@ services:
       AGENCYID:
       AGENCYNAME:
       TZ: "Europe/Warsaw"
-      GTFS_URL:
-      GTFSRTVEHICLEPOSITIONS:
+      GTFSURL: https://example.com/gtfs.zip
+      GTFSRTVEHICLEPOSITIONS: https://example.com/gtfs-rt.pb
       PGPASSWORD: transitclock
       POSTGRES_PORT_5432_TCP_ADDR: db
       POSTGRES_PORT_5432_TCP_PORT: 5432
-
+      MINLONGITUDE: 10
+      MAXLONGITUDE: 25
+      MINLATITUDE: 50
+      MAXLATITUDE: 55
+      REFRESHINTERVAL: 15
     ports:
       - "8080:8080"
     command:
