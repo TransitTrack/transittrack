@@ -4,7 +4,7 @@ services:
     restart: always
     environment:
       POSTGRES_PASSWORD: transitclock
-      POSTGRES_DB: DB_TC
+      POSTGRES_DB: NAME
     ports:
       - "5432:5432"
   gtfsrt-validator:
@@ -16,8 +16,8 @@ services:
     depends_on:
       - db
     environment:
-      AGENCYID:
-      AGENCYNAME:
+      AGENCYID: 1
+      AGENCYNAME: NAME
       TZ: "Europe/Warsaw"
       GTFSURL: https://example.com/gtfs.zip
       GTFSRTVEHICLEPOSITIONS: https://example.com/gtfs-rt.pb
