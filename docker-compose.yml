@@ -3,30 +3,30 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      TZ: "America/New_York"
       POSTGRES_PASSWORD: transitclock
-      POSTGRES_DB: transitclock
+      POSTGRES_DB: DB_TC
     ports:
       - "5432:5432"
-
+  gtfsrt-validator:
+    image: ghcr.io/mobilitydata/gtfs-realtime-validator:latest
+    ports:
+      - "9090:8080"
   transitclock:
-    image: wkulesza/transitclock-server:apc
+    image: wkulesza/transitclock-server:latest
     depends_on:
       - db
     environment:
-      TZ: "America/New_York"
-    volumes:
-      - /Users/timur/IdeaProjects/transittrack-main/tc.properties:/app/config/transitclock.properties
-    command:
-      - --gtfs-url
-      - https://data.tracktrolley.com/gtfs/mdtshapes.zip
+      AGENCYID:
+      AGENCYNAME:
+      TZ: "Europe/Warsaw"
+      GTFS_URL:
+      GTFSRTVEHICLEPOSITIONS:
+      PGPASSWORD: transitclock
+      POSTGRES_PORT_5432_TCP_ADDR: db
+      POSTGRES_PORT_5432_TCP_PORT: 5432
+
     ports:
       - "8080:8080"
-
-
-  apc:
-    image: wkulesza/apc-worker:latest
-    environment:
-      TZ: "America/New_York"
-    volumes:
-      - /Users/timur/IdeaProjects/converter-gtfs-rt/src/main/resources/application.yml:/app/application.yml
+    command:
+      - --gtfs-url
+      - https://example.com/gtfs.zip
