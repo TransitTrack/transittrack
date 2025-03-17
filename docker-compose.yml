@@ -7,10 +7,6 @@ services:
       POSTGRES_DB: NAME
     ports:
       - "5432:5432"
-  gtfsrt-validator:
-    image: ghcr.io/mobilitydata/gtfs-realtime-validator:latest
-    ports:
-      - "9090:8080"
   transitclock:
     image: wkulesza/transitclock-server:latest
     depends_on:
@@ -34,3 +30,7 @@ services:
     command:
       - --gtfs-url
       - https://example.com/gtfs.zip
+#  gtfsrt-validator:
+#    image: ghcr.io/mobilitydata/gtfs-realtime-validator:latest
+#    ports:
+#      - "9090:8080"
