@@ -139,7 +139,7 @@ public class VehicleToBlockConfig implements Serializable {
 
     public static List<VehicleToBlockConfig> getActualVehicleToBlockConfigs(Session session) throws HibernateException {
         return session
-                .createQuery("FROM VehicleToBlockConfig WHERE validTo > now() ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
+                .createQuery("FROM VehicleToBlockConfig WHERE validTo > CURRENT_TIMESTAMP ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
                 .list();
     }
 

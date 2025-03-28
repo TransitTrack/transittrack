@@ -77,9 +77,13 @@ public class SiriMonitoredCall {
 
         public Distances(IpcVehicleComplete ipcCompleteVehicle) {
             callDistanceAlongRoute =
-                    StringUtils.oneDigitFormat(ipcCompleteVehicle.getDistanceOfNextStopFromTripStart());
+                    StringUtils.oneDigitFormat(ipcCompleteVehicle.getDistanceOfNextStopFromTripStart() == null
+                            ? -1
+                            : ipcCompleteVehicle.getDistanceOfNextStopFromTripStart());
 
-            distanceFromCall = StringUtils.oneDigitFormat(ipcCompleteVehicle.getDistanceToNextStop());
+            distanceFromCall = StringUtils.oneDigitFormat(ipcCompleteVehicle.getDistanceToNextStop() == null
+                    ? -1
+                    : ipcCompleteVehicle.getDistanceToNextStop());
         }
     }
 

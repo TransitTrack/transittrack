@@ -404,7 +404,7 @@ public class VehiclesServiceImpl implements VehiclesInterface {
     @Override
     public List<IpcVehicleToBlockConfig> getVehicleToBlockConfigByBlockId(String blockId) {
         try (Session session = HibernateUtils.getSession()) {
-            if (StringUtils.isEmpty(blockId)) {
+            if (!StringUtils.isEmpty(blockId)) {
                 return VehicleToBlockConfig.getVehicleToBlockConfigsByBlockId(session, blockId)
                         .stream()
                         .map(IpcVehicleToBlockConfig::new)
