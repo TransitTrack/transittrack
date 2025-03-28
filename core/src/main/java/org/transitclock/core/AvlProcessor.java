@@ -337,16 +337,27 @@ public class AvlProcessor {
                 // Set the match of the vehicle.
                 vehicleState.setMatch(bestTemporalMatch);
             } else {
-                if (BlockAssignerConfig.isManualAssignmentEnabled() && vehicleState.getBlock() != null &&
-                        vehicleState.getAvlReport().getAssignmentId() != null && vehicleState.getMatches().get(0) != null &&
-                        vehicleState.getBlock().getBlockId().equals(vehicleState.getAvlReport().getAssignmentId())) {
+                if (vehicleState.getAvlReport().getAssignmentType() == AssignmentType.BLOCK_ID
+                        && vehicleState.getPreviousMatch() != null
+                        && (vehicleState.getPreviousMatch().isLayover() || vehicleState.getPreviousMatch().getStopPath().isLastStopInTrip())
+                        && vehicleState.getAvlReport().getAssignmentId() != null
+                ) {
                     // Set the previous match if bestTemporalMatch is null.
-                    vehicleState.setMatch(vehicleState.getMatches().get(0));
+                    TemporalMatch  bestMatch = vehicleState.getMatches().get(0);
+                    vehicleState.setMatch(bestMatch);
 
-                    logger.info(
-                            "Got another bad match, but the manual assignment is enabled then vehicleId={} mustn't unset blockId={}.",
+                    logger.debug(
+                            "Vehicle is at layover and avl feed block is enabled then vehicle={} must not unset block={}.",
                             vehicleState.getVehicleId(),
                             vehicleState.getBlock().getBlockId());
+                    VehicleEvent.create(
+                            vehicleState.getAvlReport(),
+                            bestMatch,
+                            VehicleEvent.PREDICTABLE,
+                            "Vehicle is at layover and avl feed block is enabled then the vehicle must not unset the block.",
+                            true, // predictable
+                            false, // becameUnpredictable
+                            null); // supervisor
                     return;
                 }
                 // Exceeded allowable number of bad matches so make vehicle
@@ -996,8 +1007,10 @@ public class AvlProcessor {
      * @return true if auto assigned vehicle
      */
     private boolean automaticalyMatchVehicleToAssignment(VehicleState vehicleState) {
-        // If actually creating a schedule based prediction
-        if (vehicleState.isForSchedBasedPreds()) return false;
+        // If actually creating a schedule based prediction or is feeding by avl reports
+        if (vehicleState.isForSchedBasedPreds() || vehicleState.getAvlReport()
+                .getAssignmentType() == AssignmentType.BLOCK_ID)
+            return false;
 
         if (!AutoBlockAssigner.enabled()) {
             logger.info(
