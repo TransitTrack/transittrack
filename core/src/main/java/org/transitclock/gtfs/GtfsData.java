@@ -1851,6 +1851,7 @@ public class GtfsData {
                                 + "configuration. {}",
                         calendar.getServiceId(),
                         calendar);
+                System.exit(-1);
             }
         }
 
