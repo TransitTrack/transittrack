@@ -873,13 +873,12 @@ public class AvlProcessor {
         VehicleStateManager stateManager = VehicleStateManager.getInstance();
         for (String vehicleId : vehiclesAssignedToBlock) {
             VehicleState vehicleState = stateManager.getVehicleState(vehicleId);
-            if (block.shouldBeExclusive() || vehicleState.isForSchedBasedPreds()) {
+            if (!newVehicleId.equals(vehicleId) && (block.shouldBeExclusive() || vehicleState.isForSchedBasedPreds())) {
                 String description = "Assigning vehicleId="
                         + newVehicleId
                         + " to blockId="
                         + block.getId()
-                        + " but "
-                        + "vehicleId="
+                        + " but vehicleId="
                         + vehicleId
                         + " already assigned to that block so "
                         + "removing assignment from vehicleId="
