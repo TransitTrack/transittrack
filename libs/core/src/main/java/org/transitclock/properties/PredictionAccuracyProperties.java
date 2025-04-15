@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class PredictionAccuracyProperties {
+    private Boolean enabled = false;
     // config param: transitclock.predAccuracy.pollingRateMsec
     // How frequently to query predictions for determining prediction accuracy.
     private Integer pollingRateMsec = 240000;
