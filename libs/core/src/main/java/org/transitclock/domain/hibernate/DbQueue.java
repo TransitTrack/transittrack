@@ -406,7 +406,7 @@ public class DbQueue<T> {
     }
 
     private void logThroughputInfo() {
-        long delta = (System.currentTimeMillis() - throughputTimestamp) / 1000;
+        double delta = (System.currentTimeMillis() - throughputTimestamp) / 1000.0;
         if (throughputCount == 0) {
             logger.debug("wrote nothing");
             return;
@@ -415,7 +415,7 @@ public class DbQueue<T> {
         long throughput = throughputCount;
         throughputCount = 0;
         throughputTimestamp = System.currentTimeMillis();
-        double rate = (double) throughput / delta;
-        logger.info("wrote {} {} messages in {}s, ({}/s) ", throughput, shortType, delta / 1000, (long) rate);
+        double rate = throughput / delta;
+        logger.info("wrote {} {} messages in {}s, ({}/s) ", throughput, shortType.getSimpleName(), delta / 1000, rate);
     }
 }

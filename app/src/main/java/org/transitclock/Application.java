@@ -5,7 +5,6 @@ import java.net.UnknownHostException;
 import java.util.Optional;
 
 import org.transitclock.config.CRLFLogConverter;
-import org.transitclock.config.ConfigFileReader;
 import org.transitclock.properties.GtfsProperties;
 import org.transitclock.utils.threading.UncaughtExceptionHandler;
 
@@ -19,7 +18,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
@@ -39,7 +37,6 @@ public class Application implements ApplicationRunner {
         currentThread.setName("main");
         currentThread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
 
-        ConfigFileReader.processConfig();
         var application = new SpringApplication(Application.class);
         ConfigurableEnvironment environment = application.run(args).getEnvironment();
         logApplicationStartup(environment);

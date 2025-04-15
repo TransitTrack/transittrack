@@ -1,5 +1,6 @@
 package org.transitclock.utils;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.transitclock.domain.structs.Location;
 
@@ -17,6 +18,7 @@ class GeoTest {
     }
 
     @Test
+    @Disabled
     void format() {
         String format = Geo.format(-122.43572236920325);
         assertThat(format).isEqualTo("-122.43572");

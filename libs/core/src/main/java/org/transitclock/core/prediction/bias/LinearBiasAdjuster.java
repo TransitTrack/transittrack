@@ -1,9 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.bias;
 
+import org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Linear;
+
 import lombok.Getter;
 import lombok.ToString;
-import org.transitclock.config.data.CoreConfig;
 
 /**
  * @author scrudden
@@ -14,25 +15,17 @@ import org.transitclock.config.data.CoreConfig;
 @Getter
 @ToString
 public class LinearBiasAdjuster implements BiasAdjuster {
-
-    private double rate = -Double.NaN;
+    private final Linear linear;
     private double percentage = Double.NaN;
 
-    public LinearBiasAdjuster() {
-        this.rate = CoreConfig.rateChangePercentage.getValue();
-    }
-
-    public LinearBiasAdjuster(double rateChangePercentage) {
-        this.rate = rateChangePercentage;
+    public LinearBiasAdjuster(Linear linear) {
+        this.linear = linear;
     }
 
     /* going to adjust by a larger percentage as horizon gets bigger.*/
-
     @Override
     public long adjustPrediction(long prediction) {
-        percentage = (prediction / 100) * rate;
-
-        double new_prediction = prediction + (((percentage / 100) * prediction) * CoreConfig.linearUpdown.getValue());
-        return (long) new_prediction;
+        percentage = (prediction / 100) * linear.getRate();
+        return (long) (prediction + (((percentage / 100) * prediction) * linear.getUpdown()));
     }
 }

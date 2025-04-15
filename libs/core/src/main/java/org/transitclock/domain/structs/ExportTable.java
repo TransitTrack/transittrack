@@ -2,17 +2,12 @@
 package org.transitclock.domain.structs;
 
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -77,40 +72,6 @@ public class ExportTable implements Serializable {
         exportType = 0;
         fileName = null;
         file = null;
-    }
-
-    /**
-     * Reads List of VehicleConfig objects from database
-     *
-     * @param session
-     * @return List of VehicleConfig objects
-     * @throws HibernateException
-     */
-    public static List<ExportTable> getExportTable(Session session) throws HibernateException {
-        // String hql = "FROM ExportTable";
-        var query = session.createQuery("FROM ExportTable ORDER BY exportDate DESC", ExportTable.class);
-        return query.list();
-    }
-
-    public static void deleteExportTableRecord(long id, Session session) throws HibernateException {
-        Transaction transaction = session.beginTransaction();
-        try {
-            var q = session
-                    .createMutationQuery("delete from ExportTable where id = :id")
-                    .setParameter("id", id);
-            q.executeUpdate();
-
-            transaction.commit();
-        } catch (Throwable t) {
-            transaction.rollback();
-            throw t;
-        }
-    }
-
-    public static List<ExportTable> getExportFile(Session session, long id) throws HibernateException {
-        return session.createQuery("FROM ExportTable WHERE id = :id", ExportTable.class)
-                .setParameter("id", id)
-                .list();
     }
 
     public long getId() {

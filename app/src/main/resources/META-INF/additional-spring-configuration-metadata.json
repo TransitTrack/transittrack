@@ -1,8 +1,20 @@
 {
+  "groups": [
+    {
+      "name": "Core",
+      "type": "org.transitclock.properties.CoreProperties",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "Arrival & Departures",
+      "type": "org.transitclock.properties.ArrivalsDeparturesProperties",
+      "sourceType": "org.transitclock.properties.ArrivalsDeparturesProperties"
+    }
+  ],
   "properties": [
     {
       "name": "transitclock.core.agencyId",
-      "defaultValue": "null",
+      "defaultValue": "transitclock",
       "type": "java.lang.String",
       "description": "Specifies the ID of the agency. Used for the database name and in the logback configuration to specify the directory where to put the log files."
     },
@@ -16,7 +28,7 @@
       "name": "transitclock.api.predictionMaxFutureSecs",
       "defaultValue": "3600",
       "type": "java.lang.Integer",
-      "description": "Number of seconds in the future to accept predictions before"
+      "description": "Number of seconds in the future to accept predictions before."
     },
     {
       "name": "transitclock.api.includeTripUpdateDelay",

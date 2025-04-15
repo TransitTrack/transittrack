@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.contract.PredictionsService.RouteStop;
 import org.transitclock.service.dto.IpcPrediction;
@@ -49,6 +49,7 @@ public class PredictionDataCache {
     private final VehicleStatusManager vehicleStatusManager;
     private final DbConfig dbConfig;
     private final PredictionProperties predictionProperties;
+    private final CoreProperties coreProperties;
 
     // Contains lists of predictions per route/stop. Also want to group
     // predictions by destination/trip head sign together so that can
@@ -69,10 +70,11 @@ public class PredictionDataCache {
     private final Map<MapKey, List<IpcPredictionsForRouteStopDest>> predictionsMap =
             new ConcurrentHashMap<>(1000);
 
-    public PredictionDataCache(VehicleStatusManager vehicleStatusManager, DbConfig dbConfig, PredictionProperties predictionProperties) {
+    public PredictionDataCache(VehicleStatusManager vehicleStatusManager, DbConfig dbConfig, PredictionProperties predictionProperties, CoreProperties coreProperties) {
         this.vehicleStatusManager = vehicleStatusManager;
         this.dbConfig = dbConfig;
         this.predictionProperties = predictionProperties;
+        this.coreProperties = coreProperties;
     }
 
     /**
@@ -156,7 +158,7 @@ public class PredictionDataCache {
         // schedule based predictions then generating predictions far into the
         // future.
         long maxPredictionEpochTime = SystemTime.getMillis()
-                + (long) CoreConfig.getMaxPredictionsTimeSecs() * Time.SEC_IN_MSECS;
+                + (long) coreProperties.getMaxPredictionsTimeSecs() * Time.SEC_IN_MSECS;
 
         // Want to filter out arrivals at terminal if also getting departures
         // for that stop. Otherwise if user selects a terminal stop they could

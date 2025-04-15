@@ -6,8 +6,9 @@ import java.util.TimeZone;
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.repository.BlockRepository;
 import org.transitclock.domain.structs.ActiveRevision;
-import org.transitclock.domain.structs.Agency;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.ServiceProperties;
@@ -41,7 +42,7 @@ public class DatabaseConfiguration {
     }
 
     @Bean
-    DbConfig dbConfig(CoreProperties coreProperties, ServiceProperties serviceProperties) {
+    DbConfig dbConfig(CoreProperties coreProperties, ServiceProperties serviceProperties, BlockRepository repository) {
         String agencyId = coreProperties.getAgencyId();
         // Read in config rev from ActiveRevisions table in db
         ActiveRevision activeRevision = ActiveRevision.get(agencyId);
@@ -57,7 +58,7 @@ public class DatabaseConfiguration {
         // Set the timezone so that when dates are read from db or are logged
         // the time will be correct. Therefore, this needs to be done right at
         // the start of the application, before db is read.
-        TimeZone timeZone = Agency.getTimeZoneFromDb(agencyId);
+        TimeZone timeZone = AgencyRepository.getTimeZoneFromDb(agencyId);
         TimeZone.setDefault(timeZone);
 
         // Clears out the session factory so that a new one will be created for
@@ -90,8 +91,8 @@ public class DatabaseConfiguration {
     @Bean
     DataDbLogger dataDbLogger(@Value("${spring.datasource.batch-size: 4_000}") int batchSize, CoreProperties coreProperties) {
         String agencyId = coreProperties.getAgencyId();
-        boolean storeDataInDatabase = coreProperties.getStoreDataInDatabase();
-        boolean pauseIfDbQueueFilling = coreProperties.getPauseIfDbQueueFilling();
+        boolean storeDataInDatabase = coreProperties.isStoreDataInDatabase();
+        boolean pauseIfDbQueueFilling = coreProperties.isPauseIfDbQueueFilling();
         // Create the DataDBLogger so that generated data can be stored
         // to database via a robust queue. But don't actually log data
         // if in playback mode since then would be writing data again

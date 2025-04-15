@@ -6,15 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.model.GtfsFareAttribute;
 
@@ -80,35 +76,6 @@ public class FareAttribute implements Serializable {
         paymentMethod = null;
         transfers = null;
         transferDuration = null;
-    }
-
-    /**
-     * Deletes rev from the FareAttributes table
-     *
-     * @param session
-     * @param configRev
-     * @return Number of rows deleted
-     * @throws HibernateException
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session.createMutationQuery("DELETE FareAttribute WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    /**
-     * Returns List of FareAttribute objects for the specified database revision.
-     *
-     * @param session
-     * @param configRev
-     * @return
-     * @throws HibernateException
-     */
-    public static List<FareAttribute> getFareAttributes(Session session, int configRev) throws HibernateException {
-        return session.createQuery("FROM FareAttribute WHERE configRev = :configRev", FareAttribute.class)
-                .setParameter("configRev", configRev)
-                .list();
     }
 
     @Override

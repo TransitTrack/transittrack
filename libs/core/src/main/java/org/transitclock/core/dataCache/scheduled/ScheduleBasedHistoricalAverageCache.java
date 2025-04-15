@@ -1,27 +1,32 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache.scheduled;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.transitclock.core.DwellTimeDetails;
+import org.transitclock.core.TravelTimeDetails;
+import org.transitclock.core.dataCache.ArrivalDepartureComparator;
+import org.transitclock.core.dataCache.HistoricalAverage;
+import org.transitclock.core.dataCache.StopPathCacheKey;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.TripKey;
+import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
+import org.transitclock.domain.structs.ArrivalDeparture;
+import org.transitclock.domain.structs.QArrivalDeparture;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.service.dto.IpcArrivalDeparture;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.hibernate.Session;
-import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-import org.transitclock.core.DwellTimeDetails;
-import org.transitclock.core.TravelTimeDetails;
-import org.transitclock.core.dataCache.*;
-import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
-import org.transitclock.domain.structs.ArrivalDeparture;
-import org.transitclock.domain.structs.QArrivalDeparture;
-import org.transitclock.domain.structs.Trip;
-import org.transitclock.gtfs.DbConfig;
-import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Sean Óg Crudden
@@ -34,25 +39,21 @@ public class ScheduleBasedHistoricalAverageCache {
     private final TripDataHistoryCacheInterface tripDataHistoryCache;
     private final DbConfig dbConfig;
     private final TravelTimeDataFilter travelTimeDataFilter;
+    private final CoreProperties coreProperties;
 
-    public ScheduleBasedHistoricalAverageCache(CacheManager cm, TripDataHistoryCacheInterface tripDataHistoryCache, DbConfig dbConfig, TravelTimeDataFilter travelTimeDataFilter) {
+    public ScheduleBasedHistoricalAverageCache(CacheManager cm,
+                                               TripDataHistoryCacheInterface tripDataHistoryCache,
+                                               DbConfig dbConfig,
+                                               TravelTimeDataFilter travelTimeDataFilter, CoreProperties coreProperties) {
         cache = cm.getCache(cacheName, StopPathCacheKey.class, HistoricalAverage.class);
         this.tripDataHistoryCache = tripDataHistoryCache;
         this.dbConfig = dbConfig;
         this.travelTimeDataFilter = travelTimeDataFilter;
-    }
-
-    public void logCache(Logger logger) {
-        logger.debug("Cache content log. Not implemented.");
-    }
-
-    public void logCacheSize(Logger logger) {
-        logger.debug("Log cache size. Not implemented.");
+        this.coreProperties = coreProperties;
     }
 
     public synchronized HistoricalAverage getAverage(StopPathCacheKey key) {
-        HistoricalAverage result = cache.get(key);
-        return result;
+        return cache.get(key);
     }
 
     public synchronized void putAverage(StopPathCacheKey key, HistoricalAverage average) {
@@ -134,7 +135,7 @@ public class ScheduleBasedHistoricalAverageCache {
                     .findPreviousArrivalEvent(arrivalDepartures, arrivalDeparture);
 
             if (previousEvent != null && arrivalDeparture != null && previousEvent.isArrival()) {
-                return new DwellTimeDetails(previousEvent, arrivalDeparture);
+                return new DwellTimeDetails(previousEvent, arrivalDeparture, coreProperties);
             }
         }
         return null;

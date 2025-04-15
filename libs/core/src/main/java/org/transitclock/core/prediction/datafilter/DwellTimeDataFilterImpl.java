@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.datafilter;
 
-import org.transitclock.config.LongConfigValue;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
@@ -12,11 +11,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class DwellTimeDataFilterImpl implements DwellTimeDataFilter {
-    private static final LongConfigValue minDwellTimeAllowedInModel = new LongConfigValue(
-            "transitclock.prediction.dwell.minDwellTimeAllowedInModel",
-            (long) 0,
-            "Min dwell time to be considered in algorithm.");
-
     private final PredictionProperties predictionProperties;
 
     public DwellTimeDataFilterImpl(PredictionProperties predictionProperties) {
@@ -38,7 +32,7 @@ public class DwellTimeDataFilterImpl implements DwellTimeDataFilter {
                         || arrival.getScheduledAdherence()
                                 .isWithinBounds(predictionProperties.getRls().getMinSceheduleAdherence(), predictionProperties.getRls().getMaxSceheduleAdherence())) {
                     if (dwelltime < predictionProperties.getRls().getMaxDwellTimeAllowedInModel()
-                            && dwelltime > minDwellTimeAllowedInModel.getValue()) {
+                            && dwelltime > predictionProperties.getDwell().getMinDwellTimeAllowedInModel()) {
                         return false;
                     } else {
                         logger.warn("Dwell time {} outside allowable range for {}.", dwelltime, departure);

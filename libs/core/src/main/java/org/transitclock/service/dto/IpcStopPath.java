@@ -3,6 +3,7 @@ package org.transitclock.service.dto;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Stop;
@@ -25,7 +26,7 @@ public class IpcStopPath implements Serializable {
     private final boolean layoverStop;
     private final boolean waitStop;
     private final boolean scheduleAdherenceStop;
-    private final Integer breakTime;
+    private final Optional<Integer> breakTime;
     private final List<Location> locations;
     private final double pathLength;
 
@@ -104,7 +105,7 @@ public class IpcStopPath implements Serializable {
         return scheduleAdherenceStop;
     }
 
-    public Integer getBreakTime() {
+    public Optional<Integer> getBreakTime() {
         return breakTime;
     }
 

@@ -8,12 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.stereotype.Component;
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * Contains information on Blocks as a whole, such as which blocks are currently active.
@@ -21,13 +23,12 @@ import org.transitclock.utils.Time;
  * @author SkiBu Smith
  */
 @Component
+@RequiredArgsConstructor
 public class BlockInfoProvider {
 
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public BlockInfoProvider(DbConfig dbConfig) {
-        this.dbConfig = dbConfig;
-    }
 
     /**
      * Looks at all blocks that are for the current service ID and returns list of ones that will
@@ -68,7 +69,7 @@ public class BlockInfoProvider {
      */
     public List<Block> getCurrentlyActiveBlocks() {
         return getCurrentlyActiveBlocks(
-                null, null, CoreConfig.blockactiveForTimeBeforeSecs.getValue(), CoreConfig.blockactiveForTimeAfterSecs.getValue());
+                null, null, coreProperties.getBlockactiveForTimeBeforeSecs(), coreProperties.getBlockactiveForTimeAfterSecs());
     }
 
     /**

@@ -3,13 +3,19 @@ package org.transitclock.core.prediction.frequency.traveltime.average;
 
 import java.util.Date;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.transitclock.config.data.CoreConfig;
-import org.transitclock.core.*;
+import org.transitclock.core.Indices;
+import org.transitclock.core.TravelTimes;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.RealTimeSchedAdhProcessor;
 import org.transitclock.core.avl.space.SpatialMatch;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.HistoricalAverage;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopPathCacheKey;
+import org.transitclock.core.dataCache.StopPathPredictionCache;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.VehicleDataCache;
+import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
 import org.transitclock.core.prediction.PredictionComponentElementsGenerator;
@@ -20,8 +26,11 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.PredictionForStopPath;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.utils.SystemTime;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden This provides a prediction based on the average of historical data for
@@ -48,8 +57,12 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
                                                     VehicleStatusManager vehicleStatusManager,
                                                     RealTimeSchedAdhProcessor realTimeSchedAdhProcessor,
                                                     BiasAdjuster biasAdjuster,
-                                                    FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache) {
-        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster);
+                                                    FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
+                                                    CoreProperties coreProperties) {
+        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig,
+              dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache,
+              stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager,
+              realTimeSchedAdhProcessor, biasAdjuster, coreProperties);
         this.frequencyBasedHistoricalAverageCache = frequencyBasedHistoricalAverageCache;
     }
 
@@ -70,7 +83,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
 
             /* this is what gets the trip from the buckets */
             time = FrequencyBasedHistoricalAverageCache.round(
-                    time, CoreConfig.getCacheIncrementsForFrequencyService());
+                    time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
             StopPathCacheKey historicalAverageCacheKey =
                     new StopPathCacheKey(indices.getTrip().getId(), indices.getStopPathIndex(), true, (long) time);
@@ -78,7 +91,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
             HistoricalAverage average = frequencyBasedHistoricalAverageCache.getAverage(historicalAverageCacheKey);
 
             if (average != null && average.getCount() >= predictionProperties.getData().getAverage().getMindays()) {
-                if (CoreConfig.storeTravelTimeStopPathPredictions.getValue()) {
+                if (coreProperties.getStoreTravelTimeStopPathPredictions()) {
                     PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                             vehicleStatus.getVehicleId(),
                             SystemTime.getDate(),
@@ -111,8 +124,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
         int time = FrequencyBasedHistoricalAverageCache.secondsFromMidnight(new Date(match.getAvlTime()), 2);
 
         /* this is what gets the trip from the buckets */
-        time = FrequencyBasedHistoricalAverageCache.round(
-                time, CoreConfig.getCacheIncrementsForFrequencyService());
+        time = FrequencyBasedHistoricalAverageCache.round(time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
         StopPathCacheKey historicalAverageCacheKey =
                 new StopPathCacheKey(indices.getTrip().getId(), indices.getStopPathIndex(), true, (long) time);
@@ -124,7 +136,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
             double fractionofstoppathlefttotravel = (match.getStopPath().getLength() - match.getDistanceAlongStopPath())
                     / match.getStopPath().getLength();
             double value = average.getAverage() * fractionofstoppathlefttotravel;
-            if (CoreConfig.storeTravelTimeStopPathPredictions.getValue()) {
+            if (coreProperties.getStoreTravelTimeStopPathPredictions()) {
                 PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                         avlReport.getVehicleId(),
                         SystemTime.getDate(),
@@ -150,8 +162,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
             int time = FrequencyBasedHistoricalAverageCache.secondsFromMidnight(avlReport.getDate(), 2);
 
             /* this is what gets the trip from the buckets */
-            time = FrequencyBasedHistoricalAverageCache.round(
-                    time, CoreConfig.getCacheIncrementsForFrequencyService());
+            time = FrequencyBasedHistoricalAverageCache.round(time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
             StopPathCacheKey historicalAverageCacheKey = new StopPathCacheKey(
                     indices.getTrip().getId(), indices.getStopPathIndex(), false, (long) time);
@@ -160,7 +171,7 @@ public class HistoricalAveragePredictionGeneratorImpl extends LastVehiclePredict
                     frequencyBasedHistoricalAverageCache.getAverage(historicalAverageCacheKey);
 
             if (average != null && average.getCount() >= predictionProperties.getData().getAverage().getMindays()) {
-                if (CoreConfig.storeDwellTimeStopPathPredictions.getValue()) {
+                if (coreProperties.getStoreDwellTimeStopPathPredictions()) {
                     PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                             vehicleStatus.getVehicleId(),
                             SystemTime.getDate(),

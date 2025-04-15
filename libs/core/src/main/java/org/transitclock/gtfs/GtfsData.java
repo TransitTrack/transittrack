@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.transitclock.domain.repository.RouteRepository;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Block;
@@ -91,8 +92,6 @@ public class GtfsData {
     // For when zip file used. Null otherwise
     private final Date zipFileLastModifiedTime;
     private final int originalTravelTimesRev;
-
-    private final String agencyId;
 
     private final TitleFormatter titleFormatter;
     private final ReaderHelper readerHelper;
@@ -183,7 +182,6 @@ public class GtfsData {
             int configRev,
             Date zipFileLastModifiedTime,
             boolean shouldStoreNewRevs,
-            String projectId,
             TitleFormatter titleFormatter,
             ReaderHelper readerHelper,
             GtfsFilter filter
@@ -192,7 +190,6 @@ public class GtfsData {
         // Get the database session. Using one session for the whole process.
         this.session = session;
 
-        this.agencyId = projectId;
         this.zipFileLastModifiedTime = zipFileLastModifiedTime;
         this.titleFormatter = titleFormatter;
         this.readerHelper = readerHelper;
@@ -424,7 +421,7 @@ public class GtfsData {
         // Sort the routes so that can determine the route order for each one.
         // Uses GTFS route_order when available and uses route_name when not.
         ArrayList<Route> routes = new ArrayList<>(routesMap.values());
-        routes.sort(Route.routeComparator);
+        routes.sort(RouteRepository.routeComparator);
 
         // Determine and set route order for each route if it is not already set
         int routeOrderCounter = 0;
@@ -1094,7 +1091,7 @@ public class GtfsData {
 
             // Determine the pathId. Make sure that use a unique path ID by
             // appending "_loop" if looping over the same stops
-            String pathId = StopPath.determinePathId(previousStopId, stopId);
+            String pathId = StopPathHelper.determinePathId(previousStopId, stopId);
             while (pathIdsForTrip.contains(pathId)) pathId += "_loop";
             pathIdsForTrip.add(pathId);
 

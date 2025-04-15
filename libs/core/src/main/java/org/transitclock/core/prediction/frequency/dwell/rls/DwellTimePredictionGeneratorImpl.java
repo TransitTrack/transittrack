@@ -3,7 +3,6 @@ package org.transitclock.core.prediction.frequency.dwell.rls;
 
 import java.util.Date;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
@@ -26,6 +25,7 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +57,9 @@ public class DwellTimePredictionGeneratorImpl extends KalmanPredictionGeneratorI
                                             BiasAdjuster biasAdjuster,
                                             FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
                                             ErrorCache kalmanErrorCache,
-                                            DwellTimeModelCacheInterface dwellTimeModelCacheInterface) {
-        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster, frequencyBasedHistoricalAverageCache, kalmanErrorCache);
+                                            DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
+                                            CoreProperties coreProperties) {
+        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster, frequencyBasedHistoricalAverageCache, kalmanErrorCache, coreProperties);
         this.dwellTimeModelCacheInterface = dwellTimeModelCacheInterface;
     }
 
@@ -77,7 +78,7 @@ public class DwellTimePredictionGeneratorImpl extends KalmanPredictionGeneratorI
                     // TODO Would be more correct to use the start time of the trip.
                     int time = FrequencyBasedHistoricalAverageCache.secondsFromMidnight(new Date(avlReport.getTime()), 2);
 
-                    time = FrequencyBasedHistoricalAverageCache.round(time, CoreConfig.getCacheIncrementsForFrequencyService());
+                    time = FrequencyBasedHistoricalAverageCache.round(time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
                     StopPathCacheKey cacheKey = new StopPathCacheKey(
                             indices.getTrip().getId(), indices.getStopPathIndex(), false, (long) time);

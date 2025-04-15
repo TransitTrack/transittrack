@@ -10,6 +10,7 @@ import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
 import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
+import org.transitclock.core.prediction.accuracy.PredictionAccuracyModule;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.ArrivalsDeparturesProperties;
@@ -18,6 +19,8 @@ import org.transitclock.properties.CoreProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.transitclock.properties.PredictionAccuracyProperties;
 
 /**
  * For instantiating a ArrivalDepartureGenerator object that generates arrival/departure data when a
@@ -44,10 +47,11 @@ public class ArrivalDepartureGeneratorFactory {
                                                                StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
                                                                DwellTimeModelCacheInterface dwellTimeModelCacheInterface,
                                                                DataDbLogger dataDbLogger,
-                                                               DbConfig dbConfig) {
+                                                               DbConfig dbConfig,
+                                                               PredictionAccuracyModule predictionAccuracyModule) {
         // If the PredictionGenerator hasn't been created yet then do so now
         if (neededClass == ArrivalDepartureGeneratorDefaultImpl.class)
-            return new ArrivalDepartureGeneratorDefaultImpl(scheduleBasedHistoricalAverageCache, frequencyBasedHistoricalAverageCache, holdingTimeCache, vehicleStatusManager, holdingTimeGenerator, travelTimes, tripDataHistoryCacheInterface, stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface, dataDbLogger, dbConfig, arrivalsDeparturesProperties, coreProperties);
+            return new ArrivalDepartureGeneratorDefaultImpl(scheduleBasedHistoricalAverageCache, frequencyBasedHistoricalAverageCache, holdingTimeCache, vehicleStatusManager, holdingTimeGenerator, travelTimes, tripDataHistoryCacheInterface, stopArrivalDepartureCacheInterface, dwellTimeModelCacheInterface, dataDbLogger, dbConfig, arrivalsDeparturesProperties, coreProperties, predictionAccuracyModule);
 
         throw new IllegalArgumentException("Requested ArrivalDepartureGenerator is not implemented");
     }

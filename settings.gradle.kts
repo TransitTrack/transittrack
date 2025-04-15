@@ -11,15 +11,15 @@ pluginManagement {
         kotlin("plugin.allopen") version kotlinVersion
 
         id("org.springframework.boot") version springVersion
-        id("io.spring.dependency-management") version "1.1.5"
+        id("io.spring.dependency-management") version "1.1.7"
 
         id("com.google.cloud.tools.jib") version jibPluginVersion
         id("com.palantir.git-version") version "3.1.0"
         id("com.gorylenko.gradle-git-properties") version gitPropertiesPluginVersion
 
         id("com.google.protobuf") version "0.9.4"
-        id("com.diffplug.spotless") version "6.25.0"
-        id("com.github.andygoossens.gradle-modernizer-plugin") version "1.9.2"
+        id("com.diffplug.spotless") version "7.0.0.BETA4"
+        id("com.github.andygoossens.gradle-modernizer-plugin") version "1.10.0"
     }
     repositories {
         mavenCentral()

@@ -2,3 +2,6 @@ logs
 .git
 .github
 .idea
+config
+database
+.fastRequest

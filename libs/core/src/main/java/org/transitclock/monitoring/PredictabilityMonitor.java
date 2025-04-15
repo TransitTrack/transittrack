@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.transitclock.config.data.MonitoringConfig;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.Block;
+import org.transitclock.properties.MonitoringProperties;
 import org.transitclock.utils.StringUtils;
 
 /**
@@ -22,8 +22,11 @@ public class PredictabilityMonitor extends MonitorBase {
     private final VehicleDataCache vehicleDataCache;
     private final BlockInfoProvider blockInfoProvider;
 
-    public PredictabilityMonitor(String agencyId, DataDbLogger dataDbLogger, VehicleDataCache vehicleDataCache, BlockInfoProvider blockInfoProvider) {
-        super(agencyId, dataDbLogger);
+    public PredictabilityMonitor(String agencyId, DataDbLogger dataDbLogger,
+                                 VehicleDataCache vehicleDataCache,
+                                 BlockInfoProvider blockInfoProvider,
+                                 MonitoringProperties properties) {
+        super(agencyId, dataDbLogger, properties);
         this.vehicleDataCache = vehicleDataCache;
         this.blockInfoProvider = blockInfoProvider;
     }
@@ -61,20 +64,20 @@ public class PredictabilityMonitor extends MonitorBase {
         }
 
         // Determine fraction of active blocks that have a predictable vehicle
-        double fraction = ((double) Math.max(predictableVehicleCount, MonitoringConfig.minimumPredictableVehicles.getValue()))
+        double fraction = ((double) Math.max(predictableVehicleCount, properties.getMinimumPredictableVehicles()))
                 / activeBlocks.size();
 
         // Provide simple message explaining the situation
         String message = "Predictable blocks fraction="
                 + StringUtils.twoDigitFormat(fraction)
                 + ", minimum allowed fraction="
-                + StringUtils.twoDigitFormat(MonitoringConfig.minPredictableBlocks.getValue())
+                + StringUtils.twoDigitFormat(properties.getMinPredictableBlocks())
                 + ", active blocks="
                 + activeBlocks.size()
                 + ", predictable vehicles="
                 + predictableVehicleCount
                 + " (minimumPredictableVehicles="
-                + Math.max(predictableVehicleCount, MonitoringConfig.minimumPredictableVehicles.getValue())
+                + Math.max(predictableVehicleCount, properties.getMinimumPredictableVehicles())
                 + ").";
 
         // If below the threshold then add all the active block IDs to the
@@ -107,8 +110,8 @@ public class PredictabilityMonitor extends MonitorBase {
         // then raise the threshold by minPredictableBlocksGap in order
         // to prevent lots of e-mail being sent out if the value is
         // dithering around minPredictableBlocks.
-        double threshold = MonitoringConfig.minPredictableBlocks.getValue();
-        if (wasTriggered()) threshold += MonitoringConfig.minPredictableBlocksGap.getValue();
+        double threshold = properties.getMinPredictableBlocks();
+        if (wasTriggered()) threshold += properties.getMinPredictableBlocksGap();
 
         double fraction = fractionBlocksPredictable(threshold);
 

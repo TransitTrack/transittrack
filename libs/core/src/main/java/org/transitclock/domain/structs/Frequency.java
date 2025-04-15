@@ -6,15 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.model.GtfsFrequency;
 
@@ -91,19 +87,6 @@ public class Frequency implements Serializable {
         endTime = -1;
         headwaySecs = -1;
         exactTimes = false;
-    }
-
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session.createMutationQuery("DELETE Frequency WHERE configRev= :configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    public static List<Frequency> getFrequencies(Session session, int configRev) throws HibernateException {
-        return session.createQuery("FROM Frequency WHERE configRev = :configRev", Frequency.class)
-                .setParameter("configRev", configRev)
-                .list();
     }
 
     @Override

@@ -13,7 +13,6 @@ import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.Calendar;
 import org.transitclock.domain.structs.CalendarDate;
 import org.transitclock.domain.structs.ConfigRevision;
-import org.transitclock.domain.structs.DbTest;
 import org.transitclock.domain.structs.Departure;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.FareAttribute;
@@ -69,7 +68,6 @@ public class HibernateUtils {
         Calendar.class,
         CalendarDate.class,
         ConfigRevision.class,
-        DbTest.class,
         ExportTable.class,
         Prediction.class,
         Departure.class,

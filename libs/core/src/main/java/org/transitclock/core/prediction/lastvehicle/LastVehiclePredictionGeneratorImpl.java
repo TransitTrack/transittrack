@@ -1,12 +1,20 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.lastvehicle;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.transitclock.config.data.CoreConfig;
-import org.transitclock.core.*;
+import org.transitclock.core.Indices;
+import org.transitclock.core.TravelTimeDetails;
+import org.transitclock.core.TravelTimes;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.RealTimeSchedAdhProcessor;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopPathPredictionCache;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.VehicleDataCache;
+import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.core.holdingmethod.HoldingTimeGenerator;
 import org.transitclock.core.prediction.PredictionGeneratorDefaultImpl;
 import org.transitclock.core.prediction.bias.BiasAdjuster;
@@ -15,13 +23,13 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.PredictionForStopPath;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden This provides a prediction based on the time it took the previous vehicle
@@ -39,6 +47,7 @@ import java.util.List;
 @Slf4j
 public class LastVehiclePredictionGeneratorImpl extends PredictionGeneratorDefaultImpl {
     protected final VehicleDataCache vehicleCache;
+    protected final CoreProperties coreProperties;
 
 
     public LastVehiclePredictionGeneratorImpl(StopArrivalDepartureCacheInterface stopArrivalDepartureCacheInterface,
@@ -54,9 +63,11 @@ public class LastVehiclePredictionGeneratorImpl extends PredictionGeneratorDefau
                                               HoldingTimeGenerator holdingTimeGenerator,
                                               VehicleStatusManager vehicleStatusManager,
                                               RealTimeSchedAdhProcessor realTimeSchedAdhProcessor,
-                                              BiasAdjuster biasAdjuster) {
+                                              BiasAdjuster biasAdjuster,
+                                              CoreProperties coreProperties) {
         super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster);
         this.vehicleCache = vehicleCache;
+        this.coreProperties = coreProperties;
     }
 
     @Override
@@ -99,7 +110,7 @@ public class LastVehiclePredictionGeneratorImpl extends PredictionGeneratorDefau
             if ((travelTimeDetails = this.getLastVehicleTravelTime(currentVehicleStatus, indices)) != null) {
                 logger.debug("Using last vehicle algorithm for prediction : {} for : {}", travelTimeDetails, indices);
 
-                if (CoreConfig.storeTravelTimeStopPathPredictions.getValue()) {
+                if (coreProperties.getStoreTravelTimeStopPathPredictions()) {
                     PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                             vehicleStatus.getVehicleId(),
                             SystemTime.getDate(),

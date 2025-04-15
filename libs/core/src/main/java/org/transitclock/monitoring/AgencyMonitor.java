@@ -10,6 +10,7 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
+import org.transitclock.properties.MonitoringProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,8 +28,6 @@ public class AgencyMonitor {
     // List of all the monitoring to do
     private final List<MonitorBase> monitors;
 
-    private static final String enableSystemMonitoring = System.getProperty("transitclock.enableSystemMonitoring");
-
     /**
      * Constructor declared private so have to use getInstance() to get an AgencyMonitor. Like a
      * singleton, but one AgencyMonitor for every agencyId.
@@ -38,14 +37,15 @@ public class AgencyMonitor {
                          DbConfig dbConfig,
                          DataDbLogger dataDbLogger,
                          VehicleDataCache vehicleDataCache,
-                         AvlProcessor avlProcessor) {
+                         AvlProcessor avlProcessor,
+                         MonitoringProperties properties) {
         String agencyId = coreProperties.getAgencyId();
         // Create all the monitors and add them to the monitors list
         monitors = new ArrayList<>();
-        monitors.add(new AvlFeedMonitor(agencyId, dataDbLogger, avlProcessor, blockInfoProvider));
-        monitors.add(new PredictabilityMonitor(agencyId, dataDbLogger, vehicleDataCache, blockInfoProvider));
-        monitors.add(new DatabaseQueueMonitor(agencyId, dataDbLogger));
-        monitors.add(new ActiveBlocksMonitor(agencyId, dataDbLogger, blockInfoProvider, dbConfig));
+        monitors.add(new AvlFeedMonitor(agencyId, dataDbLogger, avlProcessor, blockInfoProvider, properties));
+        monitors.add(new PredictabilityMonitor(agencyId, dataDbLogger, vehicleDataCache, blockInfoProvider, properties));
+        monitors.add(new DatabaseQueueMonitor(agencyId, dataDbLogger, properties));
+        monitors.add(new ActiveBlocksMonitor(agencyId, dataDbLogger, blockInfoProvider, dbConfig, properties));
     }
 
     /**

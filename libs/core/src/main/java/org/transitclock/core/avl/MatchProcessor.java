@@ -166,7 +166,7 @@ public class MatchProcessor {
 
         // Process predictions, headways, arrivals/departures, and and spatial
         // matches. If don't need matches then don't store them
-        if (!coreProperties.getOnlyNeedArrivalDepartures()) {
+        if (!coreProperties.isOnlyNeedArrivalDepartures()) {
             processPredictions(vehicleStatus);
             processHeadways(vehicleStatus);
             processSpatialMatch(vehicleStatus);

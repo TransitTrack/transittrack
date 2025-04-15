@@ -3,6 +3,7 @@ package org.transitclock.core.dataCache;
 
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.GtfsProperties;
 
 import lombok.RequiredArgsConstructor;
@@ -24,10 +25,11 @@ public class TripDataHistoryCacheFactory {
     @Bean
     public TripDataHistoryCacheInterface tripDataHistoryCacheInterface(CacheManager cacheManager,
                                                                        GtfsProperties gtfsProperties,
+                                                                       CoreProperties coreProperties,
                                                                        DbConfig dbConfig) {
         var gtfsFilter = new GtfsFilter(gtfsProperties.getRouteIdFilterRegEx(), gtfsProperties.getTripIdFilterRegEx());
         if (className == org.transitclock.core.dataCache.ehcache.frequency.TripDataHistoryCache.class) {
-            return new org.transitclock.core.dataCache.ehcache.frequency.TripDataHistoryCache(cacheManager, gtfsFilter, dbConfig);
+            return new org.transitclock.core.dataCache.ehcache.frequency.TripDataHistoryCache(cacheManager, gtfsFilter, dbConfig, coreProperties);
         } else {
             return new org.transitclock.core.dataCache.ehcache.scheduled.TripDataHistoryCache(cacheManager, gtfsFilter, dbConfig);
         }

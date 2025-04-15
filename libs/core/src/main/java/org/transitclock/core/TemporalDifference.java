@@ -2,7 +2,7 @@
 package org.transitclock.core;
 
 import java.io.Serializable;
-import org.transitclock.config.data.CoreConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Time;
 
 /**
@@ -15,7 +15,7 @@ import org.transitclock.utils.Time;
  * @author SkiBu Smith
  */
 public class TemporalDifference implements Serializable {
-
+    private final CoreProperties coreProperties;
     // Positive means ahead of and traveling faster than expected. Negative
     // means behind and traveling slower than expected.
     private int temporalDifferenceMsec;
@@ -24,19 +24,9 @@ public class TemporalDifference implements Serializable {
      * @param temporalDifferenceMsec Positive means vehicle is ahead of where expected, negative
      *     means behind.
      */
-    public TemporalDifference(int temporalDifferenceMsec) {
+    public TemporalDifference(int temporalDifferenceMsec, CoreProperties coreProperties) {
         this.temporalDifferenceMsec = temporalDifferenceMsec;
-    }
-
-    /**
-     * Often working with longs for time so it is convenient to have a constructor that will accept
-     * a long as the temporal difference.
-     *
-     * @param temporalDifferenceMsec Positive means vehicle is ahead of where expected, negative
-     *     means behind.
-     */
-    public TemporalDifference(long temporalDifferenceMsec) {
-        this.temporalDifferenceMsec = (int) temporalDifferenceMsec;
+        this.coreProperties = coreProperties;
     }
 
     /**
@@ -47,10 +37,11 @@ public class TemporalDifference implements Serializable {
      * @param latenessMsec How much lateness to add.
      */
     public void addTime(int latenessMsec) {
-        if (temporalDifferenceMsec < 0)
+        if (temporalDifferenceMsec < 0) {
             temporalDifferenceMsec -= latenessMsec;
-        else
-            temporalDifferenceMsec += (int) (latenessMsec / CoreConfig.getEarlyToLateRatio());
+        } else {
+            temporalDifferenceMsec += (int) (latenessMsec / coreProperties.getEarlyToLateRatio());
+        }
     }
 
     /**
@@ -60,8 +51,8 @@ public class TemporalDifference implements Serializable {
      * @return true if within bounds
      */
     public boolean isWithinBounds() {
-        return temporalDifferenceMsec < CoreConfig.getAllowableEarlySeconds() * Time.MS_PER_SEC
-                && -temporalDifferenceMsec < CoreConfig.getAllowableLateSeconds() * Time.MS_PER_SEC;
+        return temporalDifferenceMsec < coreProperties.getAllowableEarlySeconds() * Time.MS_PER_SEC
+                && -temporalDifferenceMsec < coreProperties.getAllowableLateSeconds() * Time.MS_PER_SEC;
     }
 
     /**
@@ -75,8 +66,8 @@ public class TemporalDifference implements Serializable {
      * @return true if within bounds
      */
     public boolean isWithinBoundsForInitialMatching() {
-        return temporalDifferenceMsec < CoreConfig.getAllowableEarlySecondsForInitialMatching() * Time.MS_PER_SEC
-                && -temporalDifferenceMsec < CoreConfig.getAllowableLateSecondsForInitialMatching() * Time.MS_PER_SEC;
+        return temporalDifferenceMsec < coreProperties.getAllowableEarlySecondsForInitialMatching() * Time.MS_PER_SEC
+                && -temporalDifferenceMsec < coreProperties.getAllowableLateSecondsForInitialMatching() * Time.MS_PER_SEC;
     }
 
     /**
@@ -125,12 +116,13 @@ public class TemporalDifference implements Serializable {
      */
     private int temporalDifferenceAbsoluteValue() {
         // Early or late?
-        if (temporalDifferenceMsec > 0)
+        if (temporalDifferenceMsec > 0) {
             // Early, so multiply by early to late ratio
-            return (int) Math.round(temporalDifferenceMsec * CoreConfig.getEarlyToLateRatio());
-        else
+            return (int) Math.round(temporalDifferenceMsec * coreProperties.getEarlyToLateRatio());
+        } else {
             // Late or on time, so return positive version of temporal different
             return -temporalDifferenceMsec;
+        }
     }
 
     /**
@@ -153,7 +145,9 @@ public class TemporalDifference implements Serializable {
     public boolean betterThan(TemporalDifference other) {
         // If other parameter not specified then temporal difference for
         // this object should be considered true.
-        if (other == null) return true;
+        if (other == null) {
+            return true;
+        }
 
         // Compare using absolute values that are adjusted by the
         // getEarlyToLateRatio.
@@ -170,7 +164,9 @@ public class TemporalDifference implements Serializable {
     public boolean betterThanOrEqualTo(TemporalDifference other) {
         // If other parameter not specified then temporal difference for
         // this object should be considered true.
-        if (other == null) return true;
+        if (other == null) {
+            return true;
+        }
 
         // Compare using absolute values that are adjusted by the
         // getEarlyToLateRatio.

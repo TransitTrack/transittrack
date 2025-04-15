@@ -1,14 +1,15 @@
 /* (C)2023 */
 package org.transitclock.core;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.ScheduleTime;
 import org.transitclock.domain.structs.TravelTimesForStopPath;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Time;
 
 import java.util.Date;
@@ -21,13 +22,12 @@ import java.util.Date;
  * @author SkiBu Smith
  */
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class TravelTimes {
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public TravelTimes(DbConfig dbConfig) {
-        this.dbConfig = dbConfig;
-    }
 
     /**
      * Determines travel time as the crows flies to cover the distance. Intended to be used for
@@ -42,11 +42,11 @@ public class TravelTimes {
      * @param distance As the crow flies
      * @return Msec would take to travel the distance
      */
-    public static int travelTimeAsTheCrowFlies(double distance) {
+    public int travelTimeAsTheCrowFlies(double distance) {
         // Convenience variables
-        float SHORT_DISTANCE = CoreConfig.getDeadheadingShortVersusLongDistance();
-        float SHORT_DISTANCE_SPEED = CoreConfig.getShortDistanceDeadheadingSpeed();
-        float LONG_DISTANCE_SPEED = CoreConfig.getLongDistanceDeadheadingSpeed();
+        float SHORT_DISTANCE = coreProperties.getDeadheadingShortVersusLongDistance();
+        float SHORT_DISTANCE_SPEED = coreProperties.getShortDistanceDeadheadingSpeed();
+        float LONG_DISTANCE_SPEED = coreProperties.getLongDistanceDeadheadingSpeed();
 
         double shortDistanceTravel;
         double longDistanceTravel;
@@ -75,11 +75,11 @@ public class TravelTimes {
      * @return Msec of travel time from end of previous trip to the new location. If there is no
      *     previous trip then returns 0.
      */
-    public static int travelTimeFromLayoverArrivalToNewLoc(SpatialMatch spatialMatch, Location newLoc) {
+    public int travelTimeFromLayoverArrivalToNewLoc(SpatialMatch spatialMatch, Location newLoc) {
         if (!spatialMatch.isLayover()) return 0;
 
         // Determine the stop at the end of the previous trip
-        SpatialMatch matchAtPreviousStop = spatialMatch.getMatchAtPreviousStop();
+        SpatialMatch matchAtPreviousStop = spatialMatch.getMatchAtPreviousStop(coreProperties);
 
         // If there was no previous trip then return 0
         if (matchAtPreviousStop == null) {
@@ -169,8 +169,7 @@ public class TravelTimes {
      */
     private TimeTravelInfo travelTimeInfoForPartialPath(SpatialMatch match) {
         // Get the travel times for this stop path
-        TravelTimesForStopPath travelTimesForStopPath =
-                match.getTrip().getTravelTimesForStopPath(match.getStopPathIndex());
+        TravelTimesForStopPath travelTimesForStopPath = match.getTrip().getTravelTimesForStopPath(match.getStopPathIndex());
 
         // Use a segment length of the StopPath length divided by number of
         // travel times. This way even if the paths change a bit can still

@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.properties.CoreProperties;
 
 /**
  * For keeping track of vehicle state. This is used by the main predictor code, not for RMI clients.
@@ -17,7 +19,9 @@ import org.transitclock.core.VehicleStatus;
  * @author SkiBu Smith
  */
 @Component
+@RequiredArgsConstructor
 public class VehicleStatusManager {
+    private final CoreProperties coreProperties;
 
     // Keyed by vehicle ID. Need to use ConcurrentHashMap instead of HashMap
     // since getVehiclesState() returns values() of the map which can be
@@ -41,7 +45,7 @@ public class VehicleStatusManager {
      * @return the {@link VehicleStatus} for the vehicle
      */
     public VehicleStatus getStatus(@NonNull String vehicleId) {
-        return vehicleMap.computeIfAbsent(vehicleId, VehicleStatus::new);
+        return vehicleMap.computeIfAbsent(vehicleId, id -> new VehicleStatus(id, coreProperties));
     }
 
     /**
