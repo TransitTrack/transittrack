@@ -12,6 +12,7 @@ import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.VehicleEvent;
+import org.transitclock.domain.structs.VehicleEventType;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.properties.TimeoutProperties;
@@ -91,7 +92,7 @@ public class TimeoutHandlerModule implements Module {
                     + Time.elapsedTimeStr(maxNoAvl)
                     + " and so was made unpredictable.";
             avlProcessor
-                    .makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.TIMEOUT);
+                    .makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.TIMEOUT);
 
             // Also log the situation
             logger.info("For vehicleId={} {}", vehicleStatus.getVehicleId(), eventDescription);
@@ -149,7 +150,7 @@ public class TimeoutHandlerModule implements Module {
         if (shouldTimeoutEventDescription != null) {
             avlProcessor
                     .makeVehicleUnpredictable(
-                            vehicleStatus.getVehicleId(), shouldTimeoutEventDescription, VehicleEvent.TIMEOUT);
+                            vehicleStatus.getVehicleId(), shouldTimeoutEventDescription, VehicleEventType.TIMEOUT);
 
             // Also log the situation
             logger.info(
@@ -298,7 +299,7 @@ public class TimeoutHandlerModule implements Module {
                         + Time.elapsedTimeStr(maxNoAvlAfterSchedDepartSecs)
                         + ". Therefore vehicle was made unpredictable.";
                 avlProcessor
-                        .makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.TIMEOUT);
+                        .makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.TIMEOUT);
 
                 // Also log the situation
                 logger.info("For vehicleId={} {}", vehicleStatus.getVehicleId(), eventDescription);

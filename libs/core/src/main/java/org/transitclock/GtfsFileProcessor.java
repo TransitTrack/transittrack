@@ -4,8 +4,6 @@ package org.transitclock;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.transitclock.config.ConfigFileReader;
-import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.gtfs.*;
 import org.transitclock.gtfs.model.GtfsAgency;
@@ -56,13 +54,6 @@ public class GtfsFileProcessor {
     private final boolean trimPathBeforeFirstStopOfTrip;
     private final double maxDistanceBetweenStops;
     private final boolean disableSpecialLoopBackToBeginningCase;
-
-    // Read in configuration files. This should be done statically before
-    // the logback LoggerFactory.getLogger() is called so that logback can
-    // also be configured using a transitime config file.
-    static {
-        ConfigFileReader.processConfig();
-    }
 
     /**
      * Simple constructor. Stores the configurable parameters for this class. Declared private since
@@ -125,7 +116,7 @@ public class GtfsFileProcessor {
         }
 
         if (gtfsUrl != null) {
-            gtfsZipFileName = HttpGetGtfsFile.getFile(AgencyConfig.getAgencyId(), gtfsUrl, unzipSubdirectory);
+            gtfsZipFileName = HttpGetGtfsFile.getFile("transittrack", gtfsUrl, unzipSubdirectory);
         }
 
         if (gtfsZipFileName != null) {
@@ -236,7 +227,6 @@ public class GtfsFileProcessor {
                     configRev,
                     zipFileLastModifiedTime,
                     shouldStoreNewRevs,
-                    AgencyConfig.getAgencyId(),
                     titleFormatter,
                     readerHelper,
                     gtfsFilter);

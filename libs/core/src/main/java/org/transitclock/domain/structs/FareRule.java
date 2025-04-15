@@ -7,13 +7,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.ToString;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.model.GtfsFareRule;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -84,37 +81,6 @@ public class FareRule implements Serializable {
         originId = null;
         destinationId = null;
         containsId = null;
-    }
-
-    /**
-     * Deletes rev from the FareRules table
-     *
-     * @param session
-     * @param configRev
-     * @return Number of rows deleted
-     * @throws HibernateException
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session
-                .createMutationQuery("DELETE FareRule WHERE configRev = :configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    /**
-     * Returns List of FareRule objects for the specified database revision.
-     *
-     * @param session
-     * @param configRev
-     * @return
-     * @throws HibernateException
-     */
-    @SuppressWarnings("unchecked")
-    public static List<FareRule> getFareRules(Session session, int configRev) throws HibernateException {
-        return session.createQuery("FROM FareRule WHERE configRev = :configRev", FareRule.class)
-                .setParameter("configRev", configRev)
-                .list();
     }
 
     /**

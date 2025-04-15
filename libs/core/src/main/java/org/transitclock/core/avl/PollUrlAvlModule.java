@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import org.transitclock.config.data.AvlConfig;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.utils.IntervalTimer;
@@ -142,10 +141,10 @@ public abstract class PollUrlAvlModule extends AvlModule {
         }
     }
 
-    private static void configureConnectionAuthentication(URLConnection con) {
+    private void configureConnectionAuthentication(URLConnection con) {
         // If authentication being used then set user and password
-        if (AvlConfig.authenticationUser.getValue() != null && AvlConfig.authenticationPassword.getValue() != null) {
-            String authString = AvlConfig.authenticationUser.getValue() + ":" + AvlConfig.authenticationPassword.getValue();
+        if (avlProperties.getAuthenticationUser() != null && avlProperties.getAuthenticationPassword() != null) {
+            String authString = avlProperties.getAuthenticationUser() + ":" + avlProperties.getAuthenticationPassword();
             byte[] authEncBytes = Base64.getEncoder().encode(authString.getBytes());
             String authStringEnc = new String(authEncBytes);
             con.setRequestProperty("Authorization", "Basic " + authStringEnc);
@@ -171,7 +170,7 @@ public abstract class PollUrlAvlModule extends AvlModule {
             logger.error(
                     "Error accessing AVL feed using URL={} with a timeout of {} msec.",
                     getSources(),
-                    AvlConfig.getAvlFeedTimeoutInMSecs(),
+                    avlProperties.getFeedPollingRateSecs(),
                     e);
         } catch (Exception e) {
             logger.error("Error accessing AVL feed using URL={}.", getSources(), e);

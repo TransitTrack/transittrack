@@ -12,9 +12,9 @@ public class PredictionProperties {
     // This set to false will not return arrival predictions of the last stop on a trip.
     private Boolean returnArrivalPredictionForEndOfTrip = false;
 
-    @lombok.Data
-    public static class Data {
-        @lombok.Data
+    @Data
+    public static class PredictionData {
+        @Data
         public static class Kalman {
             // config param: transitclock.prediction.data.kalman.mindays
             // Min number of days trip data that needs to be available before Kalman prediciton is used instead of default transiTime prediction.
@@ -51,18 +51,18 @@ public class PredictionProperties {
 
         }
 
-        @lombok.Data
+        @Data
         public static class Average {
             // config param: transitclock.prediction.data.average.mindays
             // Min number of days trip data that needs to be available before historical average prediciton is used instead of default transiTime prediction.
             private Integer mindays = 1;
         }
 
-        private Data.Kalman kalman = new Data.Kalman();
-        private Data.Average average = new Data.Average();
+        private PredictionData.Kalman kalman = new PredictionData.Kalman();
+        private PredictionData.Average average = new PredictionData.Average();
     }
 
-    private Data data = new Data();
+    private PredictionData data = new PredictionData();
 
 
     // config param: transitclock.schedBasedPreds.pollingRateMsec
@@ -85,7 +85,7 @@ public class PredictionProperties {
     // Whether should mark a ScheduleBasePred as canceled.This won't remove a trip after afterStartTimeMinutes. Instead it will change the state to cancelled.
     private Boolean cancelTripOnTimeout = true;
 
-    @lombok.Data
+    @Data
     public static class Rls {
         // config param: transitclock.prediction.rls.maxDwellTimeAllowedInModel
         // Max dwell time to be considered in dwell RLS algotithm.
@@ -118,7 +118,7 @@ public class PredictionProperties {
 
     private Rls rls = new Rls();
 
-    @lombok.Data
+    @Data
     public static class Travel {
         // config param: transitclock.prediction.travel.maxTravelTimeAllowedInModel
         // Max travel time to be considered in algorithm. Milliseconds.
@@ -132,10 +132,10 @@ public class PredictionProperties {
     private Travel travel = new Travel();
 
 
-    @lombok.Data
+    @Data
     public static class Dwell {
 
-        @lombok.Data
+        @Data
         public static class Average {
 
             // config param: transitclock.prediction.dwell.average.samplesize
@@ -149,6 +149,7 @@ public class PredictionProperties {
 
 
         private Dwell.Average average = new Dwell.Average();
+        private long minDwellTimeAllowedInModel = 0;
     }
 
     private Dwell dwell = new Dwell();

@@ -8,14 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.transitclock.config.ConfigFileReader;
-import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.core.travelTimes.TravelTimeInfoMap;
 import org.transitclock.core.travelTimes.TravelTimeInfoWithHowSet;
 import org.transitclock.core.travelTimes.TravelTimesProcessor;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.repository.TripRepository;
 import org.transitclock.domain.structs.ActiveRevision;
-import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.TravelTimesForStopPath;
 import org.transitclock.domain.structs.TravelTimesForTrip;
 import org.transitclock.domain.structs.Trip;
@@ -47,9 +46,6 @@ public class UpdateTravelTimes {
     // the logback LoggerFactory.getLogger() is called so that logback can
     // also be configured using a transitime config file. The files are
     // specified using the java system property -Dtransitclock.configFiles .
-    static {
-        ConfigFileReader.processConfig();
-    }
 
     /**
      * For each trip it finds and sets the best travel times. Then the Trip objects can be stored in
@@ -258,7 +254,7 @@ public class UpdateTravelTimes {
         try {
             ActiveRevision activeRevision = ActiveRevision.get(session);
             logger.info("Reading in trips from db...");
-            tripMap = Trip.getTrips(session, activeRevision.getConfigRev());
+            tripMap = TripRepository.getTrips(session, activeRevision.getConfigRev());
         } finally {
             logger.info("Reading in trips from db took {} msec", timer.elapsedMsec());
         }
@@ -362,7 +358,7 @@ public class UpdateTravelTimes {
      */
     public static void main(String[] args) {
         // Determine the parameters
-        String agencyId = AgencyConfig.getAgencyId();
+        String agencyId = "transittrack";
 
         String startDateStr = args[0];
         String endDateStr = args.length > 1 ? args[1] : startDateStr;
@@ -375,7 +371,7 @@ public class UpdateTravelTimes {
         // Set the timezone for the application. Must be done before
         // determine begin and end time so that get the proper time of day.
         int configRev = ActiveRevision.get(agencyId).getConfigRev();
-        TimeZone timezone = Agency.getAgencies(agencyId, configRev).get(0).getTimeZone();
+        TimeZone timezone = AgencyRepository.getAgencies(agencyId, configRev).get(0).getTimeZone();
         TimeZone.setDefault(timezone);
 
         // Determine beginTime and endTime

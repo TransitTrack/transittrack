@@ -4,18 +4,13 @@ package org.transitclock.domain.structs;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Immutable;
 import org.transitclock.core.avl.time.TemporalMatch;
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.SystemTime;
 
 /**
@@ -37,21 +32,6 @@ import org.transitclock.utils.SystemTime;
     }
 )
 public class VehicleEvent implements Serializable {
-
-    // Some standard event types
-    public static final String PREDICTABLE = "Predictable";
-    public static final String TIMEOUT = "Timeout";
-    public static final String NO_MATCH = "No match";
-    public static final String NO_PROGRESS = "No progress";
-    public static final String DELAYED = "Delayed";
-    public static final String END_OF_BLOCK = "End of block";
-    public static final String LEFT_TERMINAL_EARLY = "Left terminal early";
-    public static final String LEFT_TERMINAL_LATE = "Left terminal late";
-    public static final String NOT_LEAVING_TERMINAL = "Not leaving terminal";
-    public static final String ASSIGNMENT_GRABBED = "Assignment Grabbed";
-    public static final String ASSIGNMENT_CHANGED = "Assignment Changed";
-    public static final String AVL_CONFLICT = "AVL Conflict";
-    public static final String PREDICTION_VARIATION = "Prediction variation";
 
     // System time of the event.
     @Id
@@ -236,48 +216,6 @@ public class VehicleEvent implements Serializable {
         this.serviceId = null;
         this.tripId = null;
         this.stopId = null;
-    }
-
-    /**
-     * Reads in all VehicleEvents from the database that were between the beginTime and endTime.
-     *
-     * @param agencyId  Which project getting data for
-     * @param beginTime Specifies time range for query
-     * @param endTime   Specifies time range for query
-     * @param sqlClause Optional. Can specify an SQL clause to winnow down the data, such as "AND
-     *                  routeId='71'".
-     * @return
-     */
-    public static List<VehicleEvent> getVehicleEvents(String agencyId, Date beginTime, Date endTime, String sqlClause) {
-        IntervalTimer timer = new IntervalTimer();
-
-        // Get the database session. This is supposed to be pretty light weight
-        Session session = HibernateUtils.getSession(agencyId);
-
-        // Create the query. Table name is case sensitive and needs to be the
-        // class name instead of the name of the db table.
-        String hql = "FROM VehicleEvent WHERE time >= :beginDate AND time < :endDate";
-        if (sqlClause != null) {
-            hql += " " + sqlClause;
-        }
-        var query = session.createQuery(hql, VehicleEvent.class);
-
-        // Set the parameters
-        query.setParameter("beginDate", beginTime);
-        query.setParameter("endDate", endTime);
-
-        try {
-            List<VehicleEvent> vehicleEvents = query.list();
-            logger.debug("Getting VehicleEvents from database took {} msec", timer.elapsedMsec());
-            return vehicleEvents;
-        } catch (HibernateException e) {
-            logger.error(e.getMessage(), e);
-            return null;
-        } finally {
-            // Clean things up. Not sure if this absolutely needed nor if
-            // it might actually be detrimental and slow things down.
-            session.close();
-        }
     }
 
     @Override

@@ -20,7 +20,6 @@ import lombok.Data;
  */
 @Data
 public class SiriVehiclesMonitoring {
-
     @JsonProperty
     private String version = "1.3";
 

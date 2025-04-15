@@ -5,7 +5,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimeDetails;
 import org.transitclock.core.TravelTimes;
@@ -36,7 +35,9 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.PredictionForStopPath;
 import org.transitclock.domain.structs.VehicleEvent;
+import org.transitclock.domain.structs.VehicleEventType;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.utils.SystemTime;
 
@@ -67,8 +68,9 @@ public class KalmanPredictionGeneratorImpl extends HistoricalAveragePredictionGe
                                          RealTimeSchedAdhProcessor realTimeSchedAdhProcessor,
                                          BiasAdjuster biasAdjuster,
                                          FrequencyBasedHistoricalAverageCache frequencyBasedHistoricalAverageCache,
-                                         ErrorCache kalmanErrorCache) {
-        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster, frequencyBasedHistoricalAverageCache);
+                                         ErrorCache kalmanErrorCache,
+                                         CoreProperties coreProperties) {
+        super(stopArrivalDepartureCacheInterface, tripDataHistoryCacheInterface, dbConfig, dataDbLogger, travelTimeDataFilter, properties, vehicleCache, holdingTimeCache, stopPathPredictionCache, travelTimes, holdingTimeGenerator, vehicleStatusManager, realTimeSchedAdhProcessor, biasAdjuster, frequencyBasedHistoricalAverageCache, coreProperties);
         this.kalmanErrorCache = kalmanErrorCache;
     }
 
@@ -89,7 +91,7 @@ public class KalmanPredictionGeneratorImpl extends HistoricalAveragePredictionGe
         int time = FrequencyBasedHistoricalAverageCache.secondsFromMidnight(avlReport.getDate(), 2);
 
         time = FrequencyBasedHistoricalAverageCache.round(
-                time, CoreConfig.getCacheIncrementsForFrequencyService());
+                time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
         VehicleStatus currentVehicleStatus = vehicleStatusManager.getStatus(avlReport.getVehicleId());
 
@@ -187,7 +189,7 @@ public class KalmanPredictionGeneratorImpl extends HistoricalAveragePredictionGe
                             VehicleEvent vehicleEvent = new VehicleEvent(
                                     vehicleStatus.getAvlReport(),
                                     vehicleStatus.getMatch(),
-                                    VehicleEvent.PREDICTION_VARIATION,
+                                    VehicleEventType.PREDICTION_VARIATION,
                                     description,
                                     true, // predictable
                                     false, // becameUnpredictable
@@ -195,7 +197,7 @@ public class KalmanPredictionGeneratorImpl extends HistoricalAveragePredictionGe
                             dataDbLogger.add(vehicleEvent);
                         }
 
-                        if (CoreConfig.storeTravelTimeStopPathPredictions.getValue()) {
+                        if (coreProperties.getStoreTravelTimeStopPathPredictions()) {
                             PredictionForStopPath predictionForStopPath = new PredictionForStopPath(
                                     vehicleStatus.getVehicleId(),
                                     SystemTime.getDate(),

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
@@ -214,7 +213,7 @@ public class AutoBlockAssigner {
                 int expectedTravelTimeMsec = travelTimes
                         .expectedTravelTimeBetweenMatches(avlReport.getVehicleId(), timeOfDayInSecs, prevSpatialMatch, spatialMatch);
                 TemporalDifference differenceFromExpectedTime =
-                        new TemporalDifference(expectedTravelTimeMsec - avlTimeDifferenceMsec);
+                        new TemporalDifference((int) (expectedTravelTimeMsec - avlTimeDifferenceMsec), coreProperties);
 
                 // If the travel time is too far off from the time between the
                 // AVL reports then it is not a good match so continue on to
@@ -289,7 +288,7 @@ public class AutoBlockAssigner {
                     // The cached match has the wrong trip info so need
                     // to create an equivalent match with the proper trip block
                     // info
-                    SpatialMatch matchWithProperBlock = new SpatialMatch(dbConfig, previouslyFoundMatch, trip);
+                    SpatialMatch matchWithProperBlock = new SpatialMatch(dbConfig, previouslyFoundMatch, trip, coreProperties);
 
                     // Add to list of spatial matches to return
                     spatialMatches.add(matchWithProperBlock);
@@ -579,7 +578,7 @@ public class AutoBlockAssigner {
         // blocks are to be exclusive then only look at the ones currently
         // not used. But if not to be exclusive, such as for no schedule based
         // routes, then look at all active blocks.
-        List<Block> blocksToExamine = CoreConfig.exclusiveBlockAssignments()
+        List<Block> blocksToExamine = coreProperties.isExclusiveBlockAssignments()
                 ? unassignedActiveBlocks()
                 : blockInfoProvider.getCurrentlyActiveBlocks();
 

@@ -27,6 +27,7 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.VehicleToBlockConfigRepository;
 import org.transitclock.domain.structs.AssignmentType;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Block;
@@ -36,8 +37,8 @@ import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.VectorWithHeading;
 import org.transitclock.domain.structs.VehicleEvent;
+import org.transitclock.domain.structs.VehicleEventType;
 import org.transitclock.domain.structs.VehicleState;
-import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.AutoBlockAssignerProperties;
 import org.transitclock.properties.AvlProperties;
@@ -52,8 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static org.transitclock.config.data.CoreConfig.*;
 
 /**
  * This is a very important high-level class. It takes the AVL data and processes it. Matches
@@ -239,7 +238,7 @@ public class AvlProcessor {
 
                 // Make vehicle unpredictable and do associated logging
                 makeVehicleUnpredictable(
-                        vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.NO_PROGRESS);
+                        vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.NO_PROGRESS);
 
                 // Return that vehicle indeed not making progress
                 return true;
@@ -318,7 +317,7 @@ public class AvlProcessor {
                     VehicleEvent vehicleEvent = new VehicleEvent(
                             vehicleStatus.getAvlReport(),
                             vehicleStatus.getMatch(),
-                            VehicleEvent.DELAYED,
+                            VehicleEventType.DELAYED,
                             description,
                             true, // predictable
                             false, // becameUnpredictable
@@ -399,7 +398,7 @@ public class AvlProcessor {
                 logger.warn("For vehicleId={} {}", vehicleStatus.getVehicleId(), eventDescription);
 
                 // Remove the predictions for the vehicle
-                makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.NO_MATCH);
+                makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.NO_MATCH);
 
                 // Remove block assignment from vehicle
                 vehicleStatus.unsetBlock(BlockAssignmentMethod.COULD_NOT_MATCH);
@@ -488,7 +487,7 @@ public class AvlProcessor {
             VehicleEvent vehicleEvent = new VehicleEvent(
                     avlReport,
                     bestMatch,
-                    VehicleEvent.PREDICTABLE,
+                    VehicleEventType.PREDICTABLE,
                     eventDescription,
                     true, // predictable
                     false, // becameUnpredictable
@@ -550,7 +549,7 @@ public class AvlProcessor {
             VehicleEvent vehicleEvent = new VehicleEvent(
                     vehicleStatus.getAvlReport(),
                     bestMatch,
-                    VehicleEvent.AVL_CONFLICT,
+                    VehicleEventType.AVL_CONFLICT,
                     eventDescription,
                     true, // predictable
                     false, // becameUnpredictable
@@ -729,9 +728,10 @@ public class AvlProcessor {
                         0, // stopPathIndex
                         0, // segmentIndex
                         distanceToSegment,
-                        0.0); // distanceAlongSegment
+                        0.0,
+                        coreProperties); // distanceAlongSegment
 
-                bestMatch = new TemporalMatch(beginningOfTrip, new TemporalDifference(0));
+                bestMatch = new TemporalMatch(beginningOfTrip, new TemporalDifference(0, coreProperties));
                 logger.debug(
                         "For vehicleId={} could not find reasonable "
                                 + "match for blockId={} so had to match to layover. "
@@ -793,7 +793,7 @@ public class AvlProcessor {
 
         // If matches don't need to be exclusive then don't have a problem
         Block block = match.getBlock();
-        if (!block.shouldBeExclusive()) return false;
+        if (!coreProperties.isExclusiveBlockAssignments()) return false;
 
         // If no other non-schedule based vehicle assigned to the block then
         // not a problem
@@ -822,7 +822,7 @@ public class AvlProcessor {
         // away from route (it matches to a layover where matches are lenient),
         // indicating that the vehicle might have gotten wrong assignment while
         // doing something else.
-        if (match.getDistanceToSegment() > maxDistanceForAssignmentGrab.getValue()) {
+        if (match.getDistanceToSegment() > coreProperties.getMaxDistanceForAssignmentGrab()) {
             // Match is far away from route so consider it to be invalid.
             // Log an error
             logger.error(
@@ -833,7 +833,7 @@ public class AvlProcessor {
                     coreProperties.getAgencyId(),
                     vehicleStatus.getVehicleId(),
                     otherVehicleId,
-                    maxDistanceForAssignmentGrab.getValue(),
+                    coreProperties.getMaxDistanceForAssignmentGrab(),
                     match,
                     vehicleStatus.getAvlReport());
 
@@ -847,7 +847,7 @@ public class AvlProcessor {
                         coreProperties.getAgencyId(),
                         vehicleStatus.getVehicleId(),
                         otherVehicleId,
-                        maxDistanceForAssignmentGrab.getValue(),
+                        coreProperties.getMaxDistanceForAssignmentGrab(),
                         match,
                         vehicleStatus.getAvlReport());
             }
@@ -877,9 +877,8 @@ public class AvlProcessor {
     private boolean shouldSendMessage(String vehicleId, AvlReport avlReport) {
         Long lastTimeSentForVehicle = problemGrabbingAssignmentMap.get(vehicleId);
         // If message not yet sent for vehicle or it has been more than 10 minutes...
-        if (emailMessagesWhenAssignmentGrabImproper.getValue()
-                && (lastTimeSentForVehicle == null
-                        || avlReport.getTime() > lastTimeSentForVehicle + 30 * Time.MS_PER_MIN)) {
+        if (coreProperties.isEmailMessagesWhenAssignmentGrabImproper()
+                && (lastTimeSentForVehicle == null || avlReport.getTime() > lastTimeSentForVehicle + 30 * Time.MS_PER_MIN)) {
             problemGrabbingAssignmentMap.put(vehicleId, avlReport.getTime());
             return true;
         } else return false;
@@ -903,7 +902,7 @@ public class AvlProcessor {
         VehicleStatusManager stateManager = vehicleStatusManager;
         for (String vehicleId : vehiclesAssignedToBlock) {
             VehicleStatus vehicleStatus = stateManager.getStatus(vehicleId);
-            if (block.shouldBeExclusive() || vehicleStatus.isForSchedBasedPreds()) {
+            if (coreProperties.isExclusiveBlockAssignments() || vehicleStatus.isForSchedBasedPreds()) {
                 String description = "Assigning vehicleId="
                         + newVehicleId
                         + " to blockId="
@@ -916,7 +915,7 @@ public class AvlProcessor {
                         + vehicleId
                         + ".";
                 logger.info(description);
-                makeVehicleUnpredictableAndGrabAssignment(vehicleStatus, description, VehicleEvent.ASSIGNMENT_GRABBED);
+                makeVehicleUnpredictableAndGrabAssignment(vehicleStatus, description, VehicleEventType.ASSIGNMENT_GRABBED);
             }
         }
     }
@@ -945,7 +944,7 @@ public class AvlProcessor {
                     + "changed to assignmentId="
                     + vehicleStatus.getAssignmentId();
             makeVehicleUnpredictableAndTerminateAssignment(
-                vehicleStatus, eventDescription, VehicleEvent.ASSIGNMENT_CHANGED);
+                vehicleStatus, eventDescription, VehicleEventType.ASSIGNMENT_CHANGED);
         }
 
         // If the vehicle has a block assignment from the AVLFeed
@@ -990,7 +989,7 @@ public class AvlProcessor {
 
         // Had a valid old assignment. If haven't had too many bad
         // assignments in a row then use the old assignment.
-        if (vehicleStatus.getBadAssignmentsInARow() < allowableBadAssignments.getValue()) {
+        if (vehicleStatus.getBadAssignmentsInARow() < coreProperties.getAllowableBadAssignments()) {
             logger.warn(
                     "AVL report did not include an assignment for "
                             + "vehicleId={} but badAssignmentsInARow={} which "
@@ -998,7 +997,7 @@ public class AvlProcessor {
                             + "the old assignment={}",
                     vehicleStatus.getVehicleId(),
                     vehicleStatus.getBadAssignmentsInARow(),
-                    allowableBadAssignments.getValue(),
+                    coreProperties.getAllowableBadAssignments(),
                     vehicleStatus.getAssignmentId());
 
             // Create AVL report with the old assignment and then use it
@@ -1025,7 +1024,7 @@ public class AvlProcessor {
                     + " null assignments in a row, which is configured by "
                     + "transitclock.core.allowableBadAssignments to be too many, "
                     + "so making vehicle unpredictable.";
-            makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.ASSIGNMENT_CHANGED);
+            makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.ASSIGNMENT_CHANGED);
         }
     }
 
@@ -1115,7 +1114,7 @@ public class AvlProcessor {
         TemporalMatch temporalMatch = vehicleStatus.getMatch();
         if (temporalMatch != null) {
             VehicleAtStopInfo atStopInfo = temporalMatch.getAtStop();
-            if (atStopInfo != null && atStopInfo.atEndOfBlock(dbConfig)) {
+            if (atStopInfo != null && atStopInfo.atEndOfBlock(dbConfig, coreProperties)) {
                 logger.info(
                         "For vehicleId={} the end of the block={} " + "was reached so will make vehicle unpredictable",
                         vehicleStatus.getVehicleId(),
@@ -1126,7 +1125,7 @@ public class AvlProcessor {
                         + vehicleStatus.getBlock().getId()
                         + " ended for vehicle so it was made unpredictable.";
                 makeVehicleUnpredictableAndTerminateAssignment(
-                    vehicleStatus, eventDescription, VehicleEvent.END_OF_BLOCK);
+                    vehicleStatus, eventDescription, VehicleEventType.END_OF_BLOCK);
 
                 // Return that end of block reached
                 return true;
@@ -1187,7 +1186,7 @@ public class AvlProcessor {
             VehicleEvent vehicleEvent = new VehicleEvent(
                     vehicleStatus.getAvlReport(),
                     vehicleStatus.getMatch(),
-                    VehicleEvent.NOT_LEAVING_TERMINAL,
+                    VehicleEventType.NOT_LEAVING_TERMINAL,
                     description,
                     true, // predictable
                     false, // becameUnpredictable
@@ -1212,7 +1211,7 @@ public class AvlProcessor {
                     + "limits. Therefore vehicle made unpredictable.";
 
             // Clear out match, make vehicle event, clear predictions.
-            makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEvent.NO_MATCH);
+            makeVehicleUnpredictable(vehicleStatus.getVehicleId(), eventDescription, VehicleEventType.NO_MATCH);
 
             // Schedule adherence not reasonable so match vehicle to assignment
             // again.
@@ -1477,7 +1476,7 @@ public class AvlProcessor {
         }
 
         try (Session session = HibernateUtils.getSession()) {
-            var config = VehicleToBlockConfig.getVehicleToBlockConfigs(session, avlReport.getVehicleId(), new Date());
+            var config = VehicleToBlockConfigRepository.getVehicleToBlockConfigs(session, avlReport.getVehicleId(), new Date());
             Optional.ofNullable(config).ifPresent(c -> {
                 avlReport.setAssignment(c.getBlockId(), AssignmentType.BLOCK_ID);
             });
@@ -1502,7 +1501,7 @@ public class AvlProcessor {
         vehicleDataCache.cacheVehicleConfig(avlReport);
 
         // Store the AVL report into the database
-        if (!coreProperties.getOnlyNeedArrivalDepartures() && !avlReport.isForSchedBasedPreds())
+        if (!coreProperties.isOnlyNeedArrivalDepartures() && !avlReport.isForSchedBasedPreds())
             dataDbLogger.add(avlReport);
 
         // If any vehicles have timed out then handle them. This is done

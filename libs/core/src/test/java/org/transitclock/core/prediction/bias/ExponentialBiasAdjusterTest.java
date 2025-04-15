@@ -1,6 +1,8 @@
 package org.transitclock.core.prediction.bias;
 
 import org.junit.jupiter.api.Test;
+
+import org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Exponential;
 import org.transitclock.utils.Time;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,7 +11,8 @@ class ExponentialBiasAdjusterTest {
 
     @Test
     void adjustPrediction() {
-        ExponentialBiasAdjuster adjuster = new ExponentialBiasAdjuster();
+        Exponential exponential = new Exponential();
+        ExponentialBiasAdjuster adjuster = new ExponentialBiasAdjuster(exponential);
         long result = adjuster.adjustPrediction(20 * Time.MS_PER_MIN);
         assertThat(adjuster.getPercentage()).isEqualTo(3.8637499746628055);
         assertThat(result).isEqualTo(1153635L);

@@ -15,7 +15,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author SkiBu Smith
  */
 public class SiriMonitoredVehicleJourney {
-
     // Vehicle Id
     @JsonProperty("VehicleRef")
     private String vehicleRef;

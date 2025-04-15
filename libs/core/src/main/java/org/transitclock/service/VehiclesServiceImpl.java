@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.VehicleToBlockConfigRepository;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.QRoute;
 import org.transitclock.domain.structs.Trip;
@@ -373,28 +374,28 @@ public class VehiclesServiceImpl implements VehiclesService {
     }
 
     @Override
-    public Collection<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs() {
+    public Collection<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs(String blockId) {
         List<IpcVehicleToBlockConfig> result = new ArrayList<>();
-        try (Session session = HibernateUtils.getSession()) {
-            return VehicleToBlockConfig.getActualVehicleToBlockConfigs(session).stream()
-                    .map(IpcVehicleToBlockConfig::new)
-                    .collect(Collectors.toList());
-            } catch (Exception ex) {
-            logger.error("Something happened while fetching the data: ", ex);
+        try (Session session = HibernateUtils.getSession()){
+            for (VehicleToBlockConfig vTBC : VehicleToBlockConfigRepository.getVehicleToBlockConfigsByBlockId(session, blockId)) {
+                result.add(new IpcVehicleToBlockConfig(vTBC));
+            }
+        } catch (Exception ex) {
+            logger.error("Something happened while fetching the VehicleToBlockConfig.", ex);
         }
-        return List.of();
+        return result;
     }
 
     @Override
     public Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfigByBlockId(String blockId) {
         try (Session session = HibernateUtils.getSession()) {
-        if (!StringUtils.isEmpty(blockId)) {
-            return VehicleToBlockConfig.getVehicleToBlockConfigsByBlockId(session, blockId)
+        if (!StringUtils.hasText(blockId)) {
+            return VehicleToBlockConfigRepository.getVehicleToBlockConfigsByBlockId(session, blockId)
                     .stream()
                     .map(IpcVehicleToBlockConfig::new)
                     .collect(Collectors.toList());
         }
-        return VehicleToBlockConfig.getVehicleToBlockConfigs(session)
+        return VehicleToBlockConfigRepository.getVehicleToBlockConfigs(session)
                 .stream()
                 .map(IpcVehicleToBlockConfig::new)
                 .collect(Collectors.toList());
@@ -406,16 +407,15 @@ public class VehiclesServiceImpl implements VehiclesService {
 
     @Override
     public Collection<IpcVehicleToBlockConfig> getVehicleToBlockConfigByVehicleId(String vehicleId) {
-
+        List<IpcVehicleToBlockConfig> result = new ArrayList<>();
         try (Session session = HibernateUtils.getSession()) {
-            return VehicleToBlockConfig.getVehicleToBlockConfigsByVehicleId(session, vehicleId)
-                    .stream()
-                    .map(IpcVehicleToBlockConfig::new)
-                    .collect(Collectors.toList());
+            for (var vTBC : VehicleToBlockConfigRepository.getVehicleToBlockConfigsByVehicleId(session, vehicleId)) {
+                result.add(new IpcVehicleToBlockConfig(vTBC));
+            }
         } catch (Exception ex) {
             logger.error("Something happened while fetching the data.", ex);
         }
-        return List.of();
+        return result;
     }
 
     /**

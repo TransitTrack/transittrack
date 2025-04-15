@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.avl.assigner.BlockAssigner;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
 import org.transitclock.core.avl.space.SpatialMatch;
@@ -28,6 +27,7 @@ import org.transitclock.domain.structs.StopPath;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.VectorWithHeading;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.utils.StringUtils;
 import org.transitclock.utils.Time;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class VehicleStatus {
-
+    private final CoreProperties coreProperties;
     private final String vehicleId;
     private final LinkedList<TemporalMatch> temporalMatchHistory = new LinkedList<>(); // first is most recent
     private final LinkedList<AvlReport> avlReportHistory = new LinkedList<>(); // first is most recent
@@ -87,13 +87,9 @@ public class VehicleStatus {
     // Used for schedPred AVL. Identify if trip is canceled.
     private boolean isCanceled;
 
-    public VehicleStatus(String vehicleId) {
+    public VehicleStatus(String vehicleId, CoreProperties properties) {
         this.vehicleId = vehicleId;
-    }
-
-    public VehicleStatus(String vehicleId, String vehicleName) {
-        this.vehicleId = vehicleId;
-        this.vehicleName = vehicleName;
+        this.coreProperties = properties;
     }
 
 
@@ -224,7 +220,7 @@ public class VehicleStatus {
         numberOfBadMatches = 0;
 
         // Truncate list if it has gotten too long
-        while (temporalMatchHistory.size() > CoreConfig.getMatchHistoryMaxSize()) {
+        while (temporalMatchHistory.size() > coreProperties.getMatchHistoryMaxSize()) {
             temporalMatchHistory.removeLast();
         }
     }
@@ -277,7 +273,7 @@ public class VehicleStatus {
         // But if history was full then it shows that the GPS reporting is so
         // high that need to store more matches in order to get one as old as
         // desired.
-        if (temporalMatchHistory.size() >= CoreConfig.getMatchHistoryMaxSize()) {
+        if (temporalMatchHistory.size() >= coreProperties.getMatchHistoryMaxSize()) {
             TemporalMatch oldestMatch = temporalMatchHistory.get(temporalMatchHistory.size() - 1);
             logger.error(
                     "For vehicleId={} tried to retrieve match "
@@ -312,7 +308,7 @@ public class VehicleStatus {
      * @return
      */
     public boolean overLimitOfBadMatches() {
-        return numberOfBadMatches > CoreConfig.getAllowableNumberOfBadMatches();
+        return numberOfBadMatches > coreProperties.getAllowableNumberOfBadMatches();
     }
 
     /**
@@ -346,7 +342,7 @@ public class VehicleStatus {
         avlReportHistory.addFirst(avlReport);
 
         // Truncate list if it is too long or data in it is too old
-        while (avlReportHistory.size() > CoreConfig.getAvlHistoryMaxSize()) {
+        while (avlReportHistory.size() > coreProperties.getAvlHistoryMaxSize()) {
             avlReportHistory.removeLast();
         }
     }
@@ -547,7 +543,7 @@ public class VehicleStatus {
         // But if history was full then it shows that the GPS reporting is so
         // high that need to store more matches in order to get one as old as
         // desired.
-        if (avlReportHistory.size() >= CoreConfig.getAvlHistoryMaxSize()) {
+        if (avlReportHistory.size() >= coreProperties.getAvlHistoryMaxSize()) {
             logger.error(
                     "For vehicleId={} tried to retrieve AVL "
                             + "at least {} msec old but AVL history in VehicleState "

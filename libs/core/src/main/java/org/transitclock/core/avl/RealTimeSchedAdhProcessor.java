@@ -9,6 +9,7 @@ import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.domain.structs.ScheduleTime;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Time;
 
 import java.util.Date;
@@ -23,10 +24,12 @@ import java.util.Date;
 public class RealTimeSchedAdhProcessor {
     private final TravelTimes travelTimes;
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
-    public RealTimeSchedAdhProcessor(TravelTimes travelTimes, DbConfig dbConfig) {
+    public RealTimeSchedAdhProcessor(TravelTimes travelTimes, DbConfig dbConfig, CoreProperties coreProperties) {
         this.travelTimes = travelTimes;
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     /**
@@ -78,10 +81,10 @@ public class RealTimeSchedAdhProcessor {
                                 vehicleId,
                                 avlTime,
                                 schedTime);
-                        return new TemporalDifference(0);
+                        return new TemporalDifference(0, coreProperties);
                     } else {
                         TemporalDifference scheduleAdherence =
-                                new TemporalDifference(departureEpochTime - avlTime.getTime());
+                                new TemporalDifference((int) (departureEpochTime - avlTime.getTime()), coreProperties);
 
                         // Already past departure time so return that vehicle
                         // is late
@@ -102,7 +105,7 @@ public class RealTimeSchedAdhProcessor {
                     // return difference between scheduled departure
                     // time and the AVL time.
                     TemporalDifference scheduleAdherence =
-                            new TemporalDifference(departureEpochTime - avlTime.getTime());
+                            new TemporalDifference((int) (departureEpochTime - avlTime.getTime()), coreProperties);
 
                     // Already past departure time so return that vehicle
                     // is late
@@ -145,7 +148,7 @@ public class RealTimeSchedAdhProcessor {
         // Return the schedule adherence
         long expectedTime = avlTime.getTime() + travelTimeToStopMsec;
         long departureEpochTime = dbConfig.getTime().getEpochTime(scheduleTime.getTime(), avlTime);
-        TemporalDifference scheduleAdherence = new TemporalDifference(departureEpochTime - expectedTime);
+        TemporalDifference scheduleAdherence = new TemporalDifference((int) (departureEpochTime - expectedTime), coreProperties);
         logger.debug(
                 "For vehicleId={} vehicle not at stop returning "
                         + "schedule adherence={}. avlTime={} and scheduled time={}",
@@ -196,7 +199,7 @@ public class RealTimeSchedAdhProcessor {
 
             logger.debug("vehicleId {} has schedDev before trip start of {}", vehicleId, difference);
 
-            return new TemporalDifference(difference);
+            return new TemporalDifference((int) difference, coreProperties);
         }
         if (match.isAtStop()) {
             // If at stop, nextStopPathIndex can be for current stop or next stop depending
@@ -207,7 +210,7 @@ public class RealTimeSchedAdhProcessor {
                 logger.debug("vehicleId {} has schedDev at stop of 0", vehicleId);
             }
             logger.debug("vehicleId {} has schedDev at stop of {}", vehicleId, (avlTime - departureEpoch));
-            return new TemporalDifference(avlTime - departureEpoch);
+            return new TemporalDifference((int) (avlTime - departureEpoch), coreProperties);
         }
 
         final var fromStopPath = trip.getScheduleTime(previousStopPathIndex);
@@ -233,6 +236,6 @@ public class RealTimeSchedAdhProcessor {
                 Time.elapsedTimeStr(avlTime - effectiveScheduleTimeEpoch),
                 Time.timeStr(avlTime),
                 Time.timeStr(effectiveScheduleTimeEpoch));
-        return new TemporalDifference(avlTime - effectiveScheduleTimeEpoch);
+        return new TemporalDifference((int) (avlTime - effectiveScheduleTimeEpoch), coreProperties);
     }
 }

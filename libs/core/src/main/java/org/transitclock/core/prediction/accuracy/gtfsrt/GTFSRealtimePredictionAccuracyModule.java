@@ -73,7 +73,7 @@ public class GTFSRealtimePredictionAccuracyModule extends PredictionAccuracyModu
             if (entity.hasTripUpdate()) {
                 TripUpdate update = entity.getTripUpdate();
                 List<StopTimeUpdate> stopTimes = update.getStopTimeUpdateList();
-                Date eventReadTime = null;
+                Date eventReadTime;
                 if (update.hasTimestamp()) {
                     /*
                      * this is the best option as it is specific to each trip

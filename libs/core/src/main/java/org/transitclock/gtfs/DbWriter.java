@@ -5,6 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.repository.BlockRepository;
+import org.transitclock.domain.repository.CalendarDateRepository;
+import org.transitclock.domain.repository.CalendarRepository;
+import org.transitclock.domain.repository.FareAttributeRepository;
+import org.transitclock.domain.repository.FareRuleRepository;
+import org.transitclock.domain.repository.FrequencyRepository;
+import org.transitclock.domain.repository.RouteRepository;
+import org.transitclock.domain.repository.StopRepository;
+import org.transitclock.domain.repository.TransferRepository;
+import org.transitclock.domain.repository.TravelTimesForTripRepository;
+import org.transitclock.domain.repository.TripPatternRepository;
+import org.transitclock.domain.repository.TripRepository;
 import org.transitclock.domain.structs.*;
 import org.transitclock.utils.IntervalTimer;
 
@@ -59,18 +73,18 @@ public class DbWriter {
             // deleting them, which takes too much time and memory). Therefore
             // deleting of this data is done here before writing the data.
             logger.info("Deleting old blocks and associated trips from rev {} of " + "database...", configRev);
-            Block.deleteFromRev(session, configRev);
+            BlockRepository.deleteFromRev(session, configRev);
 
             logger.info("Deleting old trips from rev {} of database...", configRev);
-            Trip.deleteFromRev(session, configRev);
+            TripRepository.deleteFromRev(session, configRev);
 
             logger.info("Deleting old trip patterns from rev {} of database...", configRev);
-            TripPattern.deleteFromRev(session, configRev);
+            TripPatternRepository.deleteFromRev(session, configRev);
 
             // Get rid of travel times that are associated with the rev being
             // deleted
             logger.info("Deleting old travel times from rev {} of database...", configRev);
-            TravelTimesForTrip.deleteFromRev(session, configRev);
+            TravelTimesForTripRepository.deleteFromRev(session, configRev);
         }
 
         // Now write the data to the database.
@@ -96,55 +110,55 @@ public class DbWriter {
         }
 
         logger.info("Saving routes to database...");
-        Route.deleteFromRev(session, configRev);
+        RouteRepository.deleteFromRev(session, configRev);
         for (Route route : gtfsData.getRoutesMap().values()) {
             writeObject(session, route);
         }
 
         logger.info("Saving stops to database...");
-        Stop.deleteFromRev(session, configRev);
+        StopRepository.deleteFromRev(session, configRev);
         for (Stop stop : gtfsData.getStops()) {
             writeObject(session, stop);
         }
 
         logger.info("Saving agencies to database...");
-        Agency.deleteFromRev(session, configRev);
+        AgencyRepository.deleteFromRev(session, configRev);
         for (Agency agency : gtfsData.getAgencies()) {
             writeObject(session, agency);
         }
 
         logger.info("Saving calendars to database...");
-        Calendar.deleteFromRev(session, configRev);
+        CalendarRepository.deleteFromRev(session, configRev);
         for (Calendar calendar : gtfsData.getCalendars()) {
             writeObject(session, calendar);
         }
 
         logger.info("Saving calendar dates to database...");
-        CalendarDate.deleteFromRev(session, configRev);
+        CalendarDateRepository.deleteFromRev(session, configRev);
         for (CalendarDate calendarDate : gtfsData.getCalendarDates()) {
             writeObject(session, calendarDate);
         }
 
         logger.info("Saving fare rules to database...");
-        FareRule.deleteFromRev(session, configRev);
+        FareRuleRepository.deleteFromRev(session, configRev);
         for (FareRule fareRule : gtfsData.getFareRules()) {
             writeObject(session, fareRule);
         }
 
         logger.info("Saving fare attributes to database...");
-        FareAttribute.deleteFromRev(session, configRev);
+        FareAttributeRepository.deleteFromRev(session, configRev);
         for (FareAttribute fareAttribute : gtfsData.getFareAttributes()) {
             writeObject(session, fareAttribute);
         }
 
         logger.info("Saving frequencies to database...");
-        Frequency.deleteFromRev(session, configRev);
+        FrequencyRepository.deleteFromRev(session, configRev);
         for (Frequency frequency : gtfsData.getFrequencies()) {
             writeObject(session, frequency);
         }
 
         logger.info("Saving transfers to database...");
-        Transfer.deleteFromRev(session, configRev);
+        TransferRepository.deleteFromRev(session, configRev);
         for (Transfer transfer : gtfsData.getTransfers()) {
             writeObject(session, transfer);
         }

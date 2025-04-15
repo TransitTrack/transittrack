@@ -7,14 +7,11 @@ import java.util.*;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.TitleFormatter;
 import org.transitclock.gtfs.model.GtfsRoute;
 import org.transitclock.utils.OrderedCollection;
-import org.transitclock.utils.StringUtils;
 
 /**
  * For storing in db information for a route. Based on GTFS information from routes.txt and other
@@ -191,111 +188,6 @@ public class Route implements Serializable {
         maxDistance = null;
     }
 
-    /**
-     * Deletes rev from the Routes table
-     *
-     * @param session
-     * @param configRev
-     * @return Number of rows deleted
-     * @throws HibernateException
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session.createMutationQuery("DELETE Route WHERE configRev=:configRev")
-                .setParameter("configRev", configRev)
-                .executeUpdate();
-    }
-
-    // For dealing with route order
-    private static final int BEGINNING_OF_LIST_ROUTE_ORDER = 1000;
-    private static final int END_OF_LIST_ROUTE_ORDER = 1000000;
-
-    private boolean atBeginning() {
-        return routeOrder != null && routeOrder < BEGINNING_OF_LIST_ROUTE_ORDER;
-    }
-
-    private boolean atEnd() {
-        return routeOrder != null && END_OF_LIST_ROUTE_ORDER >= 1000000;
-    }
-
-    /**
-     * Comparator for sorting Routes into proper order.
-     *
-     * <p>If routeOrder is set and is below 1,000 then the route will be at beginning of list and
-     * will be ordered by routeOrder. If routeOrder is set and is above 1,000,000 then route will be
-     * put at end of list and will be ordered by routeOrder. If routeOrder is not set then will
-     * order by route short name. If route short name starts with numbers it will be padded by zeros
-     * so that proper numerical order will be used.
-     */
-    public static final Comparator<Route> routeComparator = new Comparator<>() {
-        /**
-         * Returns negative if r1<r2, zero if r1=r2, and positive if r1>r2
-         */
-        @Override
-        public int compare(Route r1, Route r2) {
-            // Handle if routeOrder indicates r1 should be at beginning of list
-            if (r1.atBeginning()) {
-                // If r2 also at beginning and it should be before r1...
-                if (r2.atBeginning() && r1.getRouteOrder() > r2.getRouteOrder()) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-
-            // Handle if routeOrder indicates r1 should be at end of list
-            if (r1.atEnd()) {
-                // If r2 also at end and it should be after r1...
-                if (r2.atEnd() && r1.getRouteOrder() < r2.getRouteOrder()) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-
-            // r1 is in the middle so check to see if r2 is at beginning or end
-            if (r2.atBeginning()) {
-                return 1;
-            }
-            if (r2.atEnd()) {
-                return -1;
-            }
-
-            // Both r1 and r2 don't have a route order to order them by
-            // route name
-            return StringUtils.paddedName(r1.name).compareTo(StringUtils.paddedName(r2.name));
-        }
-    };
-
-    /**
-     * Returns List of Route objects for the specified database revision. Orders them based on the
-     * GTFS route_order extension or the route short name if route_order not set.
-     *
-     * @param session
-     * @param configRev
-     * @return Map of routes keyed on routeId
-     * @throws HibernateException
-     */
-    public static List<Route> getRoutes(Session session, int configRev) throws HibernateException {
-        // Get list of routes from database
-        List<Route> routesList = session.createQuery("FROM Route WHERE configRev = :configRev ORDER BY routeOrder, shortName", Route.class)
-                .setParameter("configRev", configRev)
-                .list();
-
-        // Need to set the route order for each route so that can sort
-        // predictions based on distance from stop and route order. For
-        // the routes that didn't have route ordered configured in db
-        // start with 1000 and count on up.
-        int routeOrderForWhenNotConfigured = 1000;
-        for (Route route : routesList) {
-            if (!route.atBeginning() && !route.atEnd()) {
-                route.setRouteOrder(routeOrderForWhenNotConfigured++);
-            }
-        }
-
-        // Return the list of routes
-        return routesList;
-    }
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()

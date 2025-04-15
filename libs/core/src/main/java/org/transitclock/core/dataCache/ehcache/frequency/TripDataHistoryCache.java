@@ -7,7 +7,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.hibernate.Session;
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
 import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
 import org.transitclock.core.dataCache.TripEvents;
@@ -20,6 +19,7 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.GtfsData;
 import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
 import java.util.*;
@@ -40,11 +40,13 @@ public class TripDataHistoryCache implements TripDataHistoryCacheInterface {
     private final Cache<TripKey, TripEvents> cache;
     private final GtfsFilter gtfsFilter;
     protected final DbConfig dbConfig;
+    protected final CoreProperties coreProperties;
 
-    public TripDataHistoryCache(CacheManager cm, GtfsFilter filter, DbConfig dbConfig) {
+    public TripDataHistoryCache(CacheManager cm, GtfsFilter filter, DbConfig dbConfig, CoreProperties coreProperties) {
         cache = cm.getCache(cacheByTrip, TripKey.class, TripEvents.class);
         this.gtfsFilter = filter;
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     @Override
@@ -91,7 +93,7 @@ public class TripDataHistoryCache implements TripDataHistoryCacheInterface {
                         arrivalDeparture.getFreqStartTime(), 2);
 
                 time = FrequencyBasedHistoricalAverageCache.round(
-                        time, CoreConfig.getCacheIncrementsForFrequencyService());
+                        time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
                 if (trip != null) {
                     tripKey = new TripKey(arrivalDeparture.getTripId(), nearestDay, time);

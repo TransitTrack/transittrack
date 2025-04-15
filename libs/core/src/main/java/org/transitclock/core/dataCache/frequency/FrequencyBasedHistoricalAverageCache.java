@@ -11,7 +11,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.transitclock.config.data.CoreConfig;
 import org.transitclock.core.dataCache.ArrivalDepartureComparator;
 import org.transitclock.core.dataCache.HistoricalAverage;
 import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
@@ -23,6 +22,7 @@ import org.transitclock.domain.structs.QArrivalDeparture;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.GtfsProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
@@ -45,13 +45,16 @@ public class FrequencyBasedHistoricalAverageCache {
     private final TripDataHistoryCacheInterface tripDataHistoryCacheInterface;
     private final GtfsFilter gtfsFilter;
     private final DbConfig dbConfig;
+    private final CoreProperties coreProperties;
 
     public FrequencyBasedHistoricalAverageCache(TripDataHistoryCacheInterface tripDataHistoryCacheInterface,
                                                 GtfsProperties gtfsProperties,
+                                                CoreProperties coreProperties,
                                                 DbConfig dbConfig) {
         this.tripDataHistoryCacheInterface = tripDataHistoryCacheInterface;
         this.gtfsFilter = new GtfsFilter(gtfsProperties.getRouteIdFilterRegEx(), gtfsProperties.getTripIdFilterRegEx());
         this.dbConfig = dbConfig;
+        this.coreProperties = coreProperties;
     }
 
     public String toString() {
@@ -91,7 +94,7 @@ public class FrequencyBasedHistoricalAverageCache {
             logger.debug("Found average buckets for {}. ", key);
             if (key.getStartTime() != null) {
                 SortedMap<Long, HistoricalAverage> subresult =
-                        result.subMap(key.getStartTime(), key.getStartTime() + CoreConfig.getCacheIncrementsForFrequencyService());
+                        result.subMap(key.getStartTime(), key.getStartTime() + coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
                 if (subresult.size() == 1) {
                     logger.debug(
@@ -105,7 +108,7 @@ public class FrequencyBasedHistoricalAverageCache {
                             "No historical data within time range ({} to {}) for this trip {} in"
                                     + " FrequencyBasedHistoricalAverageCache cache.",
                             key.getStartTime(),
-                            key.getStartTime() + CoreConfig.getCacheIncrementsForFrequencyService(),
+                            key.getStartTime() + coreProperties.getFrequency().getCacheIncrementsForFrequencyService(),
                             key);
                 }
             }
@@ -126,13 +129,13 @@ public class FrequencyBasedHistoricalAverageCache {
             int time = secondsFromMidnight(arrivalDeparture.getDate(), 2);
 
             /* this is what puts the trip into the buckets (time slots) */
-            time = round(time, CoreConfig.getCacheIncrementsForFrequencyService());
+            time = round(time, coreProperties.getFrequency().getCacheIncrementsForFrequencyService());
 
             TravelTimeResult pathDuration = getLastPathDuration(new IpcArrivalDeparture(arrivalDeparture), trip);
 
             if (pathDuration != null
-                    && pathDuration.getDuration() > CoreConfig.minTravelTimeFilterValue.getValue()
-                    && pathDuration.getDuration() < CoreConfig.maxTravelTimeFilterValue.getValue()) {
+                    && pathDuration.getDuration() > coreProperties.getFrequency().getMinTravelTimeFilterValue()
+                    && pathDuration.getDuration() < coreProperties.getFrequency().getMaxTravelTimeFilterValue()) {
                 if (trip.isNoSchedule()) {
                     StopPathCacheKey historicalAverageCacheKey = new StopPathCacheKey(
                             trip.getId(), pathDuration.getArrival().getStopPathIndex(), true, (long) time);
@@ -155,8 +158,8 @@ public class FrequencyBasedHistoricalAverageCache {
             }
             DwellTimeResult stopDuration = getLastStopDuration(new IpcArrivalDeparture(arrivalDeparture), trip);
             if (stopDuration != null
-                    && stopDuration.getDuration() > CoreConfig.minDwellTimeFilterValue.getValue()
-                    && stopDuration.getDuration() < CoreConfig.maxDwellTimeFilterValue.getValue()) {
+                    && stopDuration.getDuration() > coreProperties.getFrequency().getMinDwellTimeFilterValue()
+                    && stopDuration.getDuration() < coreProperties.getFrequency().getMaxDwellTimeFilterValue()) {
                 StopPathCacheKey historicalAverageCacheKey = new StopPathCacheKey(
                         trip.getId(), stopDuration.getDeparture().getStopPathIndex(), false, (long) time);
 
@@ -182,8 +185,8 @@ public class FrequencyBasedHistoricalAverageCache {
                         arrivalDeparture);
             }
             if (pathDuration != null
-                    && (pathDuration.getDuration() < CoreConfig.minTravelTimeFilterValue.getValue()
-                            || pathDuration.getDuration() > CoreConfig.maxTravelTimeFilterValue.getValue())) {
+                    && (pathDuration.getDuration() < coreProperties.getFrequency().getMinTravelTimeFilterValue()
+                            || pathDuration.getDuration() > coreProperties.getFrequency().getMaxTravelTimeFilterValue())) {
                 logger.debug(
                         "Cannot add to FrequencyBasedHistoricalAverageCache as pathDuration: {} is"
                                 + " outside parameters. : {}",
@@ -191,8 +194,8 @@ public class FrequencyBasedHistoricalAverageCache {
                         arrivalDeparture);
             }
             if (stopDuration != null
-                    && (stopDuration.getDuration() < CoreConfig.minDwellTimeFilterValue.getValue()
-                            || stopDuration.getDuration() > CoreConfig.maxDwellTimeFilterValue.getValue())) {
+                    && (stopDuration.getDuration() < coreProperties.getFrequency().getMinDwellTimeFilterValue()
+                            || stopDuration.getDuration() > coreProperties.getFrequency().getMaxDwellTimeFilterValue())) {
                 logger.debug(
                         "Cannot add to FrequencyBasedHistoricalAverageCache as stopDuration: {} is"
                                 + " outside parameters. : {}",

@@ -82,13 +82,6 @@ public class SiriStopMonitoring {
         @JsonProperty("MonitoredStopVisit")
         private List<SiriMonitoredStopVisit> monitoredStopVisitList;
 
-        /**
-         * Need a no-arg constructor for Jersey for JSON. Otherwise get really obtuse
-         * "MessageBodyWriter not found for media type=application/json" exception.
-         */
-        @SuppressWarnings("unused")
-        protected SiriStopMonitoringDelivery() {
-        }
 
         public SiriStopMonitoringDelivery(
                 List<IpcPredictionsForRouteStopDest> preds,

@@ -9,6 +9,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.AgencyRepository;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.utils.Encryption;
@@ -147,7 +148,7 @@ public class WebAgency {
         //TODO: need to find a way to add this back
         if (agency == null) {
             int configRev = ActiveRevision.get(agencyId).getConfigRev();
-            List<Agency> agencies = Agency.getAgencies(agencyId, configRev);
+            List<Agency> agencies = AgencyRepository.getAgencies(agencyId, configRev);
             agency = agencies.get(0);
         }
 

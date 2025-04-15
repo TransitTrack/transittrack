@@ -10,6 +10,7 @@ dependencies {
     api("com.beust:jcommander:1.82")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     api("org.hibernate.orm:hibernate-core")
     implementation("com.zaxxer:HikariCP")
@@ -47,7 +48,7 @@ dependencies {
     implementation("commons-codec:commons-codec")
 
     protobuf(files("src/proto"))
-    api("com.google.protobuf:protobuf-java:4.27.0")
+    api("com.google.protobuf:protobuf-java:4.28.2")
 
     testImplementation("org.assertj:assertj-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -55,6 +56,6 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.27.0"
+        artifact = "com.google.protobuf:protoc:4.29.2"
     }
 }

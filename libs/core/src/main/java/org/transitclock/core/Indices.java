@@ -14,6 +14,7 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.domain.structs.VectorWithHeading;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.utils.SystemTime;
 
@@ -40,26 +41,19 @@ public class Indices implements Serializable {
         // considered a bit wasteful though.
         if (block != null) {
             Trip trip = block.getTrip(tripIndex);
-            if (trip == null)
-                throw new IndexOutOfBoundsException("tripIndex " + tripIndex + " invalid for block " + block);
+            if (trip == null) {
+                throw new IndexOutOfBoundsException("tripIndex %d invalid for block %s".formatted(tripIndex, block));
+            }
+
             StopPath stopPath = trip.getStopPath(stopPathIndex);
-            if (stopPath == null)
-                throw new IndexOutOfBoundsException("stopPathIndex "
-                        + stopPathIndex
-                        + " invalid for tripIndex "
-                        + tripIndex
-                        + " and block "
-                        + block);
+            if (stopPath == null) {
+                throw new IndexOutOfBoundsException("stopPathIndex %d invalid for tripIndex %d and block %s".formatted(stopPathIndex, tripIndex, block));
+            }
+
             VectorWithHeading vector = stopPath.getSegmentVector(segmentIndex);
-            if (vector == null)
-                throw new IndexOutOfBoundsException("segmentIndex "
-                        + segmentIndex
-                        + " invalid for stopPathIndex "
-                        + stopPathIndex
-                        + " tripIndex "
-                        + tripIndex
-                        + " and block "
-                        + block);
+            if (vector == null) {
+                throw new IndexOutOfBoundsException("segmentIndex %d invalid for stopPathIndex %d tripIndex %d and block %s".formatted(segmentIndex, stopPathIndex, tripIndex, block));
+            }
         }
     }
 
@@ -91,9 +85,6 @@ public class Indices implements Serializable {
     /**
      * Creates a copy of the Indices parameter. Useful if need to increment() or decrement() but
      * don't want to affect the original object.
-     *
-     * @param indices The object to clone
-     * @return
      */
     @Override
     public Indices clone() {
@@ -153,6 +144,7 @@ public class Indices implements Serializable {
         if (segmentIndex >= block.numSegments(tripIndex, stopPathIndex)) {
             segmentIndex = 0;
             ++stopPathIndex;
+
             if (stopPathIndex >= block.numStopPaths(tripIndex)) {
                 stopPathIndex = 0;
 
@@ -192,7 +184,9 @@ public class Indices implements Serializable {
                 // Set tripIndex to point to the next trip. But if still in same
                 // time bucket from the GTFS frequency.txt file then continue to
                 // point to the same trip
-                if (timeOfDaySecs > getTrip().getEndTime()) ++tripIndex;
+                if (timeOfDaySecs > getTrip().getEndTime()) {
+                    ++tripIndex;
+                }
             } else {
                 // Not a looping no schedule assignment so handle normally
                 ++tripIndex;
@@ -219,7 +213,11 @@ public class Indices implements Serializable {
         // Determine time of day in seconds. But only need to calculate it if
         // it is a no schedule block since only then is the time needed when
         // calling incrementStopPath(timeOfDaySecs)
-        int timeOfDaySecs = block.isNoSchedule() ? dbConfig.getTime().getSecondsIntoDay(epochTime) : 0;
+        int timeOfDaySecs = 0;
+        if (block.isNoSchedule()) {
+            timeOfDaySecs = dbConfig.getTime().getSecondsIntoDay(epochTime);
+        }
+
         return incrementStopPath(timeOfDaySecs);
     }
 
@@ -354,7 +352,7 @@ public class Indices implements Serializable {
      *
      * @return
      */
-    public boolean atEndOfBlock(DbConfig dbConfig) {
+    public boolean atEndOfBlock(DbConfig dbConfig, CoreProperties coreProperties) {
         return tripIndex == block.numTrips() - 1
                 && stopPathIndex == block.numStopPaths(tripIndex) - 1
                 && segmentIndex == block.numSegments(tripIndex, stopPathIndex) - 1;
@@ -505,7 +503,6 @@ public class Indices implements Serializable {
         return block.getId().equals(blockId) && this.tripIndex == tripIndex && this.stopPathIndex == stopPathIndex;
     }
 
-    /********************** Getter Methods ****************************/
     public Block getBlock() {
         return block;
     }
