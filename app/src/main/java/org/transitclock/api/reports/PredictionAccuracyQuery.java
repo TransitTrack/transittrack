@@ -15,10 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.transitclock.domain.GenericQuery;
+import org.transitclock.domain.hibernate.HibernateUtils;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 
 import static org.transitclock.utils.Time.parseDate;
 
@@ -32,10 +33,9 @@ import static org.transitclock.utils.Time.parseDate;
  * @author SkiBu Smith
  */
 @Slf4j
-public abstract class PredictionAccuracyQuery extends GenericQuery {
+public abstract class PredictionAccuracyQuery {
     protected static final int MAX_PRED_LENGTH = 900;
     protected static final int PREDICTION_LENGTH_BUCKET_SIZE = 30;
-
     // Keyed on source (so can show data for multiple sources at
     // once in order to compare prediction accuracy. Contains a array,
     // with an element for each prediction bucket, containing an array
@@ -44,53 +44,10 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
     // a certain prediction range, specified by predictionLengthBucketSize.
     protected final Map<String, List<List<Integer>>> map = new HashMap<>();
 
-    // Defines the output type for the intervals, whether should show
-    // standard deviation, percentage, or both.
-    // Can iterate over the enumerated type using:
-    // for (IntervalsType type : IntervalsType.values()) {}
-    public enum IntervalsType {
-        PERCENTAGE("PERCENTAGE"),
-        STD_DEV("STD_DEV"),
-        BOTH("BOTH");
-
-        private final String text;
-
-        IntervalsType(final String text) {
-            this.text = text;
-        }
-
-        /**
-         * For converting from a string to an IntervalsType
-         *
-         * @param text String to be converted
-         *
-         * @return The corresponding IntervalsType, or IntervalsType.PERCENTAGE as the default if
-         * text doesn't match a type.
-         */
-        public static IntervalsType createIntervalsType(String text) {
-            for (IntervalsType type : IntervalsType.values()) {
-                if (type.toString().equals(text)) {
-                    return type;
-                }
-            }
-
-            // If a bad non-null value was specified then log the error
-            if (text != null) {
-                logger.error("\"{}\" is not a valid IntervalsType", text);
-            }
-
-            // Couldn't match so use default value
-            return IntervalsType.PERCENTAGE;
-        }
-
-        @Override
-        public String toString() {
-            return text;
-        }
-    }
+    private final String agencyId;
 
     public PredictionAccuracyQuery(String agencyId) throws SQLException {
-        super(agencyId);
+        this.agencyId = agencyId;
     }
 
     /**
@@ -268,9 +225,15 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
         }
 
         PreparedStatement statement = null;
-        try {
+        try (var connection = HibernateUtils
+                .getSessionFactory(this.agencyId)
+                .getSessionFactoryOptions()
+                .getServiceRegistry()
+                .getService(ConnectionProvider.class)
+                .getConnection()) {
+            connection.setReadOnly(true);
             logger.debug("SQL: {}", sql);
-            statement = getConnection().prepareStatement(sql.toString());
+            statement = connection.prepareStatement(sql.toString());
 
             logger.debug(
                     "beginDate {} beginDateStr {} endDateStr {} beginTime {} beginTimeStr {}"
@@ -322,9 +285,51 @@ public abstract class PredictionAccuracyQuery extends GenericQuery {
             if (statement != null) {
                 statement.close();
             }
-            if (!getConnection().isClosed()) {
-                getConnection().close();
+        }
+    }
+
+    // Defines the output type for the intervals, whether should show
+    // standard deviation, percentage, or both.
+    // Can iterate over the enumerated type using:
+    // for (IntervalsType type : IntervalsType.values()) {}
+    public enum IntervalsType {
+        PERCENTAGE("PERCENTAGE"),
+        STD_DEV("STD_DEV"),
+        BOTH("BOTH");
+
+        private final String text;
+
+        IntervalsType(final String text) {
+            this.text = text;
+        }
+
+        /**
+         * For converting from a string to an IntervalsType
+         *
+         * @param text String to be converted
+         *
+         * @return The corresponding IntervalsType, or IntervalsType.PERCENTAGE as the default if
+         * text doesn't match a type.
+         */
+        public static IntervalsType createIntervalsType(String text) {
+            for (IntervalsType type : IntervalsType.values()) {
+                if (type.toString().equals(text)) {
+                    return type;
+                }
             }
+
+            // If a bad non-null value was specified then log the error
+            if (text != null) {
+                logger.error("\"{}\" is not a valid IntervalsType", text);
+            }
+
+            // Couldn't match so use default value
+            return IntervalsType.PERCENTAGE;
+        }
+
+        @Override
+        public String toString() {
+            return text;
         }
     }
 }

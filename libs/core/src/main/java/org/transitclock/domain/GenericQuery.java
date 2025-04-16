@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.domain;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.transitclock.domain.hibernate.HibernateUtils;
@@ -26,7 +25,6 @@ import java.util.List;
 @Slf4j
 public class GenericQuery {
 
-    @Getter
     private final Connection connection;
     // Number of rows read in
     private int rows;
