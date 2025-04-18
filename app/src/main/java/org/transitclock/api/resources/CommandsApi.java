@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.transitclock.api.data.ApiCommandAck;
-import org.transitclock.api.resources.request.DateTimeParam;
 import org.transitclock.api.utils.StandardParameters;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
+@RequestMapping("/api/v1" + "${transitclock.api.old-version-path}" + "/agency/{agency}")
 public interface CommandsApi {
     /**
      * Reads in a single AVL report specified by the query string parameters v=vehicleId
@@ -164,35 +163,37 @@ public interface CommandsApi {
             @Parameter(description = "headsign.", required = true) @RequestParam(value = "headsign") String headsign);
 
     // WORK IN PROGRESS
-    @PostMapping(
+    @GetMapping(
             value = "/command/cancelTrip/{tripId}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     @Operation(
             summary = "Cancel a trip in order to be shown in GTFS realtime.",
-            description = "<font color=\"#FF0000\">Experimental. It will work olny with the correct"
-                    + " version.</font> It cancel a trip that has no vehicle assigned.",
+            description = "It will work olny with the active trip"
+                    + "It cancel a trip that has no vehicle assigned.",
             tags = {"command", "trip"})
     ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,
-            @Parameter(description = "tripId to be marked as canceled.", required = true) @PathVariable("tripId")
-            String tripId,
-            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at", required = false) DateTimeParam at);
+            @Parameter(description = "tripId to be marked as canceled.", required = true)
+            @PathVariable(name = "tripId") String tripId,
+            @Parameter(description = "start trip time")
+            @RequestParam(value = "at") String at);
 
-    @PostMapping(
+    @GetMapping(
             value = "/command/reenableTrip/{tripId}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
     )
     @Operation(
-            summary = "Cancel a trip in order to be shown in GTFS realtime.",
-            description = "<font color=\"#FF0000\">Experimental. It will work olny with the correct"
-                    + " version.</font> It cancel a trip that has no vechilce assigned.",
+            summary = "Revert the canceled trip.",
+            description = "It will work olny with the active trip"
+                    + "It cancel a trip that has no vehicle assigned.",
             tags = {"command", "trip"})
     ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
-            @Parameter(description = "tripId to remove canceled satate.", required = true) @PathVariable("tripId")
-            String tripId,
-            @Parameter(description = "start trip time", required = false) @RequestParam(value = "at", required = false) DateTimeParam at);
+            @Parameter(description = "tripId to remove canceled satate.", required = true)
+            @PathVariable("tripId") String tripId,
+            @Parameter(description = "start trip time", required = false)
+            @RequestParam(value = "at") String at);
 
     @Operation(
             summary = "Add vehicles to block",

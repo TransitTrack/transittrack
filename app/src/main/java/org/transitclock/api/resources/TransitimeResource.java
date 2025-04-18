@@ -77,6 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class TransitimeResource extends BaseApiResource implements TransitimeApi {
+
     private final DbConfig dbConfig;
 
     @Override

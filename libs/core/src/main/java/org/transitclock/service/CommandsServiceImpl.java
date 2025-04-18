@@ -24,8 +24,9 @@ import org.transitclock.service.contract.CommandsService;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 
@@ -113,11 +114,13 @@ public class CommandsServiceImpl implements CommandsService {
         vehicleDataCache.updateVehicle(vehicleStatus);
     }
 
-    private VehicleStatus getVehicleStateForTrip(String tripId, LocalDateTime _startTripTime) {
+    private VehicleStatus getVehicleStateForTrip(String tripId, String tripTime) throws ParseException {
+        DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date dateTimeOfTrip = defaultDateFormat.parse(tripTime);
         /* The startTripTime parameter should not be null if noSchedule */
         long startTripTime = 0;
-        if (_startTripTime != null)
-            startTripTime = _startTripTime.atZone(ZoneId.systemDefault()).toEpochSecond() * 1000L;
+        if (dateTimeOfTrip != null)
+            startTripTime = dateTimeOfTrip.getTime();
         /*
          * Get the vehicle associated to the tripId. Is it possible to have more than 1 bus with the
          * same tripId??
@@ -143,9 +146,8 @@ public class CommandsServiceImpl implements CommandsService {
     }
 
     @Override
-    public String cancelTrip(String tripId, LocalDateTime startTripTime) {
+    public String cancelTrip(String tripId, String startTripTime) throws ParseException {
 
-        // String vehicleId=	"block_" + blockId + "_schedBasedVehicle";
         VehicleStatus vehicleStatus = this.getVehicleStateForTrip(tripId, startTripTime);
         if (vehicleStatus == null) return "TripId id is not currently available";
 
@@ -155,13 +157,12 @@ public class CommandsServiceImpl implements CommandsService {
             vehicleDataCache.updateVehicle(vehicleStatus);
             avlProcessor.processAvlReport(avlReport);
             return null;
-        } else return "vehicle with this trip id does not have avl report";
+        } else return "Vehicle with this trip id does not have avl report";
     }
 
     @Override
-    public String reenableTrip(String tripId, LocalDateTime startTripTime) {
+    public String reenableTrip(String tripId, String startTripTime) throws ParseException {
 
-        // String vehicleId=	"block_" + blockId + "_schedBasedVehicle";
         VehicleStatus vehicleStatus = this.getVehicleStateForTrip(tripId, startTripTime);
         if (vehicleStatus == null) return "TripId id is not currently available";
         AvlReport avlReport = vehicleStatus.getAvlReport();
@@ -170,7 +171,7 @@ public class CommandsServiceImpl implements CommandsService {
             vehicleDataCache.updateVehicle(vehicleStatus);
             avlProcessor.processAvlReport(avlReport);
             return null;
-        } else return "vehicle with this trip id does not have avl report";
+        } else return "Vehicle with this trip id does not have avl report";
     }
 
     @Override

@@ -11,8 +11,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RestController;
+
 import org.transitclock.api.data.ApiCommandAck;
-import org.transitclock.api.resources.request.DateTimeParam;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.domain.GenericQuery;
@@ -29,16 +31,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 
-@Component
+@RestController
+@RequiredArgsConstructor
 public class CommandsResource extends BaseApiResource implements CommandsApi {
 
     private static final String AVL_SOURCE = "API";
-    @Autowired
-    private DataDbLogger dataDbLogger;
+
+    private final DataDbLogger dataDbLogger;
 
     @Override
     public ResponseEntity<ApiCommandAck> pushAvlData(
@@ -215,17 +216,17 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,
             String tripId,
-            DateTimeParam at) {
+            String at
+    ) {
         String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
-        if (ipcTrip == null) {
-            throw WebUtils.badRequestException("TripId=" + tripId + " does not exist.");
+        if (ipcTrip == null) throw WebUtils.badRequestException("TripId = " + tripId + " does not exist.");
+        try {
+            result = commandsService.cancelTrip(tripId, at);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
         }
-        result = commandsService.cancelTrip(tripId, at == null ? null : at.getDate());
-
-        if (result == null) {
-            return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
-        }
+        if (result == null) return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
 
         return stdParameters.createResponse(new ApiCommandAck(true, result));
     }
@@ -234,16 +235,16 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     public ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
             String tripId,
-            DateTimeParam at) {
+            String at) {
         String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
-        if (ipcTrip == null) {
-            throw WebUtils.badRequestException("TripId=" + tripId + " does not exist.");
+        if (ipcTrip == null) throw WebUtils.badRequestException("TripId = " + tripId + " does not exist.");
+        try {
+            result = commandsService.reenableTrip(tripId, at);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
         }
-        result = commandsService.reenableTrip(tripId, at == null ? null : at.getDate());
-        if (result == null) {
-            return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
-        }
+        if (result == null) return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
 
         return stdParameters.createResponse(new ApiCommandAck(true, result));
     }

@@ -3,7 +3,7 @@ package org.transitclock.service.contract;
 
 import org.transitclock.service.dto.IpcAvl;
 
-import java.time.LocalDateTime;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 
@@ -40,13 +40,13 @@ public interface CommandsService {
      * Cancel a trip. It should exists in current predictions.
      * Retruns null on success
      */
-    String cancelTrip(String tripId, LocalDateTime at);
+    String cancelTrip(String tripId, String startTripTime) throws ParseException;
 
     /*
      * Enable a canceled trip. It should exists in current predictions.
      * Retruns null on success
      */
-    String reenableTrip(String tripId, LocalDateTime startTripTime);
+    String reenableTrip(String tripId, String startTripTime) throws ParseException;
 
     /*
      * Add vehicle to Block to predictions.
