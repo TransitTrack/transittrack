@@ -57,11 +57,21 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
             String beginDate,
             int numDays,
             String beginTime,
-            String endTime) {
+            String endTime,
+            boolean isForScreenShot) {
+        try {
+            if (isForScreenShot) {
+                String response = Reports.getSingleAvlReportsForEachVehicleId(
+                        stdParameters.getAgencyId(), beginDate, beginTime, endTime);
+                return stdParameters.createResponse(response);
+            }
         String response = Reports.getAvlJson(
                 stdParameters.getAgencyId(),
                 vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
         return ResponseEntity.ok(response);
+        } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
 

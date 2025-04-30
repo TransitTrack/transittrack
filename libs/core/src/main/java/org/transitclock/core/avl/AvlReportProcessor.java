@@ -1,12 +1,14 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
+import java.util.Calendar;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
 
 import lombok.Getter;
@@ -31,6 +33,7 @@ public class AvlReportProcessor {
     private final Executor avlExecutingThreadPool;
     private final Map<String, AvlReport> avlReports;
     private final AvlProperties avlProperties;
+    private final AvlReportRegistry avlReportRegistry;
 
     public class AvlReportProcessingTask implements Runnable {
         private final AvlReport avlReport;
@@ -59,9 +62,19 @@ public class AvlReportProcessor {
                 // If report the same time or older than don't need to process
                 // it
                 if (previousReportForVehicle != null && avlReport.getTime() <= previousReportForVehicle.getTime()) {
-                    logger.debug("Throwing away AVL report because it is same time or older than the previous AVL report for the vehicle. New AVL report is {}. Previous valid AVL report is {}",
-                        avlReport,
-                        previousReportForVehicle);
+                    Calendar rightNow = Calendar.getInstance();
+                    boolean isValid = (SystemTime.getMillis() - avlReport.getTime()) > Time.HOUR_IN_MSECS * 0.9F;
+                    // If report is old get refresh it in database every hour
+                    if (isValid && rightNow.get(Calendar.MINUTE) == 0 && rightNow.get(Calendar.SECOND) <= 7) {
+                        refreshAvlReport();
+                        avlReportRegistry.storeAvlReport(avlReport);
+                        logger.debug("Refresh AVL report for vehicle id = {} what is older than 30 min.", avlReport.getVehicleId());
+                        return;
+                    }
+                    logger.debug("Throwing away AVL report because it is same time or older than the previous AVL report for the vehicle. New AVL report is {}. " +
+                                         "Previous valid AVL report is {}",
+                                 avlReport,
+                                 previousReportForVehicle);
                     return;
                 }
 
@@ -115,14 +128,29 @@ public class AvlReportProcessor {
                 logger.error("Something happened while processing {}.", avlReport, e);
             }
         }
+
+        private void refreshAvlReport() {
+            AvlReport refreshReport = new AvlReport(
+                    avlReport.getVehicleId(),
+                    avlReport.getVehicleName(),
+                    SystemTime.getMillis(),
+                    avlReport.getLat(),
+                    avlReport.getLon(),
+                    avlReport.getSpeed(),
+                    avlReport.getHeading(),
+                    avlReport.getSource()
+            );
+            refreshReport.setTimeProcessed();
+        }
     }
 
     public AvlReportProcessor(AvlProcessor avlProcessor,
                               AvlProperties avlProperties,
-                              @Qualifier("avlExecutingThreadPool") Executor avlExecutingThreadPool) {
+                              @Qualifier("avlExecutingThreadPool") Executor avlExecutingThreadPool, AvlReportRegistry avlReportRegistry) {
         this.avlProcessor = avlProcessor;
         this.avlExecutingThreadPool = avlExecutingThreadPool;
         this.avlProperties = avlProperties;
+        this.avlReportRegistry = avlReportRegistry;
         avlReports = new ConcurrentHashMap<>();
     }
 

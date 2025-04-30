@@ -52,7 +52,8 @@ public interface ReportsApi {
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
             @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
             @Parameter(description = "Begin time(HH:MM)", required = false) @RequestParam(value = "beginTime", required = false) String beginTime,
-            @Parameter(description = "End time(HH:MM)", required = false) @RequestParam(value = "endTime", required = false) String endTime);
+            @Parameter(description = "End time(HH:MM)", required = false) @RequestParam(value = "endTime", required = false) String endTime,
+            @Parameter(description = "For Screenshot", required = false) @RequestParam(value = "screenShot") boolean isForScreenShot);
 
     /**
      * Handles the "tripWithTravelTimes" command which outputs arrival and departures data for the
