@@ -42,9 +42,7 @@ public abstract class PollUrlAvlModule extends AvlModule {
      *
      * @return
      */
-    public List<String> getSources() {
-        return avlProperties.getUrls();
-    }
+    protected abstract List<String> getSources();
 
     /**
      * Override this method if AVL feed needs to specify header info
@@ -59,13 +57,13 @@ public abstract class PollUrlAvlModule extends AvlModule {
      * Actually processes the data from the InputStream. Called by getAndProcessData(). Should be
      * overwritten unless getAndProcessData() is overwritten by superclass.
      *
-     * @param in The input stream containing the AVL data
+     * @param url The URL to source for AVL data
      * @return List of AvlReports read in
      * @throws Exception Throws a generic exception since the processing is done in the abstract
      *     method processData() and it could throw any type of exception since we don't really know
      *     how the AVL feed will be processed.
      */
-    protected abstract Collection<AvlReport> processData(InputStream in) throws Exception;
+    protected abstract Collection<AvlReport> getAndProcessData(String url) throws Exception;
 
     /**
      * Converts the input stream into a JSON string. Useful for when processing a JSON feed.
@@ -99,49 +97,25 @@ public abstract class PollUrlAvlModule extends AvlModule {
      *     how the AVL feed will be processed.
      */
     private void fetchData() throws Exception {
-        // For logging
+
         IntervalTimer timer = new IntervalTimer();
+
         List<String> sources = getSources();
 
         for (var source: sources) {
-            // Log what is happening
-            logger.info("Getting data from feed using url={}", source);
 
-            // Create the connection
-            URL url = new URL(source);
-            URLConnection con = url.openConnection();
-
-            configureConnectionLifetime(con);
-
-            configureConnectionAuthentication(con);
-
-            setRequestHeaders(con);
-
-            // Create appropriate input stream depending on whether content is
-            // compressed or not
-            try (InputStream inputStream = con.getInputStream()) {
-                InputStream in = inputStream;
-                if ("gzip".equals(con.getContentEncoding())) {
-                    in = new GZIPInputStream(in);
-                }
-
-                // For debugging
-                logger.debug("Time to access inputstream {} msec", timer.elapsedMsec());
-
-                // Call the abstract method to actually process the data
-                timer.resetTimer();
-                Collection<AvlReport> avlReportsReadIn = processData(in);
+                Collection<AvlReport> avlReportsReadIn = getAndProcessData(source);
                 logger.debug("Time to parse document {} msec", timer.elapsedMsec());
 
                 // Process all the reports read in
                 if (avlProperties.getShouldProcessAvl()) {
                     processAvlReports(avlReportsReadIn);
                 }
-            }
+
         }
     }
 
-    private void configureConnectionAuthentication(URLConnection con) {
+    protected void configureConnectionAuthentication(URLConnection con) {
         // If authentication being used then set user and password
         if (avlProperties.getAuthenticationUser() != null && avlProperties.getAuthenticationPassword() != null) {
             String authString = avlProperties.getAuthenticationUser() + ":" + avlProperties.getAuthenticationPassword();

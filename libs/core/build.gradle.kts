@@ -32,6 +32,8 @@ dependencies {
 
     implementation("com.google.guava:guava")
 
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+
     api("org.json:json:20240303")
     implementation("org.jasypt:jasypt:1.9.3")
 

@@ -2,10 +2,13 @@
 package org.transitclock.core.avl;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import org.transitclock.domain.structs.AssignmentType;
 import org.transitclock.domain.structs.AvlReport;
@@ -40,13 +43,37 @@ public class GtfsRealtimeModule extends PollUrlAvlModule {
     }
 
     @Override
-    protected Collection<AvlReport> processData(InputStream inputStream) throws Exception {
+    protected Collection<AvlReport> getAndProcessData(String source) throws Exception {
+        IntervalTimer timer = new IntervalTimer();
+
+        // Log what is happening
+        logger.info("Getting data from feed using url={}", source);
+
+        // Create the connection
+        URL url = new URL(source);
+        URLConnection con = url.openConnection();
+
+        configureConnectionLifetime(con);
+        configureConnectionAuthentication(con);
+        setRequestHeaders(con);
+
+        // Create appropriate input stream depending on whether content is
+        // compressed or not
+        try (InputStream in = con.getInputStream()) {
+            InputStream inputStream = in;
+            if ("gzip".equals(con.getContentEncoding())) {
+                inputStream = new GZIPInputStream(inputStream);
+            }
+
+            logger.debug("Time to access inputstream {} msec", timer.elapsedMsec());
+
         CodedInputStream codedStream = CodedInputStream.newInstance(inputStream);
         codedStream.setSizeLimit(200000000);
 
         var feed = GtfsRealtime.FeedMessage.parseFrom(codedStream);
 
         return processMessage(feed);
+        }
     }
 
     /**

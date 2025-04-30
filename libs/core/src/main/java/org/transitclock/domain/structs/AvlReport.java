@@ -212,6 +212,53 @@ public class AvlReport implements Serializable {
         this.timeProcessed = null;
     }
 
+    public AvlReport(String id, String vehicleName, long time, double lat, double lon, float speed, float heading, String source) {
+        this.vehicleId = id;
+        this.time = new Date(time);
+        this.location = new Location(lat, lon);
+        // DB requires null instead of NaN
+        this.speed = Float.isNaN(speed) ? null : speed;
+        this.heading = Float.isNaN(heading) ? null : heading;
+        this.source = sized(source);
+        this.assignmentId = null;
+        this.assignmentType = AssignmentType.UNSET;
+        this.leadVehicleId = null;
+        this.driverId = null;
+        this.licensePlate = null;
+        this.passengerCount = null;
+        this.passengerFullness = null;
+        this.field1Name = null;
+        this.field1Value = null;
+        this.vehicleName = vehicleName;
+
+        // Don't yet know when processed so set timeProcessed to null
+        this.timeProcessed = null;
+    }
+
+    public AvlReport(String vehicleId, String vehicleName, long time, double lat, double lon, float speed, float heading, int passengerCount, float passengerFullness, String source) {
+        // Store the values
+        this.vehicleId = vehicleId;
+        this.time = new Date(time);
+        this.location = new Location(lat, lon);
+        // DB requires null instead of NaN
+        this.speed = Float.isNaN(speed) ? null : speed;
+        this.heading = Float.isNaN(heading) ? null : heading;
+        this.source = sized(source);
+        this.assignmentId = null;
+        this.assignmentType = AssignmentType.UNSET;
+        this.leadVehicleId = null;
+        this.driverId = null;
+        this.licensePlate = null;
+        this.passengerCount = passengerCount;
+        this.passengerFullness = passengerFullness;
+        this.field1Name = null;
+        this.field1Value = null;
+        this.vehicleName = vehicleName;
+
+        // Don't yet know when processed so set timeProcessed to null
+        this.timeProcessed = null;
+    }
+
     /**
      * For truncating the source member to size allowed in db. This way don't later get an exception
      * when trying to write an AvlReport to the db.

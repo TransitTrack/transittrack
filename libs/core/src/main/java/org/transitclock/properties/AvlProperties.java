@@ -105,4 +105,20 @@ public class AvlProperties {
 
         return numThreads;
     }
+
+    // config param: transitclock.avl.traccarBaseUrl
+    // The base-URL for the traccar server api.
+    private String traccarBaseUrl = null;
+
+    // config param: transitclock.avl.occupancyBaseUrl
+    // The base-URL for the traccar server api.
+    private String occupancyBaseUrl = null;
+
+    // config param: transitclock.avl.nameInsteadOfId
+    // True if want to set an ID like a name as well.
+    private Boolean nameInsteadOfId = false;
+
+    // config param: transitclock.avl.speedInMiles
+    // True if want to convert a MPH Istead to a KMH.
+    private Boolean speedInMiles = false;
 }
