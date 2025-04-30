@@ -18,7 +18,6 @@ public class ApiAgency {
 
     @JsonProperty
     private String agencyId;
-
     // Note that this is the GTFS agency_id, which is often different
     // from the Transitime agencyId.
     @JsonProperty
@@ -40,6 +39,9 @@ public class ApiAgency {
     private String lang;
 
     @JsonProperty
+    private String speedUnit;
+
+    @JsonProperty
     private String phone;
 
     @JsonProperty
@@ -51,7 +53,7 @@ public class ApiAgency {
     @JsonProperty
     private int configRev;
 
-    public ApiAgency(String agencyId, Agency agency) {
+    public ApiAgency(String agencyId, Agency agency, boolean isMiles) {
         this.agencyId = agencyId;
         this.id = agency.getId();
         this.name = agency.getName();
@@ -62,6 +64,8 @@ public class ApiAgency {
         this.fareUrl = agency.getFareUrl();
         this.extent = new ApiExtent(agency.getExtent());
         this.configRev = agency.getConfigRev();
+        this.speedUnit = isMiles ? "mph" : "kmh";
+
 
         // Return timezone offset in minutes since that is what Javascript uses.
         // Need to negate so it works with Javascript Date().getTimezoneOffset().

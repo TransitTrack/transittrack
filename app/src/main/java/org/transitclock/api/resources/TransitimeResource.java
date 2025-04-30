@@ -42,6 +42,7 @@ import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.AvlProperties;
 import org.transitclock.service.contract.PredictionsService.RouteStop;
 import org.transitclock.service.dto.IpcActiveBlock;
 import org.transitclock.service.dto.IpcBlock;
@@ -79,6 +80,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransitimeResource extends BaseApiResource implements TransitimeApi {
 
     private final DbConfig dbConfig;
+    private final AvlProperties avlProperties;
 
     @Override
     public ResponseEntity<ApiVehiclesResponse> getVehicles(
@@ -819,7 +821,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
         // Get block data from server
         List<Agency> agencies = configService.getAgencies();
 
-        ApiAgenciesResponse apiAgencies = new ApiAgenciesResponse(stdParameters.getAgencyId(), agencies);
+        ApiAgenciesResponse apiAgencies = new ApiAgenciesResponse(stdParameters.getAgencyId(), agencies, avlProperties.getSpeedInMiles());
         return ResponseEntity.ok(apiAgencies);
     }
 

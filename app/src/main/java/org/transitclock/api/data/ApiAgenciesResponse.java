@@ -23,9 +23,9 @@ public class ApiAgenciesResponse {
         data = apiAgencies;
     }
 
-    public ApiAgenciesResponse(String agencyId, List<Agency> agencies) {
+    public ApiAgenciesResponse(String agencyId, List<Agency> agencies, boolean isMiles) {
         data = agencies.stream()
-                .map(a -> new ApiAgency(agencyId, a))
+                .map(a -> new ApiAgency(agencyId, a, isMiles))
                 .toList();
     }
 }

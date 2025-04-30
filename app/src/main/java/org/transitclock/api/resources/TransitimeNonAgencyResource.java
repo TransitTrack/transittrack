@@ -12,6 +12,7 @@ import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.WebAgency;
+import org.transitclock.properties.AvlProperties;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 
 import java.util.ArrayList;
@@ -29,8 +30,17 @@ import java.util.List;
  */
 @RestController
 public class TransitimeNonAgencyResource extends BaseApiResource implements TransitimeNonAgencyApi {
+
+    private final AvlProperties avlProperties;
+
+    public TransitimeNonAgencyResource(AvlProperties avlProperties) {
+        super();
+        this.avlProperties = avlProperties;
+    }
+
     @Override
     public ResponseEntity<ApiAgenciesResponse> getAgencies(StandardParameters stdParameters) {
+        final  boolean isMiles = avlProperties.getSpeedInMiles();
         List<ApiAgency> apiAgencyList = new ArrayList<>();
         List<WebAgency> webAgencies = WebAgency.getCachedOrderedListOfWebAgencies();
 
@@ -39,7 +49,7 @@ public class TransitimeNonAgencyResource extends BaseApiResource implements Tran
             List<Agency> agencies = configService.getAgencies();
 
             for (Agency agency : agencies) {
-                apiAgencyList.add(new ApiAgency(agencyId, agency));
+                apiAgencyList.add(new ApiAgency(agencyId, agency, isMiles));
             }
         }
         ApiAgenciesResponse apiAgencies = new ApiAgenciesResponse(apiAgencyList);
