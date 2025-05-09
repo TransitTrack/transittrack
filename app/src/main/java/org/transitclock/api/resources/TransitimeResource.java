@@ -900,17 +900,17 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
     }
 
     @Override
-    public ResponseEntity<ApiExportsDataResponse> getExports(StandardParameters stdParameters) {
+    public ResponseEntity<ApiExportsDataResponse> getExports(StandardParameters stdParameters, int type) {
         ApiExportsDataResponse result;
-        Session session = HibernateUtils.getSession();
-        try {
-            result = new ApiExportsDataResponse(ExportTableRepository.getExportTable(session));
 
-            session.close();
+        try (Session session = HibernateUtils.getSession()) {
+            if (type == 0)
+                result = new ApiExportsDataResponse(ExportTableRepository.getExportTable(session));
+            else
+                result = new ApiExportsDataResponse(ExportTableRepository.getExportTable(session, type));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
-            session.close();
             throw WebUtils.badRequestException(e);
         }
     }
@@ -934,6 +934,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             throw WebUtils.badRequestException(e);
         }
     }
+
 
     /**
      * Determines Map of UiTypes for vehicles so that the vehicles can be drawn correctly in the UI.

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
+import org.transitclock.core.reports.ScheduleAdhStopsReport;
 import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AssignmentType;
@@ -32,6 +33,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
+
+import static org.transitclock.api.utils.RemoveFileFromDirectory.removeFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -293,13 +296,57 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             StandardParameters stdParameters,
             String avlDate) {
         try {
-            ExportTable exportTable = new ExportTable(new SimpleDateFormat("MM-dd-yyyy").parse(avlDate), 1, "avl_" + avlDate + ".csv");
-            dataDbLogger.add(exportTable);
-
+            if (avlDate.charAt(4) != '-') {
+                dataDbLogger.add(new ExportTable(new SimpleDateFormat("MM-dd-yyyy")
+                                                           .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
+            } else {
+                dataDbLogger.add(new ExportTable(new SimpleDateFormat("yyyy-MM-dd")
+                                                           .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
+            }
         } catch (Exception ex) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(ex);
         }
         return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
+    }
+
+    @Override
+    public ResponseEntity<ApiCommandAck> deleteExport(
+            StandardParameters stdParameters,
+            int exportId) {
+        try {
+            var export = commandsService.removeExportById(exportId);
+            if (export.getExportType() == 2) {
+                removeFile("/tmp/csv/", export.getFileName());
+            }
+            return stdParameters.createResponse(
+                    new ApiCommandAck(true, "Deleted: " + export.getFileName()));
+        } catch (Exception ex) {
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
+    }
+
+    public ResponseEntity<ApiCommandAck> addStopsReport(StandardParameters stdParameters, InputStream requestBody) {
+        try {
+            JSONObject jsonBody = getJsonObject(requestBody);
+            String beginDate = jsonBody.getString("beginDate");
+            String endDate = jsonBody.getString("endDate");
+            String hostUrl = jsonBody.getString("url");
+            String allowableEarly = jsonBody.getString("allowableEarly");
+            String allowableLate = jsonBody.getString("allowableLate");
+
+            ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport(dataDbLogger);
+            generator.createScheduleAdhCSVReportForStops(
+                    stdParameters.getAgencyId(),
+                    beginDate,
+                    endDate,
+                    allowableEarly,
+                    allowableLate,
+                    hostUrl);
+            return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
+        } catch (Exception ex) {
+            // If problem getting data then return a message
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
     }
 }

@@ -16,8 +16,10 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.repository.ExportTableRepository;
 import org.transitclock.domain.repository.VehicleToBlockConfigRepository;
 import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.service.contract.CommandsService;
@@ -193,5 +195,17 @@ public class CommandsServiceImpl implements CommandsService {
         }
 
         return null;
+    }
+
+    @Override
+    public ExportTable removeExportById(int id) {
+        try(var session = HibernateUtils.getSession()) {
+            var exportsToDelete = ExportTableRepository.getExport(session, id);
+            if (!exportsToDelete.isEmpty() && exportsToDelete.get(0).getId() == id) {
+                ExportTableRepository.deleteExportTableRecord(id, session);
+                return exportsToDelete.get(0);
+            }
+        }
+        throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
     }
 }

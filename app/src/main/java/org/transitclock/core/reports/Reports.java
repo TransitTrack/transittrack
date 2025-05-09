@@ -835,22 +835,98 @@ public class Reports {
         return json;
     }
 
-    public static boolean hasLastAvlJsonInHours(String agencyId, String vehicleId, int hours) {
+    public static String getSqlForAllStopsSchedAdh (String agencyId,
+                                                    LocalDate date,
+                                                    String allowableEarly,
+                                                    String allowableLate) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
-        String sql = "";
-        if (agency.getDbType().equals("postgresql")) {
-            // sql query should be better
-            sql = "select a.vehicle_id as \"vehicleId\", vC.name as \"name\", a.maxTime as"
-                    + " \"maxTime\", lat, lon from ( SELECT vehicle_id, max(time) AS maxTime"
-                    + " FROM avl_reports WHERE time > now() + '-"
-                    + hours + " hours' AND vehicle_id = '" + vehicleId
-                    + "' "
-                    + "GROUP BY vehicle_id) a "
-                    + "JOIN avl_reports b ON a.vehicle_id=b.vehicle_id AND a.maxTime = b.time "
-                    + "JOIN vehicle_configs vC ON a.vehicle_id=vC.id";
-        }
 
-        String json = GenericJsonQuery.getJsonString(agencyId, sql);
-        return json.length() > 50;
+        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";
+
+        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
+        String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
+
+        String sql = "";
+        StringBuilder sqlBuilder;
+
+        if (agency.getDbType().equals("postgresql")) {
+            sqlBuilder = new StringBuilder("WITH early AS (\n");
+            sqlBuilder.append("    SELECT time,\n");
+            sqlBuilder.append("           s.name AS name,\n");
+            sqlBuilder.append("           ad.route_id AS route,\n");
+            sqlBuilder.append("           ad.trip_id AS trip,\n");
+            sqlBuilder.append("           ad.block_id AS block,\n");
+            sqlBuilder.append("           ad.vehicle_id AS vehicle,\n");
+            sqlBuilder.append("           ad.scheduled_time AS schedule,\n");
+            sqlBuilder.append("           regexp_replace(\n");
+            sqlBuilder.append("                   CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n");
+            sqlBuilder.append("                   '^00:', ''\n");
+            sqlBuilder.append("           ) AS difference,\n");
+            sqlBuilder.append("           'early' AS category_order  -- Added order indicator\n");
+            sqlBuilder.append("    FROM arrivals_departures ad\n");
+            sqlBuilder.append("             JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n");
+            sqlBuilder.append("    WHERE ad.scheduled_time IS NOT NULL\n");
+            sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
+            sqlBuilder.append("      AND scheduled_time - time > ");
+            sqlBuilder.append(allowableEarlyMinutesStr);
+            sqlBuilder.append(" \n");
+            sqlBuilder.append("),\n");
+            sqlBuilder.append("     on_time AS (\n");
+            sqlBuilder.append("         SELECT time,\n");
+            sqlBuilder.append("                s.name AS name,\n");
+            sqlBuilder.append("                ad.route_id AS route,\n");
+            sqlBuilder.append("                ad.trip_id AS trip,\n");
+            sqlBuilder.append("                ad.block_id AS block,\n");
+            sqlBuilder.append("                ad.vehicle_id AS vehicle,\n");
+            sqlBuilder.append("                ad.scheduled_time AS schedule,\n");
+            sqlBuilder.append("                regexp_replace(\n");
+            sqlBuilder.append("                        CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n");
+            sqlBuilder.append("                        '^(-)?00:', '\\1'\n");
+            sqlBuilder.append("                ) AS difference,\n");
+            sqlBuilder.append("                'on_time' AS category_order  -- Added order indicator\n");
+            sqlBuilder.append("         FROM arrivals_departures ad\n");
+            sqlBuilder.append("                  JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n");
+            sqlBuilder.append("         WHERE ad.scheduled_time IS NOT NULL\n");
+            sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
+            sqlBuilder.append("           AND scheduled_time - time <= ");
+            sqlBuilder.append(allowableEarlyMinutesStr);
+            sqlBuilder.append(" \n");
+            sqlBuilder.append("           AND time - scheduled_time <= ");
+            sqlBuilder.append(allowableLateMinutesStr);
+            sqlBuilder.append(" \n");
+            sqlBuilder.append("     ),\n");
+            sqlBuilder.append("     late AS (\n");
+            sqlBuilder.append("         SELECT time ,\n");
+            sqlBuilder.append("                s.name AS name,\n");
+            sqlBuilder.append("                ad.route_id AS route,\n");
+            sqlBuilder.append("                ad.trip_id AS trip,\n");
+            sqlBuilder.append("                ad.block_id AS block,\n");
+            sqlBuilder.append("                ad.vehicle_id AS vehicle,\n");
+            sqlBuilder.append("                ad.scheduled_time AS schedule,\n");
+            sqlBuilder.append("                regexp_replace(\n");
+            sqlBuilder.append("                        CAST(DATE_TRUNC('second', ad.scheduled_time::timestamp) - DATE_TRUNC('second', ad.time::timestamp) AS VARCHAR),\n");
+            sqlBuilder.append("                        '^(-)00:', '\\1'\n");
+            sqlBuilder.append("                ) AS difference,\n");
+            sqlBuilder.append("                'late' AS category_order\n");
+            sqlBuilder.append("         FROM arrivals_departures ad\n");
+            sqlBuilder.append("                  JOIN stops s ON ad.config_rev = s.config_rev AND ad.stop_id = s.id\n");
+            sqlBuilder.append("         WHERE ad.scheduled_time IS NOT NULL\n");
+            sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
+            sqlBuilder.append("           AND time - scheduled_time > ");
+            sqlBuilder.append(allowableLateMinutesStr);
+            sqlBuilder.append(" )\n");
+            sqlBuilder.append("SELECT *\n");
+            sqlBuilder.append("FROM (\n");
+            sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM early\n");
+            sqlBuilder.append("         UNION ALL\n");
+            sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM on_time\n");
+            sqlBuilder.append("         UNION ALL\n");
+            sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n");
+            sqlBuilder.append("     ) AS combined_results\n");
+            sqlBuilder.append("ORDER BY category_order, time;\n");
+            sql = sqlBuilder.toString();
+        }
+        return sql;
     }
 }

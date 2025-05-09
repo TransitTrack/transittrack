@@ -2,6 +2,8 @@ package org.transitclock.api.resources;
 
 import java.util.List;
 
+import org.springframework.boot.context.properties.bind.DefaultValue;
+
 import org.transitclock.api.data.ApiActiveBlocksResponse;
 import org.transitclock.api.data.ApiActiveBlocksRoutesResponse;
 import org.transitclock.api.data.ApiAdherenceSummary;
@@ -905,15 +907,20 @@ public interface TransitimeApi {
             tags = {"base data", "serviceId"})
     ResponseEntity<ApiIdsResponse> getCurrentServiceIds(StandardParameters stdParameters);
 
-    @Operation(summary = "Returns exports list", description = "Returns exports list")
+    @Operation(summary = "Returns exports list",
+            description = "Returns list of all exports or by type" ,
+            tags = {"export"})
     @GetMapping(value = "/command/exports",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    ResponseEntity<ApiExportsDataResponse> getExports(StandardParameters stdParameters);
+    ResponseEntity<ApiExportsDataResponse> getExports(
+    StandardParameters stdParameters,
+    @Parameter(description = "Entire list, if unset or '0'; '1' - avl; '2' - stops")
+    @RequestParam(value = "type") @DefaultValue("0") int type);
 
     @Operation(summary = "Return export file", description = "Return export file")
     @GetMapping(value = "/command/getExportFile",
             produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
     ResponseEntity<Object> getExportById(
             StandardParameters stdParameters,
-            @Parameter(description = "Id eksportu") @RequestParam(value = "id") long id);
+            @Parameter(description = "export ID") @RequestParam(value = "id") long id);
 }

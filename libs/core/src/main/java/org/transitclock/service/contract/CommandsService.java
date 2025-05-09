@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.service.dto.IpcAvl;
 
 import java.text.ParseException;
@@ -59,4 +60,10 @@ public interface CommandsService {
      * Returns null on success
      */
     String removeVehicleToBlock(long id);
+
+    /*
+     * Add remove vehicle to block.
+     * Returns exportTable obj.
+     */
+    ExportTable removeExportById(int id);
 }

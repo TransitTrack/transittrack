@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -228,5 +229,30 @@ public interface CommandsApi {
             consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> addAVLReport(
             StandardParameters stdParameters,
-            @Parameter(description = "AVL date(MM-DD-YYYY).") @RequestParam(value = "avlDate") String avlDate);
+            @Parameter(description = "AVL date(MM-DD-YYYY or YYYY-MM-DD).") @RequestParam(value = "avlDate") String avlDate);
+
+    @Operation(
+            summary="Delete an export",
+            description="Delete exports by IDs",
+            tags= {"export"})
+    @DeleteMapping(value = "/command/export",
+            produces = {MediaType.APPLICATION_JSON_VALUE},
+            consumes = {MediaType.APPLICATION_JSON_VALUE})
+    ResponseEntity<ApiCommandAck> deleteExport(
+            StandardParameters stdParameters,
+            @Parameter(description="Id to delete", required = true) @RequestParam(value = "id") int exportId);
+
+    @Operation(summary = "All stops Report",
+            description = "Order export for all stops schedule adherence report",
+            tags = {"report", "export"})
+    @PostMapping(value = "/command/schedStopsAdhExport",
+            produces = {MediaType.APPLICATION_JSON_VALUE},
+            consumes = {MediaType.APPLICATION_JSON_VALUE})
+    ResponseEntity<ApiCommandAck> addStopsReport(
+            StandardParameters stdParameters,
+            @Parameter(description="Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
+                    "'endDate', \n" +
+                    "'url' - target folder on host, \n" +
+                    "'allowableEarly' - in mins (if unset: default 1.0), \n" +
+                    "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody);
 }
