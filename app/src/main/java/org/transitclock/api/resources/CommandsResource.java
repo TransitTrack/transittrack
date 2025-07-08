@@ -214,7 +214,7 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
         }
     }
 
-    // WORK IN PROGRESS
+    // WIP
     @Override
     public ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,

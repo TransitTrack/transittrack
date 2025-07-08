@@ -63,6 +63,8 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-undertow")
     modules {
         module("org.springframework.boot:spring-boot-starter-tomcat") {
@@ -80,6 +82,7 @@ dependencies {
     implementation(project(":libs:core"))
     implementation(project(":libs:util"))
 
+    implementation("com.opencsv:opencsv:5.10")
     implementation("jakarta.persistence:jakarta.persistence-api")
     implementation("com.google.guava:guava")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
