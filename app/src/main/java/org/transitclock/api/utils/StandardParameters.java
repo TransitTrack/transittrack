@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.ResponseBuilder;
 import jakarta.ws.rs.core.Response.Status;
+import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.service.*;
 import org.transitclock.service.contract.*;
@@ -108,9 +109,11 @@ public class StandardParameters {
     public void validate() throws WebApplicationException {
         // Make sure the application key is valid
         ApiKeyManager manager = ApiKeyManager.getInstance();
-        if (!manager.isKeyValid(getKey())) {
+        boolean isAgencyValid = AgencyConfig.getAgencyId().equals(this.agencyId);
+        if (!manager.isKeyValid(getKey()) || !isAgencyValid) {
             throw WebUtils.badRequestException(
-                    Status.UNAUTHORIZED.getStatusCode(), "Application key \"" + getKey() + "\" is not valid.");
+                    Status.UNAUTHORIZED.getStatusCode(),
+                    "Application key \"" + getKey() + "\" or Agency ID \"" + agencyId + "\" are not valid.");
         }
     }
 
