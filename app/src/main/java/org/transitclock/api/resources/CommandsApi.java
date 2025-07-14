@@ -191,7 +191,7 @@ public interface CommandsApi {
             tags = {"command", "trip"})
     ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
-            @Parameter(description = "tripId to remove canceled satate.", required = true)
+            @Parameter(description = "tripId to remove the canceled satate.", required = true)
             @PathVariable("tripId") String tripId,
             @Parameter(description = "start trip time", required = false)
             @RequestParam(value = "at") String at);
