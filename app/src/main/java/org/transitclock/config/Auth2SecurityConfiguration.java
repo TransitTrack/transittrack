@@ -20,13 +20,18 @@ public class Auth2SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.oauth2ResourceServer(auth -> auth.jwt(Customizer.withDefaults())
-        );
-        return http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .build();
+        http
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/gtfs-rt/**").permitAll()
+                    .requestMatchers("/api/v1/**").authenticated()
+                    .anyRequest().authenticated()
+            )
+            .oauth2ResourceServer(auth -> auth.jwt(Customizer.withDefaults()));
+
+        return http.build();
     }
 
-    @Bean
+//    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new JwtAuthenticationConverter();
         var jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
