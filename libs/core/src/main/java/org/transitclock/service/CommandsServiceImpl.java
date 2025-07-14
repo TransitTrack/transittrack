@@ -117,7 +117,7 @@ public class CommandsServiceImpl implements CommandsService {
     }
 
     private VehicleStatus getVehicleStateForTrip(String tripId, String tripTime) throws ParseException {
-        DateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        DateFormat defaultDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm");
         Date dateTimeOfTrip = defaultDateFormat.parse(tripTime);
         /* The startTripTime parameter should not be null if noSchedule */
         long startTripTime = 0;
