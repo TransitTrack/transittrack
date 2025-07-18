@@ -1,6 +1,8 @@
+val protobufVersion: String by project
+
 plugins {
     id("java")
-    id("com.google.protobuf") version "0.9.4"
+    id("com.google.protobuf")
 }
 
 dependencies {
@@ -48,7 +50,7 @@ dependencies {
     implementation("commons-codec:commons-codec")
 
     protobuf(files("src/proto"))
-    api("com.google.protobuf:protobuf-java:4.28.2")
+    api("com.google.protobuf:protobuf-java:${protobufVersion}")
 
     testImplementation("org.assertj:assertj-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -56,6 +58,6 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.29.2"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
 }

@@ -3,6 +3,7 @@ pluginManagement {
     val gitPropertiesPluginVersion: String by settings
     val jibPluginVersion: String by settings
     val springVersion: String by settings
+    val protobufPluginVersion: String by settings
 
     plugins {
         kotlin("jvm") version kotlinVersion
@@ -17,7 +18,7 @@ pluginManagement {
         id("com.palantir.git-version") version "3.1.0"
         id("com.gorylenko.gradle-git-properties") version gitPropertiesPluginVersion
 
-        id("com.google.protobuf") version "0.9.4"
+        id("com.google.protobuf") version protobufPluginVersion
         id("com.diffplug.spotless") version "7.0.0.BETA4"
         id("com.github.andygoossens.gradle-modernizer-plugin") version "1.10.0"
     }
