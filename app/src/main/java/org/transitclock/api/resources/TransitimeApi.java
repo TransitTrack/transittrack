@@ -287,6 +287,60 @@ public class TransitimeApi {
         }
     }
 
+    @Path("/reports/occupanciesByTripWithContinuePickUp")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Gets occupancies by date and specific trip.",
+            description = "Gets occupancies by date and trip with addition results if count of passengers changes between stops.",
+            tags = {"report", "trip"})
+    public Response getMaxOccupancyByRouteDate(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
+            @QueryParam(value = "date") String date,
+            @Parameter(description = "Specific trip ID.")
+            @QueryParam(value = "tripId") String tripId)
+            throws WebApplicationException {
+
+        // Make sure request is valid
+        stdParameters.validate();
+
+        try {
+            String response = Reports.getOccupancyPerTripWithContinuePickUp(stdParameters.getAgencyId(), tripId, date);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Path("/reports/maxOccupanciesByRoute")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Gets max occupancies by specific route for single day.",
+            description = "Gets max value of occupancies by single day and route if setting ID or short name.",
+            tags = {"report", "route"})
+    public Response getMaxOccupancyByTripDate(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
+            @QueryParam(value = "date") String date,
+            @Parameter(description = "Specific rout ID.")
+            @QueryParam(value = "routeId") String routeId,
+            @Parameter(description = "Route short name.")
+            @QueryParam(value = "routeName") String routeShortName)
+            throws WebApplicationException {
+
+        // Make sure request is valid
+        stdParameters.validate();
+
+        try {
+            String response = Reports.getMaxOccupancyPerLine(stdParameters.getAgencyId(), routeId, routeShortName, date);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
     @Operation(
             summary = "Returns schedule adherence report.",
             description = "Returns schedule adherence report.",
