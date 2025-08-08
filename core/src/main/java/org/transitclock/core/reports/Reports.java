@@ -149,6 +149,8 @@ public class Reports {
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN avl_reports.passenger_count = -1 THEN NULL\n");
         sqlBuilder.append("           ELSE avl_reports.passenger_count END AS passenger_count,");
+        sqlBuilder.append("  LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
+        sqlBuilder.append("  OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("	 CASE WHEN ADDeparture.scheduled_time ISNULL");
         sqlBuilder.append("	 THEN DATE('");
         sqlBuilder.append(date);
@@ -222,6 +224,8 @@ public class Reports {
         sqlBuilder.append(date);
         sqlBuilder.append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
         sqlBuilder.append("         ELSE ADDeparture.scheduled_time END AS scheduledTime,\n");
+        sqlBuilder.append("    LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
+        sqlBuilder.append("    OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("    CASE\n");
         sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('");
         sqlBuilder.append(date);
