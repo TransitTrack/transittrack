@@ -56,7 +56,7 @@ public class TransitimeNonAgencyApi {
             tags = {"base data", "agency"})
     public Response getAgencies(@BeanParam StandardParameters stdParameters) throws WebApplicationException {
         // Make sure request is valid
-        stdParameters.validate();
+        stdParameters.validateKey();
 
         // For each agency handled by this server create an ApiAgencies
         // and return the list.
@@ -114,7 +114,7 @@ public class TransitimeNonAgencyApi {
             @QueryParam(value = "numPreds") @DefaultValue("3") int numberPredictions)
             throws WebApplicationException {
         // Make sure request is valid
-        stdParameters.validate();
+        stdParameters.validateKey();
 
         if (maxDistance > PredsByLoc.MAX_MAX_DISTANCE)
             throw WebUtils.badRequestException("Maximum maxDistance parameter "

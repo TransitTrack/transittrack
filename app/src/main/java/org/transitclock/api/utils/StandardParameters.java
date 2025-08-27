@@ -101,7 +101,7 @@ public class StandardParameters {
     }
 
     /**
-     * Makes sure not access feed too much and that the key is valid. If there is a problem then
+     * Makes sure not access feed too much and that the key and agency ID are valid. If there is a problem then
      * throws a WebApplicationException.
      *
      * @throws WebApplicationException
@@ -111,6 +111,22 @@ public class StandardParameters {
         ApiKeyManager manager = ApiKeyManager.getInstance();
         boolean isAgencyValid = AgencyConfig.getAgencyId().equals(this.agencyId);
         if (!manager.isKeyValid(getKey()) || !isAgencyValid) {
+            throw WebUtils.badRequestException(
+                    Status.UNAUTHORIZED.getStatusCode(),
+                    "Application key \"" + getKey() + "\" or Agency ID \"" + agencyId + "\" are not valid.");
+        }
+    }
+
+    /**
+     * Makes sure not access feed too much and that the key and is valid. If there is a problem then
+     * throws a WebApplicationException.
+     *
+     * @throws WebApplicationException
+     */
+    public void validateKey() throws WebApplicationException {
+        // Make sure the application key is valid
+        ApiKeyManager manager = ApiKeyManager.getInstance();
+        if (!manager.isKeyValid(getKey())) {
             throw WebUtils.badRequestException(
                     Status.UNAUTHORIZED.getStatusCode(),
                     "Application key \"" + getKey() + "\" or Agency ID \"" + agencyId + "\" are not valid.");
