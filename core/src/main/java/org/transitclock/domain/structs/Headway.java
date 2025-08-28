@@ -30,6 +30,12 @@ public class Headway implements Serializable {
     @Column(name = "headway")
     private double headway;
 
+    @Column(name = "expected")
+    private double expected;
+
+    @Column(name = "deviation")
+    private double deviation;
+
     @Column(name = "average")
     private double average;
 
@@ -72,6 +78,8 @@ public class Headway implements Serializable {
 
     public Headway(
             long headway,
+            long expected,
+            long deviation,
             Date creationTime,
             String vehicleId,
             String otherVehicleId,
@@ -83,6 +91,8 @@ public class Headway implements Serializable {
 
         this.configRev = Core.getInstance().getDbConfig().getConfigRev();
         this.headway = headway;
+        this.expected = expected;
+        this.deviation = deviation;
         this.creationTime = creationTime;
         this.vehicleId = vehicleId;
         this.stopId = stopId;
