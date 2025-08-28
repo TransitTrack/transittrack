@@ -1,0 +1,3 @@
+ALTER TABLE headways
+    ADD COLUMN expected DOUBLE PRECISION,
+    ADD COLUMN deviation DOUBLE PRECISION;
