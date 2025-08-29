@@ -192,7 +192,7 @@ public class Reports {
         sqlBuilder.append(date);
         sqlBuilder.append("')\n");
         sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
@@ -260,7 +260,7 @@ public class Reports {
         sqlBuilder.append(date);
         sqlBuilder.append("')\n");
         sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
