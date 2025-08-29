@@ -2,6 +2,7 @@
 package org.transitclock.core.headwaygenerator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.transitclock.Core;
 import org.transitclock.core.HeadwayGenerator;
 import org.transitclock.core.VehicleState;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheFactory;
@@ -77,8 +78,14 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                                     - stopList.get(previousVehicleArrivalIndex).getTime()
                                     .getTime());
 
+                    long expected = Math.abs(
+                            Core.getInstance().getDbConfig().getTrip(stopList.get(lastStopArrivalIndex).getTripId()).getStartTime() -
+                                    Core.getInstance().getDbConfig().getTrip(stopList.get(previousVehicleArrivalIndex).getTripId()).getStartTime()) *
+                            1000L;
+                    if (expected <= 0) return null;
+
                     Headway headway = new Headway(
-                            headwayTime,
+                            headwayTime, expected, (headwayTime - expected),
                             new Date(date),
                             vehicleId,
                             stopList.get(previousVehicleArrivalIndex).getVehicleId(),

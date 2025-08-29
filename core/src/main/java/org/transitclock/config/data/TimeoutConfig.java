@@ -44,4 +44,22 @@ public class TimeoutConfig {
                     + "be useful in situations where it is not desirable to "
                     + "include timed out vehicles in data feeds, e.g. the GTFS "
                     + "Realtime vehicle positions feed.");
+
+    public static final IntegerConfigValue headwayExpectedMaxLimitInSecs = new IntegerConfigValue(
+            "transitclock.api.headwayExpectedMaxLimitInSecs",
+            5 * 60,
+            "Number of seconds to accept that vehicle is gapped");
+
+    public static int getHeadwayExpectedMaxLimitInSecs() {
+        return headwayExpectedMaxLimitInSecs.getValue();
+    }
+
+    public static final IntegerConfigValue headwayExpectedMinLimitInSecs = new IntegerConfigValue(
+            "transitclock.api.headwayExpectedMinLimitInSecs",
+            5 * 60,
+            "Number of seconds to accept that vehicle is bunched");
+
+    public static int getHeadwayExpectedMinLimitInSecs() {
+        return headwayExpectedMaxLimitInSecs.getValue();
+    }
 }
