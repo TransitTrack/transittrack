@@ -1,16 +1,18 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.lang.reflect.InvocationTargetException;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 import org.transitclock.api.resources.TransitimeApi.UiMode;
+import org.transitclock.config.data.TimeoutConfig;
 import org.transitclock.core.BlockAssignmentMethod;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.Time;
+
+import java.lang.reflect.InvocationTargetException;
 
 import static org.transitclock.config.data.TraccarConfig.OCCUPANCY_SOURCE_URL;
 
@@ -23,31 +25,31 @@ import static org.transitclock.config.data.TraccarConfig.OCCUPANCY_SOURCE_URL;
 @XmlRootElement
 @XmlType(
         propOrder = {
-            "id",
-            "vehicleName",
-            "routeId",
-            "routeShortName",
-            "routeName",
-            "headsign",
-            "directionId",
-            "vehicleType",
-            "uiType",
-            "schedBasedPreds",
-            "loc",
-            "scheduleAdherence",
-            "scheduleAdherenceStr",
-            "blockId",
-            "blockAssignmentMethod",
-            "tripId",
-            "tripPatternId",
-            "isDelayed",
-            "isLayover",
-            "layoverDepTime",
-            "layoverDepTimeStr",
-            "nextStopId",
-            "nextStopName",
-            "driverId",
-            "holdingTime"
+                "id",
+                "vehicleName",
+                "routeId",
+                "routeShortName",
+                "routeName",
+                "headsign",
+                "directionId",
+                "vehicleType",
+                "uiType",
+                "schedBasedPreds",
+                "loc",
+                "scheduleAdherence",
+                "scheduleAdherenceStr",
+                "blockId",
+                "blockAssignmentMethod",
+                "tripId",
+                "tripPatternId",
+                "isDelayed",
+                "isLayover",
+                "layoverDepTime",
+                "layoverDepTimeStr",
+                "nextStopId",
+                "nextStopName",
+                "driverId",
+                "holdingTime"
         })
 public class ApiVehicleDetails extends ApiVehicleAbstract {
 
@@ -125,11 +127,21 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     @XmlAttribute
     private double headway;
 
+    @XmlAttribute
+    private double expectedHeadway;
+
+    @XmlAttribute
+    private double headwayDeviation;
+
+    @XmlAttribute
+    private String headwayDeviationCategory;
+
     /**
      * Need a no-arg constructor for Jersey. Otherwise get really obtuse "MessageBodyWriter not
      * found for media type=application/json" exception.
      */
-    protected ApiVehicleDetails() {}
+    protected ApiVehicleDetails() {
+    }
 
     /**
      * Takes a Vehicle object for client/server communication and constructs a ApiVehicle object for
@@ -137,8 +149,8 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
      *
      * @param vehicle
      * @param timeForAgency So can output times in proper timezone
-     * @param uiType Optional parameter. If should be labeled as "minor" in output for UI. Default
-     *     is UiMode.NORMAL.
+     * @param uiType        Optional parameter. If should be labeled as "minor" in output for UI. Default
+     *                      is UiMode.NORMAL.
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
@@ -174,7 +186,10 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         if (vehicle instanceof IpcVehicleComplete && tripId != null) {
             distanceAlongTrip = ((IpcVehicleComplete) vehicle).getDistanceAlongTrip();
             isCanceled = ((IpcVehicleComplete) vehicle).isCanceled();
-            headway = ((IpcVehicleComplete) vehicle).getHeadway();
+            headway = ((IpcVehicleComplete) vehicle).getHeadway().getHeadway();
+            expectedHeadway = ((IpcVehicleComplete) vehicle).getHeadway().getExpected();
+            headwayDeviation = ((IpcVehicleComplete) vehicle).getHeadway().getDeviation();
+            headwayDeviationCategory = getHeadwayDeviationCategory(((IpcVehicleComplete) vehicle).getHeadway().getDeviation());
         }
         isScheduledService = vehicle.getFreqStartTime() > 0 ? false : true;
         if (!isScheduledService) freqStartTime = vehicle.getFreqStartTime();
@@ -189,17 +204,28 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         }
         this.fullness = convertFullness(vehicle);
     }
+
     private String convertFullness(IpcVehicle vehicle) {
         if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) {
             if (vehicle.isPredictable()) {
                 final float FULLNESS = vehicle.getAvl().getPassengerFullness();
-                if (vehicle.getAvl().getPassengerCount() < 0) return new String("NO_DATA_AVAILABLE");
-                else if (FULLNESS == 0) return new String("EMPTY");
-                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return new String("MANY_SEATS_AVAILABLE");
-                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return new String("FEW_SEATS_AVAILABLE");
-                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return new String("STANDING_ROOM_ONLY");
-                else if (FULLNESS >= 100) return new String("FULL");
-            } else return new String("NO_DATA_AVAILABLE");
-        } return null;
+                if (vehicle.getAvl().getPassengerCount() < 0) return "NO_DATA_AVAILABLE";
+                else if (FULLNESS == 0) return "EMPTY";
+                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
+                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return "FEW_SEATS_AVAILABLE";
+                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return "STANDING_ROOM_ONLY";
+                else if (FULLNESS >= 100) return "FULL";
+            } else return "NO_DATA_AVAILABLE";
+        }
+        return null;
+    }
+
+    private String getHeadwayDeviationCategory(double headwayDeviation) {
+        if (headwayDeviation > TimeoutConfig.getHeadwayExpectedMaxLimitInSecs() * 1000) {
+            return "GAPPED";
+        } else if (headwayDeviation < TimeoutConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
+            return "BUNCHED";
+        } else
+            return "EXPECTED";
     }
 }
