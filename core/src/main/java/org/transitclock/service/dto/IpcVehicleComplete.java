@@ -65,7 +65,11 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
             this.distanceAlongTrip = sumOfStopPathLengths - this.distanceToNextStop;
             if (vs.getHeadway() != null) {
                 this.headway = vs.getHeadway();
-            } else this.headway = null;
+            } else {
+               var emptyHeadway = new Headway();
+                emptyHeadway.setHeadway(-1L);
+                this.headway = emptyHeadway;
+            }
         } else {
             // Vehicle not assigned to trip so null out parameters
             this.originStopId = null;
