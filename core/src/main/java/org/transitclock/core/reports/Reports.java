@@ -269,48 +269,63 @@ public class Reports {
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
     }
 
-    public static String getMaxOccupancyPerLine(String agencyId, String routId, String routeShortName, String date) {
+    public static String getMaxIncreasePaxPerRoute(String agencyId, String routId, String routeShortName, String date) {
         Date beginDate = getValidateDate(date);
 
-        StringBuilder sqlBuilder = new StringBuilder("WITH passenger_counts AS (");
-        sqlBuilder.append("SELECT vehicle_configs.name                                               AS vehicle_Name,\n");
-        sqlBuilder.append("              ad.vehicle_id                                               AS vehicle_Id,\n");
-        sqlBuilder.append("              t.route_id                                                  AS route_Id,\n");
-        sqlBuilder.append("              t.route_short_name                                          AS route_Name,\n");
-        sqlBuilder.append("              ad.trip_id                                                  AS trip_Id,\n");
-        sqlBuilder.append("              t.headsign                                                  AS headsing,\n");
-        sqlBuilder.append("              TO_CHAR((t.start_time || 'second')::interval, 'HH24:MI:SS') AS start_Time,\n");
-        sqlBuilder.append("              TO_CHAR((t.end_time || 'second')::interval, 'HH24:MI:SS')   AS end_Time,\n");
-        sqlBuilder.append("              ad.block_id                                                 AS block_Id,\n");
-        sqlBuilder.append("              CASE\n");
-        sqlBuilder.append("                  WHEN ar.passenger_count = -1 THEN NULL\n");
-        sqlBuilder.append("                  ELSE ar.passenger_count\n");
-        sqlBuilder.append("                  END                                                     AS passenger_Count,\n");
-        sqlBuilder.append("              ROW_NUMBER() OVER (PARTITION BY ad.trip_id ORDER BY\n");
-        sqlBuilder.append("                  CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END DESC NULLS LAST)\n");
-        sqlBuilder.append("                                                                          AS rn\n");
-        sqlBuilder.append("       FROM arrivals_departures ad\n");
-        sqlBuilder.append("                LEFT JOIN stops s ON s.id = ad.stop_id AND s.config_rev = ad.config_rev\n");
-        sqlBuilder.append("                LEFT JOIN trips t ON t.trip_id = ad.trip_id AND t.config_rev = ad.config_rev\n");
-        sqlBuilder.append("                LEFT JOIN vehicle_configs ON vehicle_configs.id = ad.vehicle_id\n");
-        sqlBuilder.append("                LEFT JOIN avl_reports ar\n");
-        sqlBuilder.append("                          ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
+        StringBuilder sqlBuilder = new StringBuilder("WITH passenger_deltas AS (\n");
+        sqlBuilder.append("    SELECT ad.trip_id,\n");
+        sqlBuilder.append("           t.route_id,\n");
+        sqlBuilder.append("           t.route_short_name   AS route_Name,\n");
+        sqlBuilder.append("           t.headsign           AS headsign,\n");
+        sqlBuilder.append("           vehicle_configs.name AS vehicle_Name,\n");
+        sqlBuilder.append("           ad.vehicle_id,\n");
+        sqlBuilder.append("           ad.block_id,\n");
+        sqlBuilder.append("           TO_CHAR((t.start_time || 'second')::interval, 'HH24:MI:SS') AS start_Time,\n");
+        sqlBuilder.append("           TO_CHAR((t.end_time || 'second')::interval, 'HH24:MI:SS')   AS end_Time,\n");
+        sqlBuilder.append("           CASE\n");
+        sqlBuilder.append("               WHEN ar.passenger_count = -1 THEN NULL\n");
+        sqlBuilder.append("               ELSE ar.passenger_count\n");
+        sqlBuilder.append("               END AS passenger_Count,\n");
+        sqlBuilder.append("           LAG(\n");
+        sqlBuilder.append("           CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END\n");
+        sqlBuilder.append("              ) OVER (PARTITION BY ad.trip_id ORDER BY ad.time) AS prev_passenger_Count\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("             LEFT JOIN trips t ON t.trip_id = ad.trip_id AND t.config_rev = ad.config_rev\n");
+        sqlBuilder.append("             LEFT JOIN vehicle_configs ON vehicle_configs.id = ad.vehicle_id\n");
+        sqlBuilder.append("             LEFT JOIN avl_reports ar\n");
+        sqlBuilder.append("                       ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
+        sqlBuilder.append("    WHERE ");
         if ( routId != null && !routId.isEmpty() ) {
-        sqlBuilder.append("       WHERE ad.route_id = '");
+        sqlBuilder.append("ad.route_id = '");
         sqlBuilder.append(routId);
-        sqlBuilder.append("'\n");
+        sqlBuilder.append("' AND ");
         } else if ( routeShortName != null && !routeShortName.isEmpty() ) {
-        sqlBuilder.append("       WHERE ad.route_short_name = '");
+        sqlBuilder.append("ad.route_short_name = '");
         sqlBuilder.append(routeShortName);
-        sqlBuilder.append("'\n");
+        sqlBuilder.append("' AND ");
         }
-        sqlBuilder.append("         AND DATE(ad.time) = DATE('");
+        sqlBuilder.append("DATE(ad.time) = DATE('");
         sqlBuilder.append(beginDate);
         sqlBuilder.append("')\n");
-        sqlBuilder.append("         AND ad.is_arrival = true)\n");
-        sqlBuilder.append("SELECT vehicle_Name, vehicle_Id, route_Id, route_Name, trip_Id, block_Id, headsing, start_Time, end_Time, passenger_Count AS max_passenger_Count\n");
-        sqlBuilder.append("FROM passenger_counts\n");
-        sqlBuilder.append("WHERE rn = 1 AND passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("         AND ad.is_arrival = true),\n");
+        sqlBuilder.append("summed_increase AS (\n");
+        sqlBuilder.append("    SELECT trip_id, route_id, route_Name, headsign, vehicle_Name, vehicle_id, block_id, start_Time, end_Time,\n");
+        sqlBuilder.append("           SUM(\n");
+        sqlBuilder.append("                   CASE\n");
+        sqlBuilder.append("                       WHEN prev_passenger_Count IS NULL AND passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           THEN passenger_Count\n");
+        sqlBuilder.append("                       WHEN passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           AND prev_passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           AND passenger_Count > prev_passenger_Count\n");
+        sqlBuilder.append("                           THEN passenger_Count - prev_passenger_Count\n");
+        sqlBuilder.append("                       END\n");
+        sqlBuilder.append("           ) AS max_passenger_count\n");
+        sqlBuilder.append("    FROM passenger_deltas\n");
+        sqlBuilder.append("    GROUP BY trip_id, route_id, route_Name, headsign,\n");
+        sqlBuilder.append("             vehicle_Name, vehicle_id, block_id, start_Time, end_Time )\n");
+        sqlBuilder.append("SELECT *\n");
+        sqlBuilder.append("FROM summed_increase\n");
+        sqlBuilder.append("WHERE max_passenger_count IS NOT NULL\n");
         sqlBuilder.append("ORDER BY start_Time;");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());

@@ -317,8 +317,8 @@ public class TransitimeApi {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Operation(
-            summary = "Gets max occupancies by specific route for single day.",
-            description = "Gets max value of occupancies by single day and route if setting ID or short name.",
+            summary = "Gets max sum occupancies by specific route for single day.",
+            description = "Gets max sum of occupancies by single day and route if setting ID or short name.",
             tags = {"report", "route"})
     public Response getMaxOccupancyByTripDate(
             @BeanParam StandardParameters stdParameters,
@@ -334,7 +334,7 @@ public class TransitimeApi {
         stdParameters.validate();
 
         try {
-            String response = Reports.getMaxOccupancyPerLine(stdParameters.getAgencyId(), routeId, routeShortName, date);
+            String response = Reports.getMaxIncreasePaxPerRoute(stdParameters.getAgencyId(), routeId, routeShortName, date);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             throw WebUtils.badRequestException(e);
