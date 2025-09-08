@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 import org.transitclock.api.resources.TransitimeApi.UiMode;
-import org.transitclock.config.data.TimeoutConfig;
+import org.transitclock.config.data.HoldingConfig;
 import org.transitclock.core.BlockAssignmentMethod;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
@@ -221,9 +221,9 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     }
 
     private String getHeadwayDeviationCategory(double headwayDeviation) {
-        if (headwayDeviation > TimeoutConfig.getHeadwayExpectedMaxLimitInSecs() * 1000) {
+        if (headwayDeviation > HoldingConfig.getHeadwayExpectedMaxLimitInSecs() * 1000) {
             return "GAPPED";
-        } else if (headwayDeviation < TimeoutConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
+        } else if (headwayDeviation < HoldingConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
             return "BUNCHED";
         } else
             return "EXPECTED";
