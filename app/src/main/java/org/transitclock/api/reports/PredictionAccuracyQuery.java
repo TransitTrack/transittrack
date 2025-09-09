@@ -168,132 +168,103 @@ public abstract class PredictionAccuracyQuery {
                     0);
         }
 
-        Timestamp beginDate = null;
         java.sql.Time beginTime = null;
         java.sql.Time endTime = null;
+        Timestamp beginDate = null;
 
         try {
-            if (beginDateStr.charAt(4) != '-') {
-        DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
-                beginDate = new Timestamp(defaultDateFormat.parse(beginDateStr).getTime());
-            } else {
-        DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                beginDate = new Timestamp(altDateFormat.parse(beginDateStr).getTime());
+            DateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
+            DateFormat df2 = new SimpleDateFormat("MM-dd-yyyy");
+            try {
+                beginDate = new Timestamp(df1.parse(beginDateStr).getTime());
+            } catch (ParseException e1) {
+                beginDate = new Timestamp(df2.parse(beginDateStr).getTime());
             }
         } catch (ParseException e) {
-            logger.warn("Date is not valid. Please use following formats: MM-dd-yyyy or yyyy-MM-dd " + e.getMessage());
-        }
-        String timeSql = "";
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-
-        if (Strings.isNullOrEmpty(beginTimeStr) || (Strings.isNullOrEmpty(endTimeStr))) {
-            // If only begin or only end time set then use default value
-            if (beginTimeStr == null || beginTimeStr.isEmpty()) beginTimeStr = "00:00:00";
-            else {
-                // beginTimeStr set so make sure it is valid, and prevent
-                // possible SQL injection
-                if (!beginTimeStr.matches("\\d+:\\d+"))
-                    throw new ParseException("begin time \"" + beginTimeStr + "\" is not valid.", 0);
-            }
-            if (endTimeStr == null || endTimeStr.isEmpty()) endTimeStr = "23:59:58";
-            // time param is jdbc param -- no need to check for injection attacks
-            timeSql = " AND arrival_departure_time::time BETWEEN ? AND ? ";
+            logger.warn("Date is not valid. Please use formats: MM-dd-yyyy or yyyy-MM-dd. {}", e.getMessage());
         }
 
-        if (!Strings.isNullOrEmpty(beginTimeStr)) {
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        if (Strings.isNullOrEmpty(beginTimeStr)) beginTimeStr = "00:00:00";
+        if (Strings.isNullOrEmpty(endTimeStr)) endTimeStr = "23:59:58";
+
+        try {
             beginTime = new java.sql.Time(timeFormat.parse(beginTimeStr).getTime());
-        }
-        if (!Strings.isNullOrEmpty(endTimeStr)) {
             endTime = new java.sql.Time(timeFormat.parse(endTimeStr).getTime());
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Invalid time format, must be HH:mm", e);
         }
 
-        // Determine route portion of SQL
-        // Need to examine each route ID twice since doing a
-        // routeId='stableId' OR routeShortName='stableId' in
-        // order to handle agencies where GTFS route_id is not
-        // stable but the GTFS route_short_name is.
-        String routeSql = "";
-        if (routeIds != null && routeIds.length > 0 && !routeIds[0].trim().isEmpty()) {
-            routeSql = " AND (route_id=? OR route_short_name=?";
-            for (int i = 1; i < routeIds.length; ++i) {
-                routeSql += " OR route_id=? OR route_short_name=?";
+        StringBuilder routeSql = new StringBuilder();
+        if (routeIds != null && routeIds.length > 0) {
+            boolean first = true;
+            for (String routeId : routeIds) {
+                if (!Strings.isNullOrEmpty(routeId.trim())) {
+                    if (first) {
+                        routeSql.append(" AND (");
+                        first = false;
+                    } else {
+                        routeSql.append(" OR ");
+                    }
+                    routeSql.append("route_id=? OR route_short_name=?");
+                }
             }
-            routeSql += ")";
+            if (!first) routeSql.append(")");
         }
 
-        // TODO generate database independent SQL if possible!
+        StringBuilder sql = new StringBuilder(
+                "SELECT to_char(predicted_time-prediction_read_time, 'SSSS')::integer as predLength, " +
+                        "prediction_accuracy_msecs/1000 as predAccuracy, prediction_source as source " +
+                        "FROM prediction_accuracy WHERE " +
+                        "arrival_departure_time BETWEEN ? AND TIMESTAMP '" + beginDate + "' + INTERVAL '" + numDays + " day' " +
+                        "AND arrival_departure_time::time BETWEEN ? AND ? " +
+                        "AND predicted_time - prediction_read_time < '00:15:00' "
+        );
 
-        // Put the entire SQL query together
-        StringBuilder sql = new StringBuilder("SELECT to_char(predicted_time-prediction_read_time, 'SSSS')::integer as predLength, ")
-                .append("prediction_accuracy_msecs/1000 as predAccuracy, ")
-                .append(" prediction_source as source  FROM prediction_accuracy WHERE")
-                .append(" arrival_departure_time BETWEEN ? AND TIMESTAMP '")
-                .append(beginDate).append("' + INTERVAL '")
-                .append(numDays).append(" day' ").append(timeSql)
-                .append(" AND predicted_time - prediction_read_time < '00:15:00' ")
-                .append(routeSql);
+        sql.append(routeSql);
 
-
-        // Add prediction type condition if provided
         if (!Strings.isNullOrEmpty(predType)) {
             if (predType.equals("AffectedByWaitStop")) {
-                sql.append("AND affected_by_wait_stop = true ");
+                sql.append(" AND affected_by_wait_stop = true ");
             } else {
-                sql.append("AND affected_by_wait_stop = false ");
+                sql.append(" AND affected_by_wait_stop = false ");
             }
         }
 
-        // Add prediction source condition if provided
         if (!Strings.isNullOrEmpty(predSource)) {
-            if(predSource.equals("TransitClock")) {
-                sql.append("AND prediction_source = 'TransitClock' ");
-            } else {
-                sql.append("AND prediction_source = 'TransitClock' ");
-            }
-        }
+            sql.append(" AND prediction_source = ? ");
+        } else sql.append(" AND prediction_source = 'TransitClock' ");
 
-        PreparedStatement statement = null;
         try (var connection = HibernateUtils
                 .getSessionFactory(AgencyConfig.getAgencyId())
                 .getSessionFactoryOptions()
                 .getServiceRegistry()
                 .getService(ConnectionProvider.class)
-                .getConnection()){
+                .getConnection();
+             var statement = connection.prepareStatement(sql.toString())) {
+
             connection.setReadOnly(true);
             logger.debug("SQL: {}", sql);
-            statement = connection.prepareStatement(sql.toString());
 
-            logger.debug(
-                    "beginDate {} beginDateStr {} endDateStr {} beginTime {} beginTimeStr {}"
-                            + " endTime {} endTimeStr {}",
-                    beginDate,
-                    beginDateStr,
-                    numDays,
-                    beginTime,
-                    beginTimeStr,
-                    endTime,
-                    endTimeStr);
+            logger.debug("beginDate {} beginDateStr {} numDays {} beginTime {} beginTimeStr {} endTime {} endTimeStr {}",
+                    beginDate, beginDateStr, numDays, beginTime, beginTimeStr, endTime, endTimeStr);
 
-            // Set the parameters for the query
             int i = 1;
             statement.setTimestamp(i++, beginDate);
+            statement.setTime(i++, beginTime);
+            statement.setTime(i++, endTime);
 
-            if (beginTime != null) {
-                statement.setTime(i++, beginTime);
-            }
-            if (endTime != null) {
-                statement.setTime(i++, endTime);
-            }
             if (routeIds != null) {
-                for (String routeId : routeIds)
-                    if (!routeId.trim().isEmpty()) {
-                        // Need to add the route ID twice since doing a
-                        // routeId='stableId' OR routeShortName='stableId' in
-                        // order to handle agencies where GTFS route_id is not
-                        // stable but the GTFS route_short_name is.
+                for (String routeId : routeIds) {
+                    if (!Strings.isNullOrEmpty(routeId.trim())) {
                         statement.setString(i++, routeId);
                         statement.setString(i++, routeId);
                     }
+                }
+            }
+
+            if (!Strings.isNullOrEmpty(predSource)) {
+                statement.setString(i++, predSource);
             }
 
             // Actually execute the query
