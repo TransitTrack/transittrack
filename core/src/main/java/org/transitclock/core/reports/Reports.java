@@ -831,6 +831,7 @@ public class Reports {
 
     public static String getSqlForAllStopsSchedAdh (String agencyId,
                                                LocalDate date,
+                                               String routeId,
                                                String allowableEarly,
                                                String allowableLate) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
@@ -864,6 +865,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("      AND scheduled_time - time > ");
             sqlBuilder.append(allowableEarlyMinutesStr);
+            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("),\n");
             sqlBuilder.append("     on_time AS (\n");
@@ -888,6 +890,7 @@ public class Reports {
             sqlBuilder.append(" \n");
             sqlBuilder.append("           AND time - scheduled_time <= ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("     ),\n");
             sqlBuilder.append("     late AS (\n");
@@ -909,6 +912,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("           AND time - scheduled_time > ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" )\n");
             sqlBuilder.append("SELECT *\n");
             sqlBuilder.append("FROM (\n");
@@ -918,7 +922,8 @@ public class Reports {
             sqlBuilder.append("         UNION ALL\n");
             sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n");
             sqlBuilder.append("     ) AS combined_results\n");
-            sqlBuilder.append("ORDER BY category_order, time;\n");
+            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("ORDER BY category_order, trip, time;\n");
+            else sqlBuilder.append("ORDER BY category_order, time;\n");
             sql = sqlBuilder.toString();
         }
         return sql;

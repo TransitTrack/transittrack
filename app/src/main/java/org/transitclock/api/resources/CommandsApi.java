@@ -3,16 +3,6 @@ package org.transitclock.api.resources;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -25,15 +15,24 @@ import org.transitclock.api.utils.WebUtils;
 import org.transitclock.config.data.ApiConfig;
 import org.transitclock.core.reports.ScheduleAdhStopsReport;
 import org.transitclock.domain.GenericQuery;
-import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.MeasuredArrivalTime;
-import org.transitclock.service.dto.IpcAvl;
-import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.contract.ConfigInterface;
+import org.transitclock.service.dto.IpcAvl;
+import org.transitclock.service.dto.IpcTrip;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 import static org.transitclock.utils.csv.RemoveFileFromDirectory.removeFile;
 
@@ -41,6 +40,28 @@ import static org.transitclock.utils.csv.RemoveFileFromDirectory.removeFile;
 public class CommandsApi {
 
     private static final String AVL_SOURCE = "API";
+
+    /**
+     * Converts the request body input stream into a JSON object
+     *
+     * @param requestBody
+     * @return the corresponding JSON object
+     * @throws IOException
+     * @throws JSONException
+     */
+    static JSONObject getJsonObject(InputStream requestBody) throws IOException, JSONException {
+        // Read in the request body to a string
+        BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
+        StringBuilder strBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            strBuilder.append(line);
+        }
+        reader.close();
+
+        // Convert string to JSON object
+        return new JSONObject(strBuilder.toString());
+    }
 
     /**
      * Reads in a single AVL report specified by the query string parameters v=vehicleId
@@ -53,9 +74,9 @@ public class CommandsApi {
      * @param time
      * @param lat
      * @param lon
-     * @param speed (optional)
-     * @param heading (optional)
-     * @param assignmentId (optional)
+     * @param speed             (optional)
+     * @param heading           (optional)
+     * @param assignmentId      (optional)
      * @param assignmentTypeStr (optional)
      * @return ApiCommandAck response indicating whether successful
      * @throws WebApplicationException
@@ -70,41 +91,41 @@ public class CommandsApi {
     public Response pushAvlData(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "VehicleId. Unique identifier of the vehicle.", required = true)
-                    @QueryParam(value = "v")
-                    String vehicleId,
+            @QueryParam(value = "v")
+            String vehicleId,
             @Parameter(description = "GPS epoch time in msec.", required = true) @QueryParam(value = "t") long time,
             @Parameter(description = "Latitude of AVL reporte. Decimal degrees.", required = true)
-                    @QueryParam(value = "lat")
-                    double lat,
+            @QueryParam(value = "lat")
+            double lat,
             @Parameter(description = "Longitude of AVL reporte. Decimal degrees.", required = true)
-                    @QueryParam(value = "lon")
-                    double lon,
+            @QueryParam(value = "lon")
+            double lon,
             @Parameter(description = "Speed of AVL reporte. m/s.", required = false)
-                    @QueryParam(value = "s")
-                    @DefaultValue("NaN")
-                    float speed,
+            @QueryParam(value = "s")
+            @DefaultValue("NaN")
+            float speed,
             @Parameter(
-                            description = "Heading of AVL report. Degrees. 0 degrees=North. Should be set"
-                                    + " to Float.NaN if speed not available",
-                            required = false)
-                    @QueryParam(value = "h")
-                    @DefaultValue("NaN")
-                    float heading,
+                    description = "Heading of AVL report. Degrees. 0 degrees=North. Should be set"
+                            + " to Float.NaN if speed not available",
+                    required = false)
+            @QueryParam(value = "h")
+            @DefaultValue("NaN")
+            float heading,
             @Parameter(
-                            description = "Indicates the assignmet id of the AVL report according to the"
-                                    + " assingment tyoe. For example, if assingment type is"
-                                    + " ROUTE_ID, the assingment ID should be one route_id"
-                                    + " loaded in the system.",
-                            required = false)
-                    @QueryParam(value = "assignmentId")
-                    String assignmentId,
+                    description = "Indicates the assignmet id of the AVL report according to the"
+                            + " assingment tyoe. For example, if assingment type is"
+                            + " ROUTE_ID, the assingment ID should be one route_id"
+                            + " loaded in the system.",
+                    required = false)
+            @QueryParam(value = "assignmentId")
+            String assignmentId,
             @Parameter(
-                            description = "Indicates the assignmet type of the AV report. This parameter"
-                                    + " can take the next values:"
-                                    + " <ul><li>ROUTE_ID</li><li>TRIP_ID</li>TRIP_SHORT_NAME</li>"
-                                    + " </ul>")
-                    @QueryParam(value = "assignmentType")
-                    String assignmentTypeStr)
+                    description = "Indicates the assignmet type of the AV report. This parameter"
+                            + " can take the next values:"
+                            + " <ul><li>ROUTE_ID</li><li>TRIP_ID</li>TRIP_SHORT_NAME</li>"
+                            + " </ul>")
+            @QueryParam(value = "assignmentType")
+            String assignmentTypeStr)
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
@@ -142,28 +163,6 @@ public class CommandsApi {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }
-    }
-
-    /**
-     * Converts the request body input stream into a JSON object
-     *
-     * @param requestBody
-     * @return the corresponding JSON object
-     * @throws IOException
-     * @throws JSONException
-     */
-     static JSONObject getJsonObject(InputStream requestBody) throws IOException, JSONException {
-        // Read in the request body to a string
-        BufferedReader reader = new BufferedReader(new InputStreamReader(requestBody));
-        StringBuilder strBuilder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            strBuilder.append(line);
-        }
-        reader.close();
-
-        // Convert string to JSON object
-        return new JSONObject(strBuilder.toString());
     }
 
     /**
@@ -298,7 +297,7 @@ public class CommandsApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Route id", required = true) @QueryParam(value = "r") String routeId,
             @Parameter(description = "Route short name.", required = true) @QueryParam(value = "rShortName")
-                    String routeShortName,
+            String routeShortName,
             @Parameter(description = "Route stop id.", required = true) @QueryParam(value = "s") String stopId,
             @Parameter(description = "Direcction id.", required = true) @QueryParam(value = "d") String directionId,
             @Parameter(description = "headsign.", required = true) @QueryParam(value = "headsign") String headsign)
@@ -337,7 +336,7 @@ public class CommandsApi {
     public Response cancelTrip(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "tripId to be marked as canceled.", required = true) @PathParam("tripId")
-                    String tripId,
+            String tripId,
             @Parameter(description = "start trip time", required = false) @QueryParam(value = "at") DateTimeParam at) {
         stdParameters.validate();
         String result;
@@ -368,7 +367,7 @@ public class CommandsApi {
     public Response reenableTrip(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "tripId to remove calceled satate.", required = true) @PathParam("tripId")
-                    String tripId,
+            String tripId,
             @Parameter(description = "start trip time", required = false) @QueryParam(value = "at") DateTimeParam at) {
         stdParameters.validate();
         String result = null;
@@ -476,21 +475,21 @@ public class CommandsApi {
         return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
     }
 
-    @Operation(summary="Delete an export", description="Delete exports by IDs", tags= {"export"})
+    @Operation(summary = "Delete an export", description = "Delete exports by IDs", tags = {"export"})
     @Path("/command/export")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteExport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="Id to delete", required = true)
-            @QueryParam(value = "id") int exportId) throws WebApplicationException
-    {
+            @Parameter(description = "Id to delete", required = true)
+            @QueryParam(value = "id") int exportId) throws WebApplicationException {
         stdParameters.validate();
 
+        CommandsInterface inter = stdParameters.getCommandsInterface();
+
         try {
-            CommandsInterface inter = stdParameters.getCommandsInterface();
             var export = inter.removeExportById(exportId);
-            if (export.getExportType() == 2) {
+            if (export.getExportType() != 1) {
                 removeFile("/tmp/csv/", export.getFileName());
             }
             return stdParameters.createResponse(
@@ -510,13 +509,13 @@ public class CommandsApi {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addStopsReport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
+            @Parameter(description = "Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
                     "'endDate', \n" +
                     "'url' - target folder on host, \n" +
                     "'allowableEarly' - in mins (if unset: default 1.0), \n" +
                     "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody)
             throws WebApplicationException {
-                   stdParameters.validate();
+        stdParameters.validate();
 
         try {
             JSONObject jsonBody = getJsonObject(requestBody);
@@ -525,9 +524,12 @@ public class CommandsApi {
             String hostUrl = jsonBody.getString("url");
             String allowableEarly = jsonBody.getString("allowableEarly");
             String allowableLate = jsonBody.getString("allowableLate");
+            boolean isDaily = jsonBody.has("isDaily") && jsonBody.getBoolean("isDaily");
 
-            ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport();
-            generator
+            ScheduleAdhStopsReport reportCreator = new ScheduleAdhStopsReport();
+            if (isDaily) reportCreator
+                    .createDailyScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, allowableEarly, allowableLate, hostUrl);
+            else reportCreator
                     .createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, endDate, allowableEarly, allowableLate, hostUrl);
             return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
         } catch (Exception ex) {
@@ -536,15 +538,14 @@ public class CommandsApi {
         }
     }
 
-    @Operation(summary="Create an api key", description="Create api key", tags= {"key"})
+    @Operation(summary = "Create an api key", description = "Create api key", tags = {"key"})
     @Path("/command/createApiKey")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createApiKey(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="Fields of application key:", required = true) InputStream requestBody) throws WebApplicationException
-    {
+            @Parameter(description = "Fields of application key:", required = true) InputStream requestBody) throws WebApplicationException {
         stdParameters.validate();
         String response = null;
 
@@ -558,33 +559,33 @@ public class CommandsApi {
             String secret = jsonBody.getString("secret");
             CommandsInterface inter = stdParameters.getCommandsInterface();
 
-            if (secret.equals(ApiConfig.getSecret())) response = inter.addApiKey(applicationName, applicationUrl, email, phone, description, true);
+            if (secret.equals(ApiConfig.getSecret()))
+                response = inter.addApiKey(applicationName, applicationUrl, email, phone, description, true);
 
         } catch (Exception ex) {
             throw WebUtils.badRequestException(ex.getMessage());
         }
-        if(response != null)
-            return stdParameters.createResponse(new ApiCommandAck(true,"Created key: " + response));
+        if (response != null)
+            return stdParameters.createResponse(new ApiCommandAck(true, "Created key: " + response));
         else
             return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
     }
 
-    @Operation(summary="Delete an api key", description="Delete an outdated application keys", tags= {"key"})
+    @Operation(summary = "Delete an api key", description = "Delete an outdated application keys", tags = {"key"})
     @Path("/command/deleteApiKey")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteApiKey(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="insert api key to delete", required = true)
-            @QueryParam(value = "apiKey") String apiKey) throws WebApplicationException
-    {
+            @Parameter(description = "insert api key to delete", required = true)
+            @QueryParam(value = "apiKey") String apiKey) throws WebApplicationException {
         stdParameters.validate();
         String response = null;
 
         try {
             CommandsInterface inter = stdParameters.getCommandsInterface();
             response = inter.removeApiKey(apiKey);
-            return stdParameters.createResponse(new ApiCommandAck(true,response));
+            return stdParameters.createResponse(new ApiCommandAck(true, response));
         } catch (Exception ex) {
             return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
         }
