@@ -183,6 +183,7 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         licensePlate = vehicle.getLicensePlate();
         isCanceled = false;
         headway = -1;
+        headwayDeviationCategory = "UNAVAILABLE";
         if (vehicle instanceof IpcVehicleComplete && tripId != null) {
             distanceAlongTrip = ((IpcVehicleComplete) vehicle).getDistanceAlongTrip();
             isCanceled = ((IpcVehicleComplete) vehicle).isCanceled();
@@ -225,6 +226,8 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
             return "GAPPED";
         } else if (headwayDeviation < HoldingConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
             return "BUNCHED";
+        } else if (headway == -1 || expectedHeadway <= 0) {
+            return "UNAVAILABLE";
         } else
             return "EXPECTED";
     }
