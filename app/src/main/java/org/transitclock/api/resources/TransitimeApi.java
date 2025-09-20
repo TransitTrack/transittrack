@@ -446,7 +446,8 @@ public class TransitimeApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
             @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "endDate") String endDate,
-            @Parameter(description = "Partition accuracies: 'day', 'week', 'month'") @QueryParam(value = "accuracy") String accuracy,
+            @Parameter(description = "Partition accuracies: 'day', 'week', 'month'", required = true) @DefaultValue("day")
+            @QueryParam(value = "accuracy") String accuracy,
             @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
             String allowableEarly,
             @Parameter(description = "Allowable late in mins(default 3.0)") @QueryParam(value = "allowableLate")
