@@ -435,6 +435,62 @@ public class TransitimeApi {
         }
     }
 
+    @Operation(
+            summary = "Returns on-time performance report.",
+            description = "Returns on-time performance report is partitioned by chosen options.",
+            tags = {"report", "schedule adherence"})
+    @Path("/reports/onTimePerformance")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response onTimePerformance(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Partition accuracies: 'day', 'week', 'month'", required = true) @DefaultValue("day")
+            @QueryParam(value = "accuracy") String accuracy,
+            @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
+            String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 3.0)") @QueryParam(value = "allowableLate")
+            String allowableLate)
+            throws WebApplicationException {
+        stdParameters.validate();
+        try {
+            String response = Reports.getOnTimePerformance(stdParameters
+                    .getAgencyId(), false, accuracy, beginDate, endDate, allowableEarly, allowableLate);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Operation(
+            summary = "Returns on-time performance report.",
+            description = "Returns on-time performance report as summary for all routes.",
+            tags = {"report", "schedule adherence"})
+    @Path("/reports/onTimePerformanceAllRoutes")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response onTimePerformanceAllRoutes(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
+            String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 3.0)") @QueryParam(value = "allowableLate")
+            String allowableLate)
+            throws WebApplicationException {
+        stdParameters.validate();
+        try {
+            String response = Reports.getOnTimePerformance(stdParameters
+                    .getAgencyId(), true, null, beginDate, endDate, allowableEarly, allowableLate);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
     /**
      * Handles the vehicleIds command. Returns list of vehicle IDs.
      *
@@ -2211,7 +2267,7 @@ public class TransitimeApi {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getExports(@BeanParam StandardParameters stdParameters,
-                               @Parameter(description = "Entire list, if unset or '0'; '1' - avl; '2' - stops")
+                               @Parameter(description = "Entire list, if unset or '0'; '1' - avl; '2' - stops; '3' - daily")
                                @QueryParam(value = "type")
                                @DefaultValue("0") int type
     ) throws WebApplicationException {

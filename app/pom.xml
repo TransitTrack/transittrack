@@ -128,11 +128,11 @@
                         </platforms>
                     </from>
                     <to>
-                        <image>${env.CONTAINER_REPO}</image>
-                        <auth>
-                            <username>${env.CONTAINER_REGISTRY_USER}</username>
-                            <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>
-                        </auth>
+                        <image>wkulesza/transitclock-server:test</image>
+<!--                        <auth>-->
+<!--                            <username>${env.CONTAINER_REGISTRY_USER}</username>-->
+<!--                            <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>-->
+<!--                        </auth>-->
                     </to>
                     <extraDirectories>
                         <permissions>

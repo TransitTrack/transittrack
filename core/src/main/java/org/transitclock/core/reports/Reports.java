@@ -11,6 +11,9 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 
+import static org.transitclock.utils.Time.DAY_IN_MSECS;
+import static org.transitclock.utils.Time.YEAR_IN_MSECS;
+
 public class Reports {
 
     private static final int MAX_ROWS = 200000;
@@ -948,8 +951,77 @@ public class Reports {
         return json;
     }
 
+    public static String getOnTimePerformance(String agencyId,
+                                              boolean isForAllRoutes,
+                                              String accuracy,
+                                              String beginDate,
+                                              String endDate,
+                                              String allowableEarly,
+                                              String allowableLate) {
+        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+
+        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        String allowableEarlySecondsStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + "'";
+
+        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "3.0";
+        String allowableLateSecondsStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + "'";
+
+        Date begin = getValidateDate(beginDate);
+        Date end = getValidateDate(endDate);
+        // 6 months validator
+        if ((end.getTime() - begin.getTime()) > (YEAR_IN_MSECS / 2) + DAY_IN_MSECS)
+            throw new IllegalArgumentException("The period of time is longer then 6 months");
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT \n");
+        if (isForAllRoutes) sqlBuilder.append("COALESCE(ad.route_short_name, 'ALL_ROUTES') AS route, \n");
+        else if (accuracy.equals("day"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('day', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS day, \n");
+        else if (accuracy.equals("week"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('week', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS week, \n");
+        else if (accuracy.equals("month"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('month', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS month, \n");
+        sqlBuilder.append("COUNT(CASE WHEN scheduled_time - time > interval ").append(allowableEarlySecondsStr).append(" THEN 1 END) AS early,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN scheduled_time - time > interval ").append(allowableEarlySecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS early_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(CASE WHEN scheduled_time - time <= interval ").append(allowableEarlySecondsStr).append("\n");
+        sqlBuilder.append("                AND time - scheduled_time <= interval ").append(allowableLateSecondsStr).append(" THEN 1 END) AS ontime,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN scheduled_time - time <= interval ").append(allowableEarlySecondsStr).append("\n");
+        sqlBuilder.append("                   AND time - scheduled_time <= interval ").append(allowableLateSecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS ontime_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(CASE WHEN time - scheduled_time > interval ").append(allowableLateSecondsStr).append(" THEN 1 END) AS late,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN time - scheduled_time > interval ").append(allowableLateSecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS late_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(*) AS total\n");
+        sqlBuilder.append("FROM arrivals_departures ad\n");
+        sqlBuilder.append("WHERE ad.scheduled_time IS NOT NULL\n");
+        sqlBuilder.append("AND DATE(ad.time) BETWEEN DATE('").append(begin).append("') AND DATE('").append(end).append("')\n");
+        sqlBuilder.append("\n");
+        if (isForAllRoutes) {
+            sqlBuilder.append("GROUP BY GROUPING SETS ((ad.route_short_name), ()) \n");
+        sqlBuilder.append("HAVING COUNT(*) > 0 \n");
+            sqlBuilder.append("ORDER BY route; \n");
+        } else {
+            sqlBuilder.append("GROUP BY ROLLUP (DATE_TRUNC('").append(accuracy).append("', ad.scheduled_time)) \n");
+        sqlBuilder.append("HAVING COUNT(*) > 0 \n");
+            sqlBuilder.append("ORDER BY ").append(accuracy).append(";");
+        }
+
+        return GenericJsonQuery.getJsonString(agency.getAgencyId(), sqlBuilder
+                .toString());
+    }
+
     public static String getSqlForAllStopsSchedAdh(String agencyId,
                                                    LocalDate date,
+                                                   String routeId,
                                                    String allowableEarly,
                                                    String allowableLate) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
@@ -983,6 +1055,8 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("      AND scheduled_time - time > ");
             sqlBuilder.append(allowableEarlyMinutesStr);
+            if (routeId != null || !routeId.isEmpty())
+                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("),\n");
             sqlBuilder.append("     on_time AS (\n");
@@ -1007,6 +1081,8 @@ public class Reports {
             sqlBuilder.append(" \n");
             sqlBuilder.append("           AND time - scheduled_time <= ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (routeId != null || !routeId.isEmpty())
+                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("     ),\n");
             sqlBuilder.append("     late AS (\n");
@@ -1028,6 +1104,8 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("           AND time - scheduled_time > ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (routeId != null || !routeId.isEmpty())
+                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" )\n");
             sqlBuilder.append("SELECT *\n");
             sqlBuilder.append("FROM (\n");
@@ -1037,7 +1115,8 @@ public class Reports {
             sqlBuilder.append("         UNION ALL\n");
             sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n");
             sqlBuilder.append("     ) AS combined_results\n");
-            sqlBuilder.append("ORDER BY category_order, time;\n");
+            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("ORDER BY category_order, trip, time;\n");
+            else sqlBuilder.append("ORDER BY category_order, time;\n");
             sql = sqlBuilder.toString();
         }
         return sql;

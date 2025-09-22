@@ -32,17 +32,19 @@ public class CommandsServiceImpl implements CommandsInterface {
     // Should only be accessed as singleton class
     private static CommandsServiceImpl singleton;
 
+    public CommandsServiceImpl() {
+    }
+
     public static CommandsInterface instance() {
         return singleton;
     }
-
 
     /**
      * Starts up the CommandsServer so that RMI calls can be used to control the server. This will
      * automatically cause the object to continue to run and serve requests.
      *
      * @return the singleton CommandsServer object. Usually does not need to used since the server
-     *     will be fully running.
+     * will be fully running.
      */
     public static CommandsServiceImpl start() {
         if (singleton == null) {
@@ -50,9 +52,6 @@ public class CommandsServiceImpl implements CommandsInterface {
         }
 
         return singleton;
-    }
-
-    public CommandsServiceImpl() {
     }
 
     /**
@@ -203,13 +202,14 @@ public class CommandsServiceImpl implements CommandsInterface {
 
     @Override
     public ExportTable removeExportById(int id) {
-        try(var session = HibernateUtils.getSession()) {
+        try (var session = HibernateUtils.getSession()) {
             var exportsToDelete = ExportTable.getExport(session, id);
             if (!exportsToDelete.isEmpty() && exportsToDelete.get(0).getId() == id) {
                 ExportTable.deleteExportTableRecord(id, session);
-                return exportsToDelete.get(0);
-                }
+                boolean isDeleted = ExportTable.getExport(session, id).isEmpty();
+                if (isDeleted) return exportsToDelete.get(0);
             }
+        }
         throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
     }
 
