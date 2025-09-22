@@ -403,6 +403,65 @@ public class Reports {
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
+
+    public static String getAvgSpeedPerTrip() {
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH ordered AS (\n");
+        sqlBuilder.append("    SELECT a.config_rev, a.vehicle_id, a.trip_id, a.route_id, a.route_short_name, a.direction_id, a.gtfs_stop_seq, a.stop_id,\n");
+        sqlBuilder.append("        a.time AS stop_time,\n");
+        sqlBuilder.append("        a.stop_path_length,\n");
+        sqlBuilder.append("        LEAD(a.time) OVER (\n");
+        sqlBuilder.append("            PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq) AS next_stop_time,\n");
+        sqlBuilder.append("        LEAD(a.stop_id) OVER (\n");
+        sqlBuilder.append("            PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq) AS next_stop_id,\n");
+        sqlBuilder.append("        LEAD(a.stop_path_length) OVER (\n");
+        sqlBuilder.append("            PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq) AS next_segment_length,\n");
+        sqlBuilder.append("        ROW_NUMBER() OVER (\n");
+        sqlBuilder.append("            PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq) AS segment_index\n");
+        sqlBuilder.append("    FROM arrivals_departures a\n");
+        sqlBuilder.append("    WHERE a.scheduled_time IS NOT NULL\n");
+        sqlBuilder.append("      AND a.route_short_name = 'North Beach Loop'\n");
+        sqlBuilder.append("      AND a.direction_id = '0'\n");
+        sqlBuilder.append("      AND DATE(a.time) = '2025-09-18'\n");
+        sqlBuilder.append("),\n");
+        sqlBuilder.append("     travel_times AS (\n");
+        sqlBuilder.append("         SELECT config_rev, route_short_name, direction_id,\n");
+        sqlBuilder.append("             stop_id       AS from_stop_id,\n");
+        sqlBuilder.append("             next_stop_id  AS to_stop_id,\n");
+        sqlBuilder.append("             stop_path_length AS segment_length,\n");
+        sqlBuilder.append("             segment_index,\n");
+        sqlBuilder.append("             EXTRACT(EPOCH FROM (next_stop_time - stop_time)) AS travel_time_sec\n");
+        sqlBuilder.append("         FROM ordered\n");
+        sqlBuilder.append("         WHERE next_stop_time IS NOT NULL\n");
+        sqlBuilder.append("           AND next_stop_id IS NOT NULL\n");
+        sqlBuilder.append("           AND next_stop_time > stop_time\n");
+        sqlBuilder.append("     )\n");
+        sqlBuilder.append("SELECT\n");
+        sqlBuilder.append("    (t.from_stop_id || '_to_' || t.to_stop_id || '_' || t.segment_index) AS segment_id,\n");
+        sqlBuilder.append("    t.from_stop_id,\n");
+        sqlBuilder.append("    t.to_stop_id,\n");
+        sqlBuilder.append("    fs.name AS from_stop_name,\n");
+        sqlBuilder.append("    ts.name AS to_stop_name, t.route_short_name, t.direction_id, t.segment_index, t.segment_length,\n");
+        sqlBuilder.append("    COUNT(*) AS num_trips,\n");
+        sqlBuilder.append("    AVG(t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694) AS avg_speed_mph,\n");
+        sqlBuilder.append("    MIN(t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694) AS min_speed_mph,\n");
+        sqlBuilder.append("    MAX(t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694) AS max_speed_mph,\n");
+        sqlBuilder.append("    percentile_cont(0.10) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694)) AS p10_speed,\n");
+        sqlBuilder.append("    percentile_cont(0.25) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694)) AS p25_speed,\n");
+        sqlBuilder.append("    percentile_cont(0.50) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694)) AS median_speed,\n");
+        sqlBuilder.append("    percentile_cont(0.75) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694)) AS p75_speed,\n");
+        sqlBuilder.append("    percentile_cont(0.90) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * 2.23694)) AS p90_speed,\n");
+        sqlBuilder.append("    'unit' as units\n");
+        sqlBuilder.append("FROM travel_times t\n");
+        sqlBuilder.append("         JOIN stops fs ON fs.config_rev = t.config_rev AND fs.id = t.from_stop_id\n");
+        sqlBuilder.append("         JOIN stops ts ON ts.config_rev = t.config_rev AND ts.id = t.to_stop_id\n");
+        sqlBuilder.append("GROUP BY t.config_rev, t.route_short_name, t.direction_id, t.from_stop_id, fs.name, t.to_stop_id, ts.name, t.segment_index, t.segment_length\n");
+        sqlBuilder.append("ORDER BY t.segment_index;\n");
+
+        return  "";
+    }
+
+
     /* Provides schedule adherence data in JSON format. Provides for
       the specified route the number arrivals/departures that
       are early, number late, number on time, and number total for each
@@ -432,7 +491,6 @@ public class Reports {
 
         if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
-
         // To get stop name
         // Only need arrivals/departures that have a schedule time
         // Specifies which routes to provide data for
@@ -540,79 +598,6 @@ public class Reports {
         sqlBuilder.append(" GROUP BY direction_id, s.name, s.id, ad.stop_order,");
         sqlBuilder.append(" trips_early_query_v2.trips_early, trips_late_query_v2.trips_late \n");
         sqlBuilder.append(" ORDER BY direction_id, ad.stop_order, s.name");
-
-        /*+ "WITH trips_early_query AS ( SELECT "
-        + "	 array_to_string(array_agg(distinct tripid::text order by tripid::text), '; ') AS trips_early, \n"
-        + "	 s.id AS stop_id, \n"
-        + "	 ad.stopOrder AS stop_order \n"
-        + " 	FROM ArrivalsDepartures ad, Stops s  \n"
-        		+ "WHERE "
-        	    // To get stop name
-        	    + " ad.config_rev = s.config_rev \n"
-        	    + " AND ad.stop_id = s.id \n"
-        	    // Only need arrivals/departures that have a schedule time
-        	    + " AND ad.scheduled_time IS NOT NULL \n"
-        	    // Specifies which routes to provide data for
-        	    + SqlUtils.routeClause(route, "ad") + "\n"
-        	    + SqlUtils.timeRangeClause(agencyId, "ad.time", MAX_NUM_DAYS, numDays, beginTime, endTime, beginDate) + "\n"
-        	    + " AND scheduled_time-time > " + allowableEarlyMinutesStr + " \n"
-        + "	 GROUP BY directionid, s.name, s.id, ad.stopOrder \n"
-        + "	 ORDER BY directionid, ad.stopOrder, s.name \n"
-        + "), \n"
-
-        + "trips_late_query AS ( SELECT "
-        + "	 array_to_string(array_agg(distinct tripid::text order by tripid::text), '; ') AS trips_late, \n"
-        + "	 s.id AS stop_id, \n"
-        + "	 ad.stopOrder AS stop_order \n"
-        + "	FROM ArrivalsDepartures ad, Stops s  \n"
-        		+ "WHERE "
-        	    // To get stop name
-        	    + " ad.config_rev = s.config_rev \n"
-        	    + " AND ad.stop_id = s.id \n"
-        	    // Only need arrivals/departures that have a schedule time
-        	    + " AND ad.scheduled_time IS NOT NULL \n"
-        	    // Specifies which routes to provide data for
-        	    + SqlUtils.routeClause(route, "ad") + "\n"
-        	    + SqlUtils.timeRangeClause(agencyId, "ad.time", MAX_NUM_DAYS, numDays, beginTime, endTime, beginDate) + "\n"
-        	    + " AND time-scheduled_time > " + allowableLateMinutesStr + " \n"
-        + "	 GROUP BY directionid, s.name, s.id, ad.stopOrder \n"
-        + "	 ORDER BY directionid, ad.stopOrder, s.name \n"
-        + ") \n"
-        + "SELECT "
-        + "     COUNT(CASE WHEN scheduled_time-time > " + allowableEarlyMinutesStr + " THEN 1 ELSE null END) as early, \n"
-        + "     COUNT(CASE WHEN scheduled_time-time <= " + allowableEarlyMinutesStr + " AND time-scheduled_time <= "
-        			+ allowableLateMinutesStr + " THEN 1 ELSE null END) AS ontime, \n"
-          + "     COUNT(CASE WHEN time-scheduled_time > " + allowableLateMinutesStr + " THEN 1 ELSE null END) AS late, \n"
-          + "     COUNT(*) AS total, \n"
-          + "     s.name AS stop_name, \n"
-          + "     ad.directionid AS direction_id, \n"
-          + " 	trips_early_query.trips_early as trips_early, \n"
-          + " 	trips_late_query.trips_late as trips_late \n"
-          + "FROM ArrivalsDepartures ad"
-          + "	INNER JOIN Stops s ON ad.stop_id = s.id \n"
-          + "	LEFT JOIN trips_early_query ON s.id = trips_early_query.stop_id AND ad.stopOrder = trips_early_query.stop_order \n"
-          + "	LEFT JOIN trips_late_query ON s.id = trips_late_query.stop_id AND ad.stopOrder = trips_late_query.stop_order \n"
-          + "WHERE "
-          // To get stop name
-          + " ad.config_rev = s.config_rev \n"
-          + " AND ad.stop_id = s.id \n"
-          // Only need arrivals/departures that have a schedule time
-          + " AND ad.scheduled_time IS NOT NULL \n"
-          // Specifies which routes to provide data for
-          + SqlUtils.routeClause(route, "ad") + "\n"
-          + SqlUtils.timeRangeClause(agencyId, "ad.time", MAX_NUM_DAYS, numDays, beginTime, endTime, beginDate) + "\n"
-          // Grouping and ordering is a bit complicated since might also be looking
-          // at old arrival/departure data that doen't have stoporder defined. Also,
-          // when configuration changes happen then the stop order can change.
-          // Therefore want to group by directionId and stop name. Need to also
-          // group by stop order so that can output it, which can be useful for
-          // debugging, plus need to order by stop order. For the ORDER BY clause
-          // need to order by direction id and stop order, but also the stop name
-          // as a backup for if stoporder not defined for data and is therefore
-          // always the same and doesn't provide any ordering info.
-          + " GROUP BY directionid, s.name, s.id, ad.stopOrder, trips_early_query.trips_early, trips_late_query.trips_late \n"
-          + " ORDER BY directionid, ad.stopOrder, s.name";*/
-
         // Do the query and return result in JSON format
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
@@ -814,8 +799,6 @@ public class Reports {
         JSONArray tripsLateJsonArray = tripsLateObject.getJSONArray("data");
         JSONObject tripsEarlyObject = new JSONObject(jsonStringTripsEarly);
         JSONArray tripsEarlyJsonArray = tripsEarlyObject.getJSONArray("data");
-        // {"early":2,"ontime":0,"late":0,"total":2,"stop_name":"Os. Czwartaków",
-        // "direction_id":"0","trips_early":"400-1-R-0:30; 400-2-R-2:45"},
 
         String jsonString = "";
         jsonString = GenericJsonQuery.getJsonString(agencyId, sql);
@@ -843,10 +826,6 @@ public class Reports {
         if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
 
-        //              Specifies which stops to provide data for
-        //              Defines time range
-        //              Specifies which stops to provide data for
-        //              Defines time range
         //              Specifies which stops to provide data for
         //              Defines time range
         StringBuilder sqlBuilder = new StringBuilder();
