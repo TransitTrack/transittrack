@@ -4,6 +4,7 @@ package org.transitclock.service.contract;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.service.dto.IpcAvl;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -59,8 +60,12 @@ public interface CommandsInterface {
      * Add remove vehicle to block.
      * Returns null on success
      */
-    String removeVehicleToBlock(long id);
+    void removeVehicleToBlock(long id);
 
+    /*
+     * Add data to export table
+     */
+    void addJsonAsCSVExport(String data, String fileName) throws IOException;
 
     /*
      * Remove Export by ID from db

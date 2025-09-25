@@ -63,7 +63,7 @@ public class TraccarAVLModule extends PollUrlAvlModule {
     private final UserDto user;
 
     private static final boolean isIdAsName = nameInsteadOfId.getValue();
-    private static final boolean isMiles = mphIsteadOfKmh.getValue();
+    private static final boolean isMiles = mphInsteadOfKmh.getValue();
 
     public TraccarAVLModule(String agencyId) throws URISyntaxException {
         super(agencyId);

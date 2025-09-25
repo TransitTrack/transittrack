@@ -1,6 +1,11 @@
 /* (C)2023 */
 package org.transitclock.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.transitclock.core.AvlProcessor;
@@ -10,6 +15,7 @@ import org.transitclock.core.avl.AvlExecutor;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
+import org.transitclock.core.reports.GenericJsonQuery;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
@@ -25,6 +31,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Date;
+
+import static org.transitclock.domain.structs.ExportTable.deleteExportTableRecord;
 
 @Slf4j
 public class CommandsServiceImpl implements CommandsInterface {
@@ -189,7 +197,7 @@ public class CommandsServiceImpl implements CommandsInterface {
     }
 
     @Override
-    public String removeVehicleToBlock(long id) {
+    public void removeVehicleToBlock(long id) {
         Session session = HibernateUtils.getSession();
         try {
             VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
@@ -197,7 +205,38 @@ public class CommandsServiceImpl implements CommandsInterface {
         } catch (Exception ex) {
             session.close();
         }
-        return null;
+    }
+
+    @SneakyThrows
+    @Override
+    public void addJsonAsCSVExport(String data, final String fileName) {
+        String preparedData = "";
+        if(data.contains("{\"data\": "))
+            preparedData= data.replaceFirst("^\\{\"data\":\\s*", "").replaceFirst("}$", "");
+
+        try {
+            JsonNode jsonTree = new ObjectMapper().readTree(preparedData);
+            JsonNode firstObject = jsonTree.elements().next();
+
+
+            CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
+            firstObject.fieldNames().forEachRemaining(fieldName -> {
+                csvSchemaBuilder.addColumn(fieldName);
+            });
+
+            CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+            CsvMapper csvMapper = new CsvMapper();
+            byte[] file = csvMapper.writerFor(JsonNode.class)
+                    .with(csvSchema).writeValueAsBytes(jsonTree);
+
+            ExportTable.create(new ExportTable(new Date(), 4, 3, fileName, file));
+        }  catch (Exception ex) {
+            Session session = HibernateUtils.getSession();
+            deleteExportTableRecord(fileName, session);
+            session.close();
+            logger.warn("Something went wrong wile adding export file to DB: {}", ex.getMessage());
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override

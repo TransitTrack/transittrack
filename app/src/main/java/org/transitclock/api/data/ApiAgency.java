@@ -4,10 +4,9 @@ package org.transitclock.api.data;
 import java.util.TimeZone;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
-import org.transitclock.config.data.TraccarConfig;
 import org.transitclock.domain.structs.Agency;
 
-import static org.transitclock.config.data.TraccarConfig.mphIsteadOfKmh;
+import static org.transitclock.config.data.TraccarConfig.mphInsteadOfKmh;
 
 /**
  * Contains API info for an agency.
@@ -73,7 +72,7 @@ public class ApiAgency {
         this.fareUrl = agency.getFareUrl();
         this.extent = new ApiExtent(agency.getExtent());
         this.configRev = agency.getConfigRev();
-        this.speedUnit = mphIsteadOfKmh.getValue() ? "mph" : "kmh";
+        this.speedUnit = mphInsteadOfKmh.getValue() ? "mph" : "kmh";
 
         // Return timezone offset in minutes since that is what Javascript uses.
         // Need to negate so it works with Javascript Date().getTimezoneOffset().

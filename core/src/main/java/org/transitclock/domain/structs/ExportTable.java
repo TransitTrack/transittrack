@@ -67,12 +67,13 @@ public class ExportTable implements Serializable {
         this.exportStatus = 1;
     }
 
-    public ExportTable(Date dataDate, int exportType, int exportStatus, String fileName) {
+    public ExportTable(Date dataDate, int exportType, int exportStatus, String fileName, byte[] file) {
         this.dataDate = dataDate;
         this.exportType = exportType;
         this.fileName = fileName;
         this.exportDate = new Date();
         this.exportStatus = exportStatus;
+        this.file = file;
     }
 
     /** Needed because Hibernate requires no-arg constructor */

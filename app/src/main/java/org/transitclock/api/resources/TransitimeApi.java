@@ -24,10 +24,7 @@ import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.ApiKey;
-import org.transitclock.service.contract.ConfigInterface;
-import org.transitclock.service.contract.PredictionsInterface;
-import org.transitclock.service.contract.ServerStatusInterface;
-import org.transitclock.service.contract.VehiclesInterface;
+import org.transitclock.service.contract.*;
 import org.transitclock.service.dto.*;
 
 import java.io.InputStream;
@@ -489,6 +486,37 @@ public class TransitimeApi {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }
+    }
+
+    @Operation(
+            summary = "Returns on-time performance report.",
+            description = "Returns on-time performance report as summary for all routes.",
+            tags = {"report", "schedule adherence"})
+    @Path("/reports/avgSpeedByRoute")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response avgSpeedPerRoute(
+        @BeanParam StandardParameters stdParameters,
+        @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "date") String beginDate,
+        @Parameter(description = "Num days.", required = true) @QueryParam(value = "numDays") int numDays,
+        @Parameter(description = "Route short name") @QueryParam(value = "routeName") String routeName,
+        @Parameter(description = "Route ID") @QueryParam(value = "routeId") String routeId,
+        @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @QueryParam(value = "dir") String directionId,
+        @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
+        @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
+            throws WebApplicationException {
+            stdParameters.validate();
+            CommandsInterface commInter = stdParameters.getCommandsInterface();
+            try {
+                String response = Reports.getAvgSpeedPerRoute(stdParameters
+                        .getAgencyId(), beginDate, numDays, routeName, routeId, directionId, beginTime, endTime);
+                commInter.addJsonAsCSVExport(response, String.format("%s_avg_speed_route_%s_dir:%s_%s-%s",
+                                                                     beginDate, routeName,  directionId, beginTime, endTime));
+                return stdParameters.createResponse(response);
+            } catch (Exception e) {
+                // If problem getting data then return a Bad Request
+                throw WebUtils.badRequestException(e);
+            }
     }
 
     /**
@@ -2292,7 +2320,7 @@ public class TransitimeApi {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getExportById(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Id eksportu") @QueryParam(value = "id") long id)
+            @Parameter(description = "Export ID") @QueryParam(value = "id") long id)
             throws WebApplicationException {
         stdParameters.validate();
 

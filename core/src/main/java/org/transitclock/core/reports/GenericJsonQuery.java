@@ -1,13 +1,13 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import lombok.extern.slf4j.Slf4j;
+import org.transitclock.domain.GenericQuery;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.domain.GenericQuery;
 
 @Slf4j
 public class GenericJsonQuery extends GenericQuery {
@@ -21,6 +21,28 @@ public class GenericJsonQuery extends GenericQuery {
         strBuilder = new StringBuilder();
         columnNames = new ArrayList<>();
         firstRow = true;
+    }
+
+    /**
+     * Does SQL query and returns JSON formatted results.
+     */
+    public static String getJsonString(String agencyId, String sql, Object... parameters) {
+        // Add the rows from the query to the JSON string
+        try {
+            GenericJsonQuery query = new GenericJsonQuery(agencyId);
+
+            // Start the JSON
+            query.strBuilder.append("{\"data\": [\n");
+
+            query.doQuery(sql, parameters);
+
+            // Finish up the JSON
+            query.strBuilder.append("]}");
+
+            return query.strBuilder.toString();
+        } catch (SQLException e) {
+            return e.getMessage();
+        }
     }
 
     @Override
@@ -39,6 +61,10 @@ public class GenericJsonQuery extends GenericQuery {
 
     private void addRowElement(int i, String value) {
         strBuilder.append("\"").append(value).append("\"");
+    }
+
+    private void addStringWithoutDQuotation(int i, String value) {
+        strBuilder.append(value);
     }
 
     private void addRowElement(int i, Timestamp value) {
@@ -69,38 +95,17 @@ public class GenericJsonQuery extends GenericQuery {
 
             // Output value of attribute
             if (o instanceof Double || o instanceof Float) {
-                addRowElement(i, ((Number) o).doubleValue());
+                addRowElement(i, ((double) o));
             } else if (o instanceof Number) {
                 addRowElement(i, ((Number) o).longValue());
             } else if (o instanceof String) {
-                addRowElement(i, (String) o);
+                if (o.toString().startsWith("["))
+                    addStringWithoutDQuotation(i, (String) o);
+                else addRowElement(i, (String) o);
             } else if (o instanceof Timestamp) {
                 addRowElement(i, ((Timestamp) o));
             }
         }
-
         strBuilder.append('}');
-    }
-
-    /**
-     * Does SQL query and returns JSON formatted results.
-     */
-    public static String getJsonString(String agencyId, String sql, Object... parameters) {
-        // Add the rows from the query to the JSON string
-        try {
-            GenericJsonQuery query = new GenericJsonQuery(agencyId);
-
-            // Start the JSON
-            query.strBuilder.append("{\"data\": [\n");
-
-            query.doQuery(sql, parameters);
-
-            // Finish up the JSON
-            query.strBuilder.append("]}");
-
-            return query.strBuilder.toString();
-        } catch (SQLException e) {
-            return e.getMessage();
-        }
     }
 }

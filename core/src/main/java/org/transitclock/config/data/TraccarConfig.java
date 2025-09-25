@@ -29,6 +29,6 @@ public class TraccarConfig {
     public static final BooleanConfigValue nameInsteadOfId = new BooleanConfigValue("transitclock.avl.traccar.nameInsteadOfId",
             false, "True if want to set an ID like a name as well.");
 // Traccar send the speed as knot therefore should convert it to mille or kilometer
-    public static final BooleanConfigValue mphIsteadOfKmh = new BooleanConfigValue("transitclock.avl.traccar.speedInMiles",
-            false, "True if want to convert a MPH Istead to a KMH.");
+    public static final BooleanConfigValue mphInsteadOfKmh = new BooleanConfigValue("transitclock.avl.traccar.speedInMiles",
+            false, "True if want to convert MPH to KMH.");
 }
