@@ -3,8 +3,8 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_PASSWORD: tc
-      POSTGRES_DB: TC
+      POSTGRES_PASSWORD: transitclock
+      POSTGRES_DB: NAME
     ports:
       - "5432:5432"
   gtfsrt-validator:
