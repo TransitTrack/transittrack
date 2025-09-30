@@ -482,15 +482,14 @@ public class Reports {
                 .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p90_speed,");
         sqlBuilder.append("    '").append(isMPH ? "mph" : "kmh").append("' AS units\n");
         sqlBuilder.append("FROM travel_times t\n");
-        sqlBuilder.append("         JOIN stops fs ON fs.id = t.from_stop_id\n");
-        sqlBuilder.append("         JOIN stops ts ON ts.id = t.to_stop_id\n");
+        sqlBuilder.append("         JOIN stops fs ON fs.config_rev = t.config_rev AND fs.id = t.from_stop_id\n");
+        sqlBuilder.append("         JOIN stops ts ON ts.config_rev = t.config_rev AND ts.id = t.to_stop_id\n");
         sqlBuilder.append("GROUP BY\n");
         sqlBuilder.append("    t.config_rev, t.route_short_name, t.direction_id, t.from_stop_id, fs.name, t.to_stop_id, ts.name\n");
         sqlBuilder.append("ORDER BY t.config_rev, stop_order;");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
-
 
     /* Provides schedule adherence data in JSON format. Provides for
       the specified route the number arrivals/departures that
