@@ -62,10 +62,6 @@ public interface CommandsInterface {
      */
     void removeVehicleToBlock(long id);
 
-    /*
-     * Add data to export table
-     */
-    void addJsonAsCSVExport(String data, String fileName) throws IOException;
 
     /*
      * Remove Export by ID from db

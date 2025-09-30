@@ -506,12 +506,9 @@ public class TransitimeApi {
         @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
             throws WebApplicationException {
             stdParameters.validate();
-            CommandsInterface commInter = stdParameters.getCommandsInterface();
             try {
                 String response = Reports.getAvgSpeedPerRoute(stdParameters
                         .getAgencyId(), beginDate, numDays, routeName, routeId, directionId, beginTime, endTime);
-                commInter.addJsonAsCSVExport(response, String.format("%s_avg_speed_route_%s_dir:%s_%s-%s",
-                                                                     beginDate, routeName,  directionId, beginTime, endTime));
                 return stdParameters.createResponse(response);
             } catch (Exception e) {
                 // If problem getting data then return a Bad Request

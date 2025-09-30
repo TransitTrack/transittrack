@@ -62,7 +62,7 @@ public class ScheduleAdhStopsReport {
             throw new IllegalArgumentException(beginDate + " - " + endDate + ": more then 31 days or less then 1.");
         }
 
-        ExportTable.create(new ExportTable(new Date(), 2, 2, FILE_NAME, null));
+        ExportTable.create(new ExportTable(new Date(), 2, 2, FILE_NAME));
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -109,7 +109,7 @@ public class ScheduleAdhStopsReport {
 
         LocalDate date1 = validate(beginDate);
         List<Route> routes = Core.getInstance().getDbConfig().getRoutes();
-        ExportTable.create(new ExportTable(new Date(), 3, 2, FILE_NAME, null));
+        ExportTable.create(new ExportTable(new Date(), 3, 2, FILE_NAME));
 
         new Thread(new Runnable() {
             @Override

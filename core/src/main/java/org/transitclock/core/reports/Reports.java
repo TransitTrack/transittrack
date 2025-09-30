@@ -1,26 +1,16 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.transitclock.domain.GenericCsvQuery;
 import org.transitclock.domain.webstructs.WebAgency;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import static org.transitclock.config.data.TraccarConfig.mphInsteadOfKmh;
 import static org.transitclock.utils.Time.DAY_IN_MSECS;
@@ -428,7 +418,7 @@ public class Reports {
                                              String beginTime,
                                              String endTime
     ) throws SQLException {
-        boolean isMPH =  mphInsteadOfKmh.getValue();
+        boolean isMPH = mphInsteadOfKmh.getValue();
 
         String MPS_MPH = "2.23694";
         String MPS_KMH = "3.6";
@@ -477,20 +467,20 @@ public class Reports {
         sqlBuilder.append("    ROUND(AVG(t.segment_length)::numeric, 3)                                  AS segment_length_in_meters,");
         sqlBuilder.append("    to_json(ARRAY_AGG(DISTINCT t.trip_id))::text AS trip_ids,\n");
         sqlBuilder.append("    COUNT(*) AS num_trips,\n");
-        sqlBuilder.append("    ROUND(AVG(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH?MPS_MPH:MPS_KMH).append(")::numeric, 2)::text AS avg_speed,\n");
-        sqlBuilder.append("    ROUND(MIN(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH?MPS_MPH:MPS_KMH).append(")::numeric, 2)::text AS min_speed,\n");
-        sqlBuilder.append("    ROUND(MAX(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH?MPS_MPH:MPS_KMH).append(")::numeric, 2)::text AS max_speed,\n");
+        sqlBuilder.append("    ROUND(AVG(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS avg_speed,\n");
+        sqlBuilder.append("    ROUND(MIN(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS min_speed,\n");
+        sqlBuilder.append("    ROUND(MAX(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS max_speed,\n");
         sqlBuilder.append("    ROUND(percentile_cont(0.10) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
-                .append(isMPH?MPS_MPH:MPS_KMH).append("))::numeric, 2)::text AS p10_speed,\n");
+                .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p10_speed,\n");
         sqlBuilder.append("    ROUND(percentile_cont(0.25) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
-                .append(isMPH?MPS_MPH:MPS_KMH).append("))::numeric, 2)::text AS p25_speed,\n");
+                .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p25_speed,\n");
         sqlBuilder.append("    ROUND(percentile_cont(0.50) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
-                .append(isMPH?MPS_MPH:MPS_KMH).append("))::numeric, 2)::text AS median_speed,\n");
+                .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS median_speed,\n");
         sqlBuilder.append("    ROUND(percentile_cont(0.75) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
-                .append(isMPH?MPS_MPH:MPS_KMH).append("))::numeric, 2)::text AS p75_speed,\n");
+                .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p75_speed,\n");
         sqlBuilder.append("    ROUND(percentile_cont(0.90) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
-                .append(isMPH?MPS_MPH:MPS_KMH).append("))::numeric, 2)::text AS p90_speed,");
-        sqlBuilder.append("    '").append(isMPH?"mph":"kmh").append("' AS units\n");
+                .append(isMPH ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p90_speed,");
+        sqlBuilder.append("    '").append(isMPH ? "mph" : "kmh").append("' AS units\n");
         sqlBuilder.append("FROM travel_times t\n");
         sqlBuilder.append("         JOIN stops fs ON fs.id = t.from_stop_id\n");
         sqlBuilder.append("         JOIN stops ts ON ts.id = t.to_stop_id\n");
