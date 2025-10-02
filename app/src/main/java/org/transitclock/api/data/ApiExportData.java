@@ -45,7 +45,7 @@ public class ApiExportData {
         this.fileName = exportTable.getFileName();
         this.dataDate = exportTable.getDataDate();
         this.exportDate = exportTable.getExportDate();
-        this.file = exportTable.getExportType() == 2
+        this.file = exportTable.getExportType() >= 2
                 && exportTable.getFile() != null
                 ? new String(exportTable.getFile(), StandardCharsets.UTF_8) : "";
     }

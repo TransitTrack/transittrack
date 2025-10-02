@@ -127,7 +127,6 @@ public class ScheduleAdhStopsReport {
                         fullExport.addAll(getListOfRows(connection,
                                 Reports.getSqlForAllStopsSchedAdh(agencyId, date, route.getId(), allowableEarly, allowableLate)));
 
-                        date = date.plusDays(1);
                         Thread.sleep(300);
                     }
                 } catch (Exception ex) {
