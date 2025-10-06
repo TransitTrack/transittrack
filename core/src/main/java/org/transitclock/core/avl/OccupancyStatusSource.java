@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.HttpResponseException;
+import org.transitclock.config.data.TraccarConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -22,6 +23,7 @@ class OccupancyStatusSource {
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Authorization", TraccarConfig.getOccupancyCredentials());
             connection.setRequestProperty("User-Agent", USER_AGENT);
 
             int responseCode = connection.getResponseCode();
