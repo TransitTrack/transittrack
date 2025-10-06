@@ -15,6 +15,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
 import org.transitclock.Core;
 import org.transitclock.config.data.CoreConfig;
@@ -814,10 +815,24 @@ public class Block implements Serializable {
                     // Not a socket timeout. Therefore don't know handle
                     // to handle so just log and throw the exception
                     logger.error(
-                            "In Block.getTrips() got JDBCException. " + "SQL=\"{}\" msg={}",
+                            "In Block.getTrips() got JDBCException. " + "SQL=\"{}\"; msg={}; ",
                             e.getSQL(),
-                            e.getSQLException().getMessage(),
+                            e.getSQLException() != null ? e.getSQLException().getMessage() : e.getMessage(),
                             e);
+
+                    //If transaction has stuck so try to rollback
+                    SharedSessionContractImplementor session = null;
+                    if (trips instanceof PersistentList<?> persistentListTrips) {
+                        session = persistentListTrips.getSession();
+                    }
+                    if (session != null && session.getTransaction().isActive()) {
+                        try {
+                            session.getTransaction().rollback();
+                            logger.warn("Rolled back transaction after JDBCException");
+                        } catch (Exception ex) {
+                            logger.error("Failed to rollback after JDBCException", ex);
+                        }
+                    }
                     throw e;
                 }
 
