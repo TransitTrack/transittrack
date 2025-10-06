@@ -104,7 +104,7 @@ public class Block implements Serializable {
         @JoinColumn(name = "trips_start_time", referencedColumnName = "start_time")
     })
     @OrderColumn(name = "list_index")
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     private final List<Trip> trips;
 
     // Sometimes will get vehicle assignment by routeId. This means that need
@@ -806,7 +806,7 @@ public class Block implements Serializable {
                     logger.info("CREATING NEW SESSION");
                     dbConfig.createNewGlobalSession();
                     Session globalLazyLoadSession = dbConfig.getGlobalSession();
-                    globalLazyLoadSession.update(this);
+                    globalLazyLoadSession.merge(this);
 
                     // Now that have attached a new session lazy load the trips
                     // data

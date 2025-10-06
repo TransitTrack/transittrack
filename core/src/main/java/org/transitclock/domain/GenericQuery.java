@@ -1,8 +1,9 @@
 /* (C)2023 */
 package org.transitclock.domain;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.utils.IntervalTimer;
@@ -26,7 +27,7 @@ import java.util.List;
 @Slf4j
 public class GenericQuery {
 
-    private final Connection connection;
+    private Connection connection;
     // Number of rows read in
     private int rows;
 
@@ -34,17 +35,15 @@ public class GenericQuery {
      * Constructor
      *
      * @param agencyId
-     * @throws SQLException
      */
-    public GenericQuery(String agencyId) throws SQLException {
+    public GenericQuery(String agencyId) {
         // Get the web agency. If it is really old, older than an hour then
         // update the cache in case the db was moved.
-
-        connection = HibernateUtils.getSessionFactory(agencyId)
-                .getSessionFactoryOptions()
-                .getServiceRegistry()
-                .getService(ConnectionProvider.class)
-                .getConnection();
+        SessionFactory sessionFactory = HibernateUtils.getSessionFactory(agencyId);
+        Session session = sessionFactory.openSession();
+        session.doWork(conn -> {
+            this.connection = conn;
+        });
     }
 
 
@@ -95,9 +94,7 @@ public class GenericQuery {
             logger.debug("GenericQuery query took {}msec rows={}", timer.elapsedMsec(), rows);
         } catch (SQLException e) {
             throw e;
-        }
-
-        if (!connection.isClosed()) {
+        } finally {
             connection.close();
         }
     }

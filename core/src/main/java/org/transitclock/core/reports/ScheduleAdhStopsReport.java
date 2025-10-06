@@ -3,7 +3,7 @@ package org.transitclock.core.reports;
 import com.opencsv.CSVWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.SessionFactory;
 import org.transitclock.Core;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ExportTable;
@@ -29,6 +29,9 @@ import static org.transitclock.domain.structs.ExportTable.updateStatus;
 public class ScheduleAdhStopsReport {
 
     private final List<String[]> fullExport = new ArrayList<>(300000);
+
+    private Connection connection;
+
 
     private static String getSafeString(ResultSet rs, int columnIndex) {
         try {
@@ -178,10 +181,9 @@ public class ScheduleAdhStopsReport {
     private List<String[]> getListOfRows(Connection connection, String sql) throws SQLException {
         IntervalTimer timer = new IntervalTimer();
         try (PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery())
-        {
-             ResultSetMetaData metaData = rs.getMetaData();
-             int columnCount = metaData.getColumnCount();
+             ResultSet rs = statement.executeQuery()) {
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
 
             List<String[]> rows = new ArrayList<>();
 
@@ -200,11 +202,12 @@ public class ScheduleAdhStopsReport {
     }
 
     private Connection getConnection(String agencyId) throws SQLException {
-        var connection = HibernateUtils.getSessionFactory(agencyId)
-                .getSessionFactoryOptions()
-                .getServiceRegistry()
-                .getService(ConnectionProvider.class)
-                .getConnection();
+        SessionFactory sessionFactory = HibernateUtils.getSessionFactory(agencyId);
+        Session session = sessionFactory.openSession();
+        session.doWork(conn -> {
+            this.connection = conn;
+        });
+
         connection.setReadOnly(true);
         logger.debug("Create connection = {}", connection.getCatalog());
         return connection;

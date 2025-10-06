@@ -81,7 +81,7 @@ public class TravelTimesForTrip implements Serializable {
             inverseJoinColumns = {
                     @JoinColumn(name = "for_path_id", referencedColumnName = "id")
             })
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     @OrderColumn(name = "list_index")
     private final List<TravelTimesForStopPath> travelTimesForStopPaths = new ArrayList<>();
 
@@ -131,7 +131,9 @@ public class TravelTimesForTrip implements Serializable {
         // syntax for inner joins is different for the two databases. Therefore need to
         // use the IN statement with a SELECT clause.
         int rowsUpdated = session
-                .createNativeQuery("DELETE FROM travel_times_for_trip_to_travel_times_for_path WHERE for_trip_id IN (SELECT id FROM travel_times_for_trips WHERE config_rev=" + configRev + ")")
+                .createNativeQuery("DELETE FROM travel_times_for_trip_to_travel_times_for_path WHERE for_trip_id IN (SELECT id FROM travel_times_for_trips WHERE config_rev=" + configRev + ")",
+                        Long.class
+                )
                 .executeUpdate();
         logger.info(
                 "Deleted {} rows from TravelTimesForTrip_to_TravelTimesForPath_joinTable for configRev={}",

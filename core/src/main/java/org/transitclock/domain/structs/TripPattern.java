@@ -54,7 +54,7 @@ public class TripPattern implements Serializable, Lifecycle {
     // CascadeType.SAVE_UPDATE so that when the TripPattern is stored the
     // Paths are automatically stored.
     @OneToMany(fetch = FetchType.EAGER)
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name="trip_pattern_to_path",
             joinColumns= {
                     @JoinColumn(name="trip_pattern_id", referencedColumnName="id"),
@@ -226,10 +226,12 @@ public class TripPattern implements Serializable, Lifecycle {
         // key to the StopPath table,
         int rowsUpdated = 0;
         rowsUpdated += session
-                .createNativeQuery("DELETE FROM trip_pattern_to_path WHERE trip_pattern_config_rev=" + configRev)
+                .createNativeQuery("DELETE FROM trip_pattern_to_path WHERE trip_pattern_config_rev=" + configRev,
+                        Long.class)
                 .executeUpdate();
         rowsUpdated += session
-                .createNativeQuery("DELETE FROM stoppath_locations WHERE stoppath_config_rev=" + configRev)
+                .createNativeQuery("DELETE FROM stoppath_locations WHERE stoppath_config_rev=" + configRev,
+                        Long.class)
                 .executeUpdate();
         rowsUpdated += session
                 .createMutationQuery("DELETE FROM StopPath WHERE configRev=:configRev")

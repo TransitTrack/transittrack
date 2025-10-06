@@ -211,7 +211,7 @@ public class Match implements Lifecycle, Serializable {
         String hql = "select count(*) FROM Match WHERE avlTime >= :beginDate AND avlTime < :endDate";
         if (sqlClause != null)
             hql += " " + sqlClause;
-        var query = session.createQuery(hql);
+        var query = session.createQuery(hql, Long.class);
 
         // Set the parameters for the query
         query.setParameter("beginDate", beginTime);
@@ -220,7 +220,7 @@ public class Match implements Lifecycle, Serializable {
         Long count = null;
 
         try {
-            count = (Long) query.uniqueResult();
+            count = query.uniqueResult();
             logger.debug("Getting matches from database took {} msec", timer.elapsedMsec());
             return count;
         } catch (HibernateException e) {
