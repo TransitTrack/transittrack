@@ -6,11 +6,7 @@ import org.transitclock.config.StringConfigValue;
 
 
 public class TraccarConfig {
-    /**
-     * Traccar properties for log in by "TraccarAVLModule"
-     *
-     * @return
-     */
+
     public static final StringConfigValue TRACCAR_EMAIL = new StringConfigValue("transitclock.avl.traccar.email", null,
             "This is the username for the traccar server api.");
 
@@ -28,11 +24,11 @@ public class TraccarConfig {
 
     public static final StringConfigValue OCCUPANCY_CREDENTIALS = new StringConfigValue("transitclock.avl.occupancy.credentials",
             "", "Credentials for occupancy data fetch.");
-// Set ID like vehicleName
+    // Set ID like vehicleName
     public static final BooleanConfigValue nameInsteadOfId = new BooleanConfigValue("transitclock.avl.traccar.nameInsteadOfId",
             false, "True if want to set an ID like a name as well.");
-// Traccar send the speed as knot therefore should convert it to mille or kilometer
-    public static final BooleanConfigValue mphIsteadOfKmh = new BooleanConfigValue("transitclock.avl.traccar.speedInMiles",
+    // Traccar send the speed as knot therefore should convert it to mille or kilometer
+    public static final BooleanConfigValue mphInsteadOfKmh = new BooleanConfigValue("transitclock.avl.traccar.speedInMiles",
             false, "True if want to convert a MPH Istead to a KMH.");
 
     public static String getOccupancyCredentials() {
