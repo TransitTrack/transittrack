@@ -187,9 +187,9 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         if (vehicle instanceof IpcVehicleComplete && tripId != null) {
             distanceAlongTrip = ((IpcVehicleComplete) vehicle).getDistanceAlongTrip();
             isCanceled = ((IpcVehicleComplete) vehicle).isCanceled();
-            headway = ((IpcVehicleComplete) vehicle).getHeadway().getHeadway();
-            expectedHeadway = ((IpcVehicleComplete) vehicle).getHeadway().getExpected();
-            headwayDeviation = ((IpcVehicleComplete) vehicle).getHeadway().getDeviation();
+            headway = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getHeadway();
+            expectedHeadway = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getExpected();
+            headwayDeviation = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getDeviation();
             headwayDeviationCategory = getHeadwayDeviationCategory(((IpcVehicleComplete) vehicle).getHeadway().getDeviation());
         }
         isScheduledService = vehicle.getFreqStartTime() > 0 ? false : true;

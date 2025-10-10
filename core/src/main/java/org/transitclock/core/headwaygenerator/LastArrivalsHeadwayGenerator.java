@@ -72,7 +72,8 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
                         previousVehicleArrivalIndex = i;
                     }
                 }
-                if (previousVehicleArrivalIndex != -1 && lastStopArrivalIndex != -1) {
+                if (previousVehicleArrivalIndex != -1 && lastStopArrivalIndex != -1 && stopList.get(lastStopArrivalIndex).getStopPathIndex() != 0) {
+
                     long headwayTime = Math.abs(
                             stopList.get(lastStopArrivalIndex).getTime().getTime()
                                     - stopList.get(previousVehicleArrivalIndex).getTime()
