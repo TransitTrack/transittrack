@@ -106,7 +106,7 @@ public class Trip implements Lifecycle, Serializable {
     // Contains schedule time for each stop as obtained from GTFS
     // stop_times.txt file. Useful for determining schedule adherence.
     @OrderColumn(name = "list_index")
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "trip_scheduled_times_list", joinColumns = {
             @JoinColumn(name = "trip_config_rev", referencedColumnName = "config_rev"),
             @JoinColumn(name = "trip_trip_id", referencedColumnName = "trip_id"),
