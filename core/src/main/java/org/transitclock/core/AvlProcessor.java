@@ -1421,17 +1421,22 @@ public class AvlProcessor {
         }
         try (Session session = HibernateUtils.getSession()) {
             String blockId = null;
+            String tripId = null;
             for (VehicleToBlockConfig vehicleToBlock :
                     VehicleToBlockConfig.getVehicleToBlockConfigsByVehicleId(session, avlReport.getVehicleId())) {
-                Date d = new Date();
+                Date now = new Date();
 
-                if (d.after(vehicleToBlock.getValidFrom()) && d.before(vehicleToBlock.getValidTo())) {
+                if (now.after(vehicleToBlock.getValidFrom()) && now.before(vehicleToBlock.getValidTo())) {
                     blockId = vehicleToBlock.getBlockId();
+                    tripId = vehicleToBlock.getTripId();
                     break;
                 }
             }
             if (blockId != null) {
                 avlReport.setAssignment(blockId, AssignmentType.BLOCK_ID);
+            }
+            if (tripId != null) {
+                avlReport.setAssignment(tripId, AssignmentType.TRIP_ID);
             }
         } catch (Exception ignored) {
         }

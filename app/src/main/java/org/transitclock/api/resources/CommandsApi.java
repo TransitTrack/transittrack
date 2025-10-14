@@ -19,6 +19,7 @@ import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.MeasuredArrivalTime;
+import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.contract.ConfigInterface;
 import org.transitclock.service.dto.IpcAvl;
@@ -28,11 +29,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.transitclock.utils.csv.RemoveFileFromDirectory.removeFile;
 
@@ -387,8 +387,60 @@ public class CommandsApi {
     }
 
     @Operation(
-            summary = "Add vehicles to block",
-            description = "Add vehicles to block",
+            summary = "Add multiple vehicles to blocks",
+            description = "Add multiple vehicles to blocks using JSON array of vehicles",
+            tags = {"vehicle", "block"})
+    @Path("/command/vehiclesToBlockAssignments")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addAllVehiclesToBlocks(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "JSON with vehicles list.", required = true) InputStream requestBody)
+            throws WebApplicationException {
+
+        // Validate parameters
+        stdParameters.validate();
+        List<VehicleToBlockConfig> assignments = new ArrayList<>();
+        AtomicReference<Map<String, Boolean>> mapOfResults;
+        try {
+            JSONObject jsonObj = getJsonObject(requestBody);
+            String key = jsonObj.getString("key");
+            JSONArray vehiclesArray = jsonObj.getJSONArray("vehicles");
+
+            CommandsInterface inter = stdParameters.getCommandsInterface();
+
+            for (int i = 0; i < vehiclesArray.length(); i++) {
+                JSONObject vehicleObj = vehiclesArray.getJSONObject(i);
+
+                String vehicleId = vehicleObj.getString("vehicleId");
+                String blockId = vehicleObj.optString("blockId", null);
+                String tripId = vehicleObj.optString("tripId", null);
+
+                String validFromStr = vehicleObj.getString("validFrom");
+                String validToStr = vehicleObj.optString("validTo", null);
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date validFrom = sdf.parse(validFromStr);
+                Date validTo = null;
+                if (validToStr != null) {
+                    validTo = sdf.parse(validToStr);
+                }
+
+                // Execute the command
+                assignments.add(new VehicleToBlockConfig(vehicleId, blockId, tripId, new Date(), validFrom, validTo));
+            }
+            mapOfResults = new AtomicReference<>(inter.addVehiclesToBlocks(assignments, key));
+        } catch (JSONException | IOException | ParseException | IllegalArgumentException e) {
+            throw WebUtils.badRequestException(e);
+        }
+        return stdParameters.createResponse(new ApiCommandAck(true, mapOfResults.toString()));
+    }
+
+
+    @Operation(
+            summary = "Add vehicle to block",
+            description = "Add vehicle to block",
             tags = {"vehicle", "block"})
     @Path("/command/vehicleToBlock")
     @POST
@@ -421,8 +473,8 @@ public class CommandsApi {
     }
 
     @Operation(
-            summary = "Add vehicles to block",
-            description = "Add vehicles to block",
+            summary = "Remove vehicle to block",
+            description = "Remove vehicle to block",
             tags = {"vehicle", "block"})
     @Path("/command/removeVehicleToBlock/{id}")
     @GET
@@ -475,30 +527,6 @@ public class CommandsApi {
         return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
     }
 
-    @Operation(summary = "Delete an export", description = "Delete exports by IDs", tags = {"export"})
-    @Path("/command/export")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteExport(
-            @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Id to delete", required = true)
-            @QueryParam(value = "id") int exportId) throws WebApplicationException {
-        stdParameters.validate();
-
-        CommandsInterface inter = stdParameters.getCommandsInterface();
-
-        try {
-            var export = inter.removeExportById(exportId);
-            if (export.getExportType() != 1) {
-                removeFile("/tmp/csv/", export.getFileName());
-            }
-            return stdParameters.createResponse(
-                    new ApiCommandAck(true, "Deleted: " + export.getFileName()));
-        } catch (Exception ex) {
-            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
-        }
-    }
-
     @Operation(
             summary = "All stops Report",
             description = "Order export for all stops schedule adherence report",
@@ -534,6 +562,30 @@ public class CommandsApi {
             return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
         } catch (Exception ex) {
             // If problem getting data then return a message
+            return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Delete an export", description = "Delete exports by IDs", tags = {"export"})
+    @Path("/command/export")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteExport(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Id to delete", required = true)
+            @QueryParam(value = "id") int exportId) throws WebApplicationException {
+        stdParameters.validate();
+
+        CommandsInterface inter = stdParameters.getCommandsInterface();
+
+        try {
+            var export = inter.removeExportById(exportId);
+            if (export.getExportType() != 1) {
+                removeFile("/tmp/csv/", export.getFileName());
+            }
+            return stdParameters.createResponse(
+                    new ApiCommandAck(true, "Deleted: " + export.getFileName()));
+        } catch (Exception ex) {
             return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
         }
     }

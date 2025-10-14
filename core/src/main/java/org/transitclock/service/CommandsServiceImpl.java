@@ -3,6 +3,7 @@ package org.transitclock.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.transitclock.Core;
 import org.transitclock.core.AvlProcessor;
 import org.transitclock.core.TemporalMatch;
 import org.transitclock.core.VehicleState;
@@ -21,10 +22,11 @@ import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 
 @Slf4j
@@ -190,6 +192,32 @@ public class CommandsServiceImpl implements CommandsInterface {
     }
 
     @Override
+    public Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key) {
+        Map<String, Boolean> resultsOfAdding = new HashMap<>();
+
+        ZonedDateTime startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+        long startOfDayInSeconds = startOfDay.toEpochSecond();
+
+        ApiKey currentApiKey = ApiKeyManager.getInstance().getApiKeys().stream()
+                .filter(apiKey -> apiKey.getApplicationName().equals("Sean Og Crudden"))
+                .findAny()
+                .orElse(null);
+        boolean isValid = ApiKeyManager.getInstance().isKeyValid(key);
+
+        if (currentApiKey != null) {
+            if (isValid && !currentApiKey.getApplicationKey().equals(key)) {
+                processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfAdding);
+                logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+                return resultsOfAdding;
+            } else throw new IllegalArgumentException("Key is not valid or is used unsecure key!");
+        } else if (isValid) {
+            processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfAdding);
+            logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+            return resultsOfAdding;
+        } else throw new IllegalArgumentException("Key is not valid!");
+    }
+
+    @Override
     public void removeVehicleToBlock(long id) {
         Session session = HibernateUtils.getSession();
         try {
@@ -239,5 +267,30 @@ public class CommandsServiceImpl implements CommandsInterface {
             logger.error(exception.getMessage());
             throw exception;
         }
+    }
+
+    private void processVehicleToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, long startOfDayInSeconds, Map<String, Boolean> resultsOfAdding) {
+        for (VehicleToBlockConfig assignment : vehiclesToBlocks) {
+            try {
+                var isSuccessful = addAssignmentToDB(assignment, startOfDayInSeconds);
+                resultsOfAdding.put(assignment.getVehicleId(), isSuccessful);
+            } catch (Exception e) {
+                logger.warn("Something went wrong while creating VehicleToBlockConfig: {} record, cause={}", assignment, e.getMessage());
+                resultsOfAdding.put(assignment.getVehicleId() + " : " + e.getLocalizedMessage() + " Is created", false);
+            }
+        }
+    }
+
+    private boolean addAssignmentToDB(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        if (assignment.getValidTo() == null && assignment.getTripId() != null) {
+            return setEndTimeForAssignment(assignment, startOfDayInSeconds);
+        } else return Core.getInstance().getDbLogger().add(assignment);
+    }
+
+    private boolean setEndTimeForAssignment(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        int endTime = Core.getInstance().getDbConfig().getTrip(assignment.getTripId()).getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 4000L);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return Core.getInstance().getDbLogger().add(assignment);
     }
 }

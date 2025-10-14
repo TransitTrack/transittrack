@@ -2,12 +2,14 @@
 package org.transitclock.service.contract;
 
 import org.transitclock.domain.structs.ExportTable;
+import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.service.dto.IpcAvl;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Defines the RMI interface for sending commands or data to the server (as opposed to for
@@ -55,6 +57,12 @@ public interface CommandsInterface {
      * Returns null on success
      */
     String addVehicleToBlock(String vehicleId, String blockId, String tripId, Date assignmentDate, Date validFrom, Date validTo);
+
+     /*
+     * Add vehicle to Block to predictions.
+     * Returns null on success
+     */
+    Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key);
 
     /*
      * Add remove vehicle to block.
