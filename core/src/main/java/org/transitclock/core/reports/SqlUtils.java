@@ -188,7 +188,6 @@ public class SqlUtils {
      * Creates a SQL clause for specifying a time range. Looks at the request parameters
      * "beginDate", "numDays", "beginTime", and "endTime"
      *
-     * @param request        Http request containing parameters for the query
      * @param timeColumnName name of time column for that for query
      * @param maxNumDays     maximum number of days for query. Request parameter numDays is limited to
      *                       this value in order to make sure that query doesn't try to process too much data.

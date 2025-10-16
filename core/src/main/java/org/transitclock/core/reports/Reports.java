@@ -10,9 +10,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.transitclock.config.data.TraccarConfig.mphInsteadOfKmh;
+import static org.transitclock.core.reports.ScheduleAdhStopsReport.*;
 import static org.transitclock.utils.Time.DAY_IN_MSECS;
 import static org.transitclock.utils.Time.YEAR_IN_MSECS;
 
@@ -410,8 +412,8 @@ public class Reports {
     }
 
     public static String getAvgSpeedPerRoute(String agencyId,
-                                             String date,
-                                             int numDays,
+                                             String beginDate,
+                                             String endDate,
                                              String routeShortName,
                                              String routeId,
                                              String directionId,
@@ -422,6 +424,10 @@ public class Reports {
 
         String MPS_MPH = "2.23694";
         String MPS_KMH = "3.6";
+
+        long numDays = ChronoUnit.DAYS.between(
+                validateParseToLocalDate(beginDate),
+                validateParseToLocalDate(endDate)) +1;
 
         StringBuilder sqlBuilder = new StringBuilder("WITH ordered AS (SELECT\n");
         sqlBuilder.append("a.config_rev, a.vehicle_id, a.trip_id, a.route_id, a.route_short_name, a.direction_id, a.gtfs_stop_seq, a.stop_id, a.stop_path_length,\n");
@@ -437,7 +443,7 @@ public class Reports {
             sqlBuilder.append("      AND a.route_short_name = '").append(routeShortName).append("'\n");
         } else throw new SQLException("Route id or route short name not specified");
         sqlBuilder.append("      AND a.direction_id = '").append(!directionId.isEmpty() ? directionId : "0").append("'\n");
-        sqlBuilder.append(SqlUtils.timeRangeClause("a.time", MAX_NUM_DAYS, numDays, beginTime, endTime, date));
+        sqlBuilder.append(SqlUtils.timeRangeClause("a.time", 31,(int) numDays, beginTime, endTime, beginDate));
         sqlBuilder.append("),\n");
         sqlBuilder.append("travel_times AS (SELECT \n");
         sqlBuilder.append("             config_rev, route_short_name, direction_id, trip_id, gtfs_stop_seq,\n");
@@ -454,9 +460,10 @@ public class Reports {
         sqlBuilder.append("           AND next_stop_time > stop_time\n");
         sqlBuilder.append("           AND EXTRACT(EPOCH FROM (next_stop_time - stop_time)) > 20\n");
         sqlBuilder.append("           AND next_stop_path_length IS NOT NULL\n");
-        sqlBuilder.append("           AND next_stop_path_length > 0 )\n");
-        sqlBuilder.append("SELECT (t.from_stop_id || '_to_' || t.to_stop_id)                             AS segment_id,\n");
-        sqlBuilder.append("    t.config_rev,\n");
+        sqlBuilder.append("           AND next_stop_path_length > 0 ),\n");
+        sqlBuilder.append("avg_speed AS (SELECT \n");
+        sqlBuilder.append("   (t.from_stop_id || '_to_' || t.to_stop_id)                                 AS segment_id,\n");
+        sqlBuilder.append("    MAX(t.config_rev)                                                         AS config_rev,\n");
         sqlBuilder.append("    MIN(t.gtfs_stop_seq)                                                      AS stop_order,\n");
         sqlBuilder.append("    t.from_stop_id,\n");
         sqlBuilder.append("    t.to_stop_id,\n");
@@ -465,7 +472,6 @@ public class Reports {
         sqlBuilder.append("    t.route_short_name,\n");
         sqlBuilder.append("    t.direction_id,\n");
         sqlBuilder.append("    ROUND(AVG(t.segment_length)::numeric, 3)                                  AS segment_length_in_meters,");
-        sqlBuilder.append("    to_json(ARRAY_AGG(DISTINCT t.trip_id))::text AS trip_ids,\n");
         sqlBuilder.append("    COUNT(*) AS num_trips,\n");
         sqlBuilder.append("    ROUND(AVG(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS avg_speed,\n");
         sqlBuilder.append("    ROUND(MIN(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMPH ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS min_speed,\n");
@@ -485,8 +491,10 @@ public class Reports {
         sqlBuilder.append("         JOIN stops fs ON fs.config_rev = t.config_rev AND fs.id = t.from_stop_id\n");
         sqlBuilder.append("         JOIN stops ts ON ts.config_rev = t.config_rev AND ts.id = t.to_stop_id\n");
         sqlBuilder.append("GROUP BY\n");
-        sqlBuilder.append("    t.config_rev, t.route_short_name, t.direction_id, t.from_stop_id, fs.name, t.to_stop_id, ts.name\n");
-        sqlBuilder.append("ORDER BY t.config_rev, stop_order;");
+        sqlBuilder.append("    t.config_rev, t.route_short_name, t.direction_id, t.from_stop_id, fs.name, t.to_stop_id, ts.name)\n");
+        sqlBuilder.append("SELECT DISTINCT ON (route_short_name, direction_id, stop_order) *\n");
+        sqlBuilder.append("FROM avg_speed\n");
+        sqlBuilder.append("ORDER BY route_short_name, direction_id, stop_order, num_trips DESC;");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }

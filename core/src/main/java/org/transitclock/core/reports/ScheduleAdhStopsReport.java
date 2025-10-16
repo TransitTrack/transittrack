@@ -28,8 +28,6 @@ import static org.transitclock.domain.structs.ExportTable.updateStatus;
 @Slf4j
 public class ScheduleAdhStopsReport {
 
-    private final DateTimeFormatter currentFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
-    private final DateTimeFormatter requiredFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final List<String[]> fullExport = new ArrayList<>(300000);
 
     private static String getSafeString(ResultSet rs, int columnIndex) {
@@ -37,6 +35,29 @@ public class ScheduleAdhStopsReport {
             return rs.getString(columnIndex);
         } catch (SQLException e) {
             return "";
+        }
+    }
+
+    private long getNumDays(LocalDate date1, LocalDate date2) {
+        long numDays = ChronoUnit.DAYS.between(date1, date2);
+        if (numDays > 30 || numDays < 0) {
+            throw new IllegalArgumentException(String.format("%s - %s: more then 31 days or less then 1.", date1, date2));
+        }
+        return numDays;
+    }
+
+    static LocalDate validateParseToLocalDate(String date) {
+        DateTimeFormatter currentFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        DateTimeFormatter requiredFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        try {
+            if (date.charAt(4) != '-') {
+                return LocalDate.parse(date, currentFormat);
+            } else {
+                return LocalDate.parse(date, requiredFormat);
+            }
+        } catch (DateTimeParseException e) {
+            logger.debug("Exception happened while processing parse date: ", e);
+            throw new IllegalArgumentException("Invalid date: " + date);
         }
     }
 
@@ -54,13 +75,10 @@ public class ScheduleAdhStopsReport {
         final String HOST = hostUrl;
 
         // Validate date
-        LocalDate date1 = validate(beginDate);
-        LocalDate date2 = validate(endDate);
-        long numDays = ChronoUnit.DAYS.between(date1, date2);
+        LocalDate date1 = validateParseToLocalDate(beginDate);
+        LocalDate date2 = validateParseToLocalDate(endDate);
         // Validate date range
-        if (numDays > 30 || numDays < 0) {
-            throw new IllegalArgumentException(beginDate + " - " + endDate + ": more then 31 days or less then 1.");
-        }
+        long numDays = getNumDays(date1, date2);
 
         ExportTable.create(new ExportTable(new Date(), 2, 2, FILE_NAME));
         new Thread(new Runnable() {
@@ -107,7 +125,7 @@ public class ScheduleAdhStopsReport {
         final String FILE_NAME = String.format("daily_stops_adh_for_%s.csv", beginDate);
         final String HOST = hostUrl;
 
-        LocalDate date1 = validate(beginDate);
+        LocalDate date1 = validateParseToLocalDate(beginDate);
         List<Route> routes = Core.getInstance().getDbConfig().getRoutes();
         ExportTable.create(new ExportTable(new Date(), 3, 2, FILE_NAME));
 
@@ -154,19 +172,6 @@ public class ScheduleAdhStopsReport {
             deleteExportTableRecord(fileName, session);
             session.close();
             logger.warn(ex.getMessage());
-        }
-    }
-
-    private LocalDate validate(String date) {
-        try {
-            if (date.charAt(4) != '-') {
-                return LocalDate.parse(date, currentFormat);
-            } else {
-                return LocalDate.parse(date, requiredFormat);
-            }
-        } catch (DateTimeParseException e) {
-            logger.debug("Exception happened while processing parse date: ", e);
-            throw new IllegalArgumentException("Invalid date: " + date);
         }
     }
 

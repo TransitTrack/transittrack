@@ -497,8 +497,8 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response avgSpeedPerRoute(
         @BeanParam StandardParameters stdParameters,
-        @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "date") String beginDate,
-        @Parameter(description = "Num days.", required = true) @QueryParam(value = "numDays") int numDays,
+        @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
+        @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "endDate") String endDate,
         @Parameter(description = "Route short name") @QueryParam(value = "routeName") String routeName,
         @Parameter(description = "Route ID") @QueryParam(value = "routeId") String routeId,
         @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @QueryParam(value = "dir") String directionId,
@@ -508,7 +508,7 @@ public class TransitimeApi {
             stdParameters.validate();
             try {
                 String response = Reports.getAvgSpeedPerRoute(stdParameters
-                        .getAgencyId(), beginDate, numDays, routeName, routeId, directionId, beginTime, endTime);
+                        .getAgencyId(), beginDate, endDate, routeName, routeId, directionId, beginTime, endTime);
                 return stdParameters.createResponse(response);
             } catch (Exception e) {
                 // If problem getting data then return a Bad Request
