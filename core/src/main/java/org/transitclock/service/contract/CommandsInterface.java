@@ -59,10 +59,16 @@ public interface CommandsInterface {
     String addVehicleToBlock(String vehicleId, String blockId, String tripId, Date assignmentDate, Date validFrom, Date validTo);
 
      /*
-     * Add vehicle to Block to predictions.
-     * Returns null on success
+     * Add vehicle to Block to assignment
+     * Returns map of vehicle Ids with states
      */
     Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key);
+
+    /*
+     * Edit VehicleToBlockConfig obj.
+     * Returns VehicleToBlockConfig on success
+     */
+    VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig);
 
     /*
      * Add remove vehicle to block.

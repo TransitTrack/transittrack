@@ -217,14 +217,22 @@ public class CommandsServiceImpl implements CommandsInterface {
         } else throw new IllegalArgumentException("Key is not valid!");
     }
 
+    public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehiclesToBlocks) {
+        try {
+            return VehicleToBlockConfig.updateVehicleToBlockConfig(vehiclesToBlocks);
+        } catch (Exception ex) {
+            logger.warn(ex.getMessage());
+            throw ex;
+        }
+    }
+
     @Override
     public void removeVehicleToBlock(long id) {
-        Session session = HibernateUtils.getSession();
-        try {
+        try (Session session = HibernateUtils.getSession()) {
             VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
-            session.close();
         } catch (Exception ex) {
-            session.close();
+            logger.warn(ex.getMessage());
+
         }
     }
 

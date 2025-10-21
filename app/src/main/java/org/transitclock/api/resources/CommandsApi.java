@@ -473,6 +473,48 @@ public class CommandsApi {
     }
 
     @Operation(
+            summary = "Edit an exist vehicle to block assignment",
+            description = "Edit an exist vehicle to block assignment",
+            tags = {"vehicle", "block"})
+    @Path("/command/vehicleToBlock")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response editVehicleToBlock(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Json of vehicle to block.", required = true) InputStream requestBody)
+            throws WebApplicationException {
+        // Make sure request is valid
+        stdParameters.validate();
+        CommandsInterface inter = stdParameters.getCommandsInterface();
+
+        VehicleToBlockConfig result = null;
+        try {
+            JSONObject jsonObj = getJsonObject(requestBody);
+            String id = jsonObj.getString("id");
+            String vehicleId = jsonObj.getString("vehicleId");
+            String blockId = jsonObj.getString("blockId");
+            String tripId = jsonObj.getString("tripId");
+            String validFromStr = jsonObj.getString("validFrom");
+            String validToStr = jsonObj.getString("validTo");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date validFrom = sdf.parse(validFromStr);
+            Date validTo = sdf.parse(validToStr);
+
+            long l = Long.parseLong(id);
+
+            result = inter.updateVehicleToBlockConfig(new  VehicleToBlockConfig(l,
+                    vehicleId, blockId, tripId, new Date(), validFrom, validTo));
+
+        } catch (JSONException | IOException | ParseException e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+        return stdParameters.createResponse(new ApiCommandAck(true, result.toString()));
+    }
+
+    @Operation(
             summary = "Remove vehicle to block",
             description = "Remove vehicle to block",
             tags = {"vehicle", "block"})
