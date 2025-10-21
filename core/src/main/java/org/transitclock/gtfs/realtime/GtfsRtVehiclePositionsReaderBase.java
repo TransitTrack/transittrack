@@ -4,6 +4,7 @@ package org.transitclock.gtfs.realtime;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.transit.realtime.GtfsRealtime.*;
@@ -12,6 +13,8 @@ import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.MathUtils;
+
+import static org.transitclock.config.data.AvlConfig.vehicleIdForFeedRegExPattern;
 
 /**
  * Reads in GTFS-realtime Vehicle Positions file and converts them into List of AvlReport objects.
@@ -107,6 +110,11 @@ public abstract class GtfsRtVehiclePositionsReaderBase {
 
             if (vehicleId == null)
                 continue;
+
+            if (vehicleIdForFeedRegExPattern() != null) {
+                Pattern pattern = vehicleIdForFeedRegExPattern();
+                if (!pattern.matcher(vehicleId).find()) continue;
+            }
 
             // Determine the GPS time. If time is not available then use the
             // current time. This is really a bad idea though because the
