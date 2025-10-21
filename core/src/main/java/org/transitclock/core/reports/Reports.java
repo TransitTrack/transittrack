@@ -429,6 +429,8 @@ public class Reports {
                 validateParseToLocalDate(beginDate),
                 validateParseToLocalDate(endDate)) +1;
 
+        if (numDays > 31) throw new IllegalArgumentException(String.format("%s - %s: more then 31!", beginDate, endDate));
+
         StringBuilder sqlBuilder = new StringBuilder("WITH ordered AS (SELECT\n");
         sqlBuilder.append("a.config_rev, a.vehicle_id, a.trip_id, a.route_id, a.route_short_name, a.direction_id, a.gtfs_stop_seq, a.stop_id, a.stop_path_length,\n");
         sqlBuilder.append("a.time AS stop_time,\n");
