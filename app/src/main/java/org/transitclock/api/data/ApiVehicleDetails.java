@@ -222,12 +222,12 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     }
 
     private String getHeadwayDeviationCategory(double headwayDeviation) {
-        if (headway == -1 || expectedHeadway <= 0) {
-            return "UNAVAILABLE";
-        } else if (headwayDeviation < HoldingConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
-            return "BUNCHED";
-        } else if (headwayDeviation > HoldingConfig.getHeadwayExpectedMaxLimitInSecs() * 1000) {
+        if (headway != -1 && headwayDeviation > HoldingConfig.getHeadwayExpectedMaxLimitInSecs() * 1000) {
             return "GAPPED";
+        } else if (headway != -1 && headwayDeviation < HoldingConfig.getHeadwayExpectedMinLimitInSecs() * -1000) {
+            return "BUNCHED";
+        } else if (headway == -1 || expectedHeadway <= 0) {
+            return "UNAVAILABLE";
         } else
             return "EXPECTED";
     }
