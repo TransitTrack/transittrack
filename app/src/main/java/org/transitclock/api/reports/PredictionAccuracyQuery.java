@@ -196,13 +196,13 @@ public abstract class PredictionAccuracyQuery {
         } else sql.append(" AND prediction_source = 'TransitClock' ");
 
         try (var sessionFactory = HibernateUtils
-                .getSessionFactory(AgencyConfig.getAgencyId());
-                Session session = sessionFactory.openSession()) {
-           final Timestamp finalBeginDate = beginDate;
-           final java.sql.Time finalBeginTime = beginTime;
-           final java.sql.Time finalEndTime = endTime;
-           final String finalBeginTimeStr = beginTimeStr;
-           final String finalEndTimeStr = endTimeStr;
+                    .getSessionFactory(AgencyConfig.getAgencyId());
+             Session session = sessionFactory.openSession()) {
+           final var finalBeginDate = beginDate;
+           final var finalBeginTime = beginTime;
+           final var finalEndTime = endTime;
+           final var finalBeginTimeStr = beginTimeStr;
+           final var finalEndTimeStr = endTimeStr;
 
            session.doWork(connection -> {
                 connection.setReadOnly(true);
