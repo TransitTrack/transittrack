@@ -3,19 +3,21 @@ package org.transitclock.api.reports;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.Session;
 import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.utils.Time;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * For doing SQL query and generating JSON data for a prediction accuracy chart. This abstract class
@@ -38,48 +40,6 @@ public abstract class PredictionAccuracyQuery {
     // is for
     // a certain prediction range, specified by predictionLengthBucketSize.
     protected final Map<String, List<List<Integer>>> map = new HashMap<>();
-
-    // Defines the output type for the intervals, whether should show
-    // standard deviation, percentage, or both.
-    // Can iterate over the enumerated type using:
-    // for (IntervalsType type : IntervalsType.values()) {}
-    public enum IntervalsType {
-        PERCENTAGE("PERCENTAGE"),
-        STD_DEV("STD_DEV"),
-        BOTH("BOTH");
-
-        private final String text;
-
-        IntervalsType(final String text) {
-            this.text = text;
-        }
-
-        /**
-         * For converting from a string to an IntervalsType
-         *
-         * @param text String to be converted
-         * @return The corresponding IntervalsType, or IntervalsType.PERCENTAGE as the default if
-         *     text doesn't match a type.
-         */
-        public static IntervalsType createIntervalsType(String text) {
-            for (IntervalsType type : IntervalsType.values()) {
-                if (type.toString().equals(text)) {
-                    return type;
-                }
-            }
-
-            // If a bad non-null value was specified then log the error
-            if (text != null) logger.error("\"{}\" is not a valid IntervalsType", text);
-
-            // Couldn't match so use default value
-            return IntervalsType.PERCENTAGE;
-        }
-
-        @Override
-        public String toString() {
-            return text;
-        }
-    }
 
     /**
      * Determines which prediction bucket in the map to use. Want to have each bucket to be for an
@@ -128,20 +88,20 @@ public abstract class PredictionAccuracyQuery {
      * Performs the SQL query and puts the resulting data into the map.
      *
      * @param beginDateStr Begin date for date range of data to use.
-     * @param numDaysStr How many days to do the query for
+     * @param numDaysStr   How many days to do the query for
      * @param beginTimeStr For specifying time of day between the begin and end date to use data
-     *     for. Can thereby specify a date range of a week but then just look at data for particular
-     *     time of day, such as 7am to 9am, for those days. Set to null or empty string to use data
-     *     for entire day.
-     * @param endTimeStr For specifying time of day between the begin and end date to use data for.
-     *     Can thereby specify a date range of a week but then just look at data for particular time
-     *     of day, such as 7am to 9am, for those days. Set to null or empty string to use data for
-     *     entire day.
-     * @param routeIds Array of IDs of routes to get data for
-     * @param predSource The source of the predictions. Can be null or "" (for all), "Transitime",
-     *     or "Other"
-     * @param predType Whether predictions are affected by wait stop. Can be "" (for all),
-     *     "AffectedByWaitStop", or "NotAffectedByWaitStop".
+     *                     for. Can thereby specify a date range of a week but then just look at data for particular
+     *                     time of day, such as 7am to 9am, for those days. Set to null or empty string to use data
+     *                     for entire day.
+     * @param endTimeStr   For specifying time of day between the begin and end date to use data for.
+     *                     Can thereby specify a date range of a week but then just look at data for particular time
+     *                     of day, such as 7am to 9am, for those days. Set to null or empty string to use data for
+     *                     entire day.
+     * @param routeIds     Array of IDs of routes to get data for
+     * @param predSource   The source of the predictions. Can be null or "" (for all), "Transitime",
+     *                     or "Other"
+     * @param predType     Whether predictions are affected by wait stop. Can be "" (for all),
+     *                     "AffectedByWaitStop", or "NotAffectedByWaitStop".
      * @throws SQLException
      * @throws ParseException
      */
@@ -235,53 +195,102 @@ public abstract class PredictionAccuracyQuery {
             sql.append(" AND prediction_source = ? ");
         } else sql.append(" AND prediction_source = 'TransitClock' ");
 
-        try (var connection = HibernateUtils
-                .getSessionFactory(AgencyConfig.getAgencyId())
-                .getSessionFactoryOptions()
-                .getServiceRegistry()
-                .getService(ConnectionProvider.class)
-                .getConnection();
-             var statement = connection.prepareStatement(sql.toString())) {
+        try (var sessionFactory = HibernateUtils
+                .getSessionFactory(AgencyConfig.getAgencyId());
+                Session session = sessionFactory.openSession()) {
+           final Timestamp finalBeginDate = beginDate;
+           final java.sql.Time finalBeginTime = beginTime;
+           final java.sql.Time finalEndTime = endTime;
+           final String finalBeginTimeStr = beginTimeStr;
+           final String finalEndTimeStr = endTimeStr;
 
-            connection.setReadOnly(true);
-            logger.debug("SQL: {}", sql);
+           session.doWork(connection -> {
+                connection.setReadOnly(true);
 
-            logger.debug("beginDate {} beginDateStr {} numDays {} beginTime {} beginTimeStr {} endTime {} endTimeStr {}",
-                    beginDate, beginDateStr, numDays, beginTime, beginTimeStr, endTime, endTimeStr);
+                try (var statement = connection.prepareStatement(sql.toString())) {
+                    logger.debug("SQL: {}", sql);
 
-            int i = 1;
-            statement.setTimestamp(i++, beginDate);
-            statement.setTime(i++, beginTime);
-            statement.setTime(i++, endTime);
+                    logger.debug("beginDate {} beginDateStr {} numDays {} beginTime {} beginTimeStr {} endTime {} endTimeStr {}",
+                            finalBeginDate, beginDateStr, numDays, finalBeginTime, finalBeginTimeStr, finalEndTime, finalEndTimeStr);
 
-            if (routeIds != null) {
-                for (String routeId : routeIds) {
-                    if (!Strings.isNullOrEmpty(routeId.trim())) {
-                        statement.setString(i++, routeId);
-                        statement.setString(i++, routeId);
+                    int i = 1;
+                    statement.setTimestamp(i++, finalBeginDate);
+                    statement.setTime(i++, finalBeginTime);
+                    statement.setTime(i++, finalEndTime);
+
+                    if (routeIds != null) {
+                        for (String routeId : routeIds) {
+                            if (!Strings.isNullOrEmpty(routeId.trim())) {
+                                statement.setString(i++, routeId);
+                                statement.setString(i++, routeId);
+                            }
+                        }
                     }
+
+                    if (!Strings.isNullOrEmpty(predSource)) {
+                        statement.setString(i++, predSource);
+                    }
+
+                    try (ResultSet rs = statement.executeQuery()) {
+                        while (rs.next()) {
+                            int predLength = rs.getInt("predLength");
+                            int predAccuracy = rs.getInt("predAccuracy");
+                            String sourceResult = rs.getString("source");
+
+                            addDataToMap(predLength, predAccuracy, sourceResult);
+                            logger.debug("predLength={} predAccuracy={} source={}", predLength, predAccuracy, sourceResult);
+                        }
+                    }
+                } catch (SQLException e) {
+                    logger.warn("SQL error: {}", e.getMessage(), e);
+                    throw e;
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Database error: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    // Defines the output type for the intervals, whether should show
+    // standard deviation, percentage, or both.
+    // Can iterate over the enumerated type using:
+    // for (IntervalsType type : IntervalsType.values()) {}
+    public enum IntervalsType {
+        PERCENTAGE("PERCENTAGE"),
+        STD_DEV("STD_DEV"),
+        BOTH("BOTH");
+
+        private final String text;
+
+        IntervalsType(final String text) {
+            this.text = text;
+        }
+
+        /**
+         * For converting from a string to an IntervalsType
+         *
+         * @param text String to be converted
+         * @return The corresponding IntervalsType, or IntervalsType.PERCENTAGE as the default if
+         * text doesn't match a type.
+         */
+        public static IntervalsType createIntervalsType(String text) {
+            for (IntervalsType type : IntervalsType.values()) {
+                if (type.toString().equals(text)) {
+                    return type;
                 }
             }
 
-            if (!Strings.isNullOrEmpty(predSource)) {
-                statement.setString(i++, predSource);
-            }
+            // If a bad non-null value was specified then log the error
+            if (text != null) logger.error("\"{}\" is not a valid IntervalsType", text);
 
-            // Actually execute the query
-            ResultSet rs = statement.executeQuery();
+            // Couldn't match so use default value
+            return IntervalsType.PERCENTAGE;
+        }
 
-            // Process results of query
-            while (rs.next()) {
-                int predLength = rs.getInt("predLength");
-                int predAccuracy = rs.getInt("predAccuracy");
-                String sourceResult = rs.getString("source");
-
-                addDataToMap(predLength, predAccuracy, sourceResult);
-                logger.debug("predLength={} predAccuracy={} source={}", predLength, predAccuracy, sourceResult);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            throw e;
+        @Override
+        public String toString() {
+            return text;
         }
     }
 }
