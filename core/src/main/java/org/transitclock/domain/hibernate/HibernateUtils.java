@@ -174,6 +174,22 @@ public class HibernateUtils {
         sessionFactoryCache.clear();
     }
 
+    public static void closeCurrentThreadSession() {
+        Thread thread = Thread.currentThread();
+        ThreadLocal<Session> sessionThreadLocal = threadSessions.remove(thread);
+        if (sessionThreadLocal != null) {
+            Session session = sessionThreadLocal.get();
+            if (session != null && session.isOpen()) {
+                try {
+                    session.close();
+                } catch (HibernateException e) {
+                    logger.warn("Error closing session for thread {}", thread.getName(), e);
+                }
+            }
+            sessionThreadLocal.remove();
+        }
+    }
+
     /**
      * Returns session for the specified agencyId.
      *
@@ -184,7 +200,6 @@ public class HibernateUtils {
      * @param agencyId Used as the database name if the property transitclock.core.dbName is not set
      * @return The Session. Make sure you close it when done because system only gets limited number
      *     of open sessions.
-     * @throws HibernateException
      */
     public static Session getSession(String agencyId) throws HibernateException {
         return getSession(agencyId, false);

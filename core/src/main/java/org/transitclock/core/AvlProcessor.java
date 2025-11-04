@@ -1435,11 +1435,11 @@ public class AvlProcessor {
             if (blockId != null) {
                 avlReport.setAssignment(blockId, AssignmentType.BLOCK_ID);
             }
-            if (tripId != null) {
+            else if (tripId != null) {
                 avlReport.setAssignment(tripId, AssignmentType.TRIP_ID);
             }
         } catch (Exception ignored) {
-        }
+    }
 
         // The beginning of processing AVL data is an important milestone
         // in processing data so log it as info.

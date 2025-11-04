@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.transitclock.domain.webstructs.WebAgency;
@@ -1091,8 +1092,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("      AND scheduled_time - time > ");
             sqlBuilder.append(allowableEarlyMinutesStr);
-            if (routeId != null || !routeId.isEmpty())
-                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("),\n");
             sqlBuilder.append("     on_time AS (\n");
@@ -1117,8 +1117,7 @@ public class Reports {
             sqlBuilder.append(" \n");
             sqlBuilder.append("           AND time - scheduled_time <= ");
             sqlBuilder.append(allowableLateMinutesStr);
-            if (routeId != null || !routeId.isEmpty())
-                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("     ),\n");
             sqlBuilder.append("     late AS (\n");
@@ -1140,8 +1139,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("           AND time - scheduled_time > ");
             sqlBuilder.append(allowableLateMinutesStr);
-            if (routeId != null || !routeId.isEmpty())
-                sqlBuilder.append("           AND ad.route_id = '").append(routeId).append("'\n");
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" )\n");
             sqlBuilder.append("SELECT *\n");
             sqlBuilder.append("FROM (\n");
@@ -1151,8 +1149,9 @@ public class Reports {
             sqlBuilder.append("         UNION ALL\n");
             sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n");
             sqlBuilder.append("     ) AS combined_results\n");
-            if (routeId != null || !routeId.isEmpty()) sqlBuilder.append("ORDER BY category_order, trip, time;\n");
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append("ORDER BY category_order, trip, time;\n");
             else sqlBuilder.append("ORDER BY category_order, time;\n");
+
             sql = sqlBuilder.toString();
         }
         return sql;

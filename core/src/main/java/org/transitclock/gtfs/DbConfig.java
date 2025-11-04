@@ -143,6 +143,10 @@ public class DbConfig {
      * @return the global session used for lazy loading of data
      */
     public final Session getGlobalSession() {
+        if(globalSession == null || !globalSession.isOpen()) {
+            logger.warn("Global session is closed therefore create new one");
+            createNewGlobalSession();
+        }
         return globalSession;
     }
 
@@ -356,7 +360,7 @@ public class DbConfig {
         // trip patterns that have already been read in as part of
         // reading in block assignments. This makes reading of the
         // trip pattern data much faster.
-        List<TripPattern> tripPatterns = TripPattern.getTripPatterns(globalSession, configRev);
+        List<TripPattern> tripPatterns = TripPattern.getTripPatterns(getGlobalSession(), configRev);
         Map<String, List<TripPattern>> theTripPatternsByRouteMap = putTripPatternsIntoMap(tripPatterns);
 
         logger.debug("Reading trip patterns for all routes took {} msec", timer.elapsedMsec());
@@ -405,7 +409,7 @@ public class DbConfig {
                 // trip patterns that have already been read in as part of
                 // reading in block assignments. This makes reading of the
                 // trip pattern data much faster.
-                tripsMap = Trip.getTrips(globalSession, configRev);
+                tripsMap = Trip.getTrips(getGlobalSession(), configRev);
             }
             logger.debug("Reading trips took {} msec", timer.elapsedMsec());
         }
@@ -435,7 +439,7 @@ public class DbConfig {
             // by multiple threads). Otherwise get a "force initialize loading
             // collection" error.
             synchronized (Block.getLazyLoadingSyncObject()) {
-                trip = Trip.getTrip(globalSession, configRev, tripIdOrShortName);
+                trip = Trip.getTrip(getGlobalSession(), configRev, tripIdOrShortName);
             }
 
             if (trip != null) {
@@ -519,7 +523,7 @@ public class DbConfig {
         // by multiple threads). Otherwise get a "force initialize loading
         // collection" error.
         synchronized (Block.getLazyLoadingSyncObject()) {
-            trips = Trip.getTripByShortName(globalSession, configRev, tripShortName);
+            trips = Trip.getTripByShortName(getGlobalSession(), configRev, tripShortName);
         }
 
         // Add the newly read trips to the map
@@ -600,13 +604,13 @@ public class DbConfig {
         // logger.debug("Reading stopPaths took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        blocks = Block.getBlocks(globalSession, configRev);
+        blocks = Block.getBlocks(getGlobalSession(), configRev);
         blocksByServiceMap = putBlocksIntoMap(blocks);
         blocksByRouteMap = putBlocksIntoMapByRoute(blocks);
         logger.debug("Reading blocks took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        routes = Route.getRoutes(globalSession, configRev);
+        routes = Route.getRoutes(getGlobalSession(), configRev);
         routesByRouteIdMap = putRoutesIntoMapByRouteId(routes);
         routesByRouteShortNameMap = putRoutesIntoMapByRouteShortName(routes);
         logger.debug("Reading routes took {} msec", timer.elapsedMsec());
@@ -614,16 +618,16 @@ public class DbConfig {
         tripPatternsByRouteMap = putTripPatternsInfoRouteMap();
 
         timer = new IntervalTimer();
-        List<Stop> stopsList = Stop.getStops(globalSession, configRev);
+        List<Stop> stopsList = Stop.getStops(getGlobalSession(), configRev);
         stopsMap = putStopsIntoMap(stopsList);
         stopsByStopCode = putStopsIntoMapByStopCode(stopsList);
         routesListByStopIdMap = putRoutesIntoMapByStopId(routes);
         logger.debug("Reading stops took {} msec", timer.elapsedMsec());
 
         timer = new IntervalTimer();
-        agencies = Agency.getAgencies(globalSession, configRev);
-        calendars = Calendar.getCalendars(globalSession, configRev);
-        calendarDates = CalendarDate.getCalendarDates(globalSession, configRev);
+        agencies = Agency.getAgencies(getGlobalSession(), configRev);
+        calendars = Calendar.getCalendars(getGlobalSession(), configRev);
+        calendarDates = CalendarDate.getCalendarDates(getGlobalSession(), configRev);
 
         calendarDatesMap = new HashMap<Long, List<CalendarDate>>();
         for (CalendarDate calendarDate : calendarDates) {
@@ -632,10 +636,10 @@ public class DbConfig {
             calendarDatesForDate.add(calendarDate);
         }
 
-        fareAttributes = FareAttribute.getFareAttributes(globalSession, configRev);
-        fareRules = FareRule.getFareRules(globalSession, configRev);
-        frequencies = Frequency.getFrequencies(globalSession, configRev);
-        transfers = Transfer.getTransfers(globalSession, configRev);
+        fareAttributes = FareAttribute.getFareAttributes(getGlobalSession(), configRev);
+        fareRules = FareRule.getFareRules(getGlobalSession(), configRev);
+        frequencies = Frequency.getFrequencies(getGlobalSession(), configRev);
+        transfers = Transfer.getTransfers(getGlobalSession(), configRev);
 
         logger.debug("Reading everything else took {} msec", timer.elapsedMsec());
     }

@@ -299,6 +299,8 @@ public class DbQueue<T> {
                     }
                 } while (shouldKeepTrying);
             }
+        } finally {
+            HibernateUtils.closeCurrentThreadSession();
         }
     }
 

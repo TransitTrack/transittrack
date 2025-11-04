@@ -491,10 +491,11 @@ public class CommandsApi {
         VehicleToBlockConfig result = null;
         try {
             JSONObject jsonObj = getJsonObject(requestBody);
-            String id = jsonObj.getString("id");
+
+            long id = jsonObj.getLong("id");
             String vehicleId = jsonObj.getString("vehicleId");
-            String blockId = jsonObj.getString("blockId");
-            String tripId = jsonObj.getString("tripId");
+            String blockId = jsonObj.optString("blockId", null);
+            String tripId = jsonObj.optString("tripId", null);
             String validFromStr = jsonObj.getString("validFrom");
             String validToStr = jsonObj.getString("validTo");
 
@@ -502,9 +503,7 @@ public class CommandsApi {
             Date validFrom = sdf.parse(validFromStr);
             Date validTo = sdf.parse(validToStr);
 
-            long l = Long.parseLong(id);
-
-            result = inter.updateVehicleToBlockConfig(new  VehicleToBlockConfig(l,
+            result = inter.updateVehicleToBlockConfig(new  VehicleToBlockConfig(id,
                     vehicleId, blockId, tripId, new Date(), validFrom, validTo));
 
         } catch (JSONException | IOException | ParseException e) {
