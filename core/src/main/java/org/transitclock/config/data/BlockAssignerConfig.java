@@ -19,6 +19,7 @@ public class BlockAssignerConfig {
             "For when want to test automatic assignments. When set to "
                     + "true then system ignores assignments from AVL feed so "
                     + "vehicles need to be automatically assigned instead");
+
     public static final DoubleConfigValue minDistanceFromCurrentReport = new DoubleConfigValue(
             "transitclock.autoBlockAssigner.minDistanceFromCurrentReport",
             100.0,
@@ -27,6 +28,7 @@ public class BlockAssignerConfig {
                     + "AVL reports need to be sure that the vehicle really "
                     + "is moving and in service. If getting incorrect matches "
                     + "then this value should likely be increased.");
+
     public static final IntegerConfigValue allowableEarlySeconds = new IntegerConfigValue(
             "transitclock.autoBlockAssigner.allowableEarlySeconds",
             3 * Time.SEC_PER_MIN,
@@ -50,11 +52,20 @@ public class BlockAssignerConfig {
             "Set to true to enable the manual assignment behavior where" +
                     "the system tries to assign vehicle to a block regarding 'vehicle_to_block_configs' table.");
 
+    public static final BooleanConfigValue isOverrideTimesForVehicleToBlock = new BooleanConfigValue(
+            "transitclock.blockAssigner.overrideTimesForVehicleToBlock",
+            false,
+            "Set to true to enable the overriding times for VehicleToBlock objects from remote API");
+
     public static boolean ignoreAvlAssignments() {
         return ignoreAvlAssignments.getValue();
     }
 
     public static boolean isManualAssignmentEnabled() {
         return isManualAssignmentEnabled.getValue();
+    }
+
+    public static boolean isOverrideTimesForVehicleToBlock() {
+        return isOverrideTimesForVehicleToBlock.getValue();
     }
 }

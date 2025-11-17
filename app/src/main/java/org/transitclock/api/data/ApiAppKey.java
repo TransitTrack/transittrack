@@ -1,9 +1,10 @@
 package org.transitclock.api.data;
 
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.transitclock.domain.webstructs.ApiKey;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+
 
 
 /**
