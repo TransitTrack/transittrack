@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.transitclock.Core;
 import org.transitclock.core.AvlProcessor;
+import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.TemporalMatch;
 import org.transitclock.core.VehicleState;
 import org.transitclock.core.avl.AvlExecutor;
@@ -14,6 +15,7 @@ import org.transitclock.core.dataCache.VehicleStateManager;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
@@ -21,12 +23,15 @@ import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.service.contract.CommandsInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.SystemTime;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+
+import static org.transitclock.config.data.BlockAssignerConfig.isOverrideTimesForVehicleToBlock;
 
 
 @Slf4j
@@ -292,12 +297,34 @@ public class CommandsServiceImpl implements CommandsInterface {
     private boolean addAssignmentToDB(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
         if (assignment.getValidTo() == null && assignment.getTripId() != null) {
             return setEndTimeForAssignment(assignment, startOfDayInSeconds);
+        } else if (isOverrideTimesForVehicleToBlock() && assignment.getBlockId() != null) {
+            return setTimesForAssignmentBlocks(assignment, startOfDayInSeconds);
         } else return Core.getInstance().getDbLogger().add(assignment);
     }
 
     private boolean setEndTimeForAssignment(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
         int endTime = Core.getInstance().getDbConfig().getTrip(assignment.getTripId()).getEndTime();
-        long endTimeInSec = startOfDayInSeconds + (endTime + 4000L);
+        long endTimeInSec = startOfDayInSeconds + (endTime + 2000);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return Core.getInstance().getDbLogger().add(assignment);
+    }
+
+    private boolean setTimesForAssignmentBlocks(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        ServiceUtils serviceUtils = Core.getInstance().getServiceUtils();
+            Block wantedBlock;
+            var listServIds = serviceUtils.getServiceIdsForDay(SystemTime.getMillis());
+        wantedBlock = listServIds.stream().map(serviceId -> Core.getInstance().getDbConfig()
+                .getBlock(serviceId, assignment.getBlockId()))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        int startTime = wantedBlock.getStartTime();
+        long startTimeInSec = startOfDayInSeconds + (startTime - 300);
+        assignment.setValidFrom(new Date(startTimeInSec * 1000));
+
+        int endTime = wantedBlock.getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 1200);
         assignment.setValidTo(new Date(endTimeInSec * 1000));
         return Core.getInstance().getDbLogger().add(assignment);
     }
