@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author SkiBu Smith
  */
 @RestController
-@RequestMapping("/gtfs-rt/api/v1" + "${transitclock.api.old-version-path}" + "/agency/{agency}")
+@RequestMapping("/api/v1" + "${transitclock.api.old-version-path}" + "/agency/{agency}")
 public class GtfsRealtimeApi extends BaseApiResource {
     private final AgencyTimezoneCache agencyTimezoneCache;
     private final FeedCacheManager feedCacheManager;

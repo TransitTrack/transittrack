@@ -163,7 +163,7 @@ public interface CommandsApi {
             @Parameter(description = "Direcction id.", required = true) @RequestParam(value = "d") String directionId,
             @Parameter(description = "headsign.", required = true) @RequestParam(value = "headsign") String headsign);
 
-    // WORK IN PROGRESS
+    // WIP
     @GetMapping(
             value = "/command/cancelTrip/{tripId}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
@@ -177,7 +177,7 @@ public interface CommandsApi {
             StandardParameters stdParameters,
             @Parameter(description = "tripId to be marked as canceled.", required = true)
             @PathVariable(name = "tripId") String tripId,
-            @Parameter(description = "start trip time")
+            @Parameter(description = "start trip time like \"20270707 13:30\"")
             @RequestParam(value = "at") String at);
 
     @GetMapping(
@@ -193,7 +193,7 @@ public interface CommandsApi {
             StandardParameters stdParameters,
             @Parameter(description = "tripId to remove the canceled satate.", required = true)
             @PathVariable("tripId") String tripId,
-            @Parameter(description = "start trip time", required = false)
+            @Parameter(description = "start trip time like \"20270707 13:30\"", required = false)
             @RequestParam(value = "at") String at);
 
     @Operation(
