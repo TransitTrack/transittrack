@@ -6,10 +6,12 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.transitclock.Core;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 
@@ -19,7 +21,6 @@ import java.util.List;
  * @author Hubert GoEuropa
  */
 @Entity
-@DynamicUpdate
 @Slf4j
 @Table(name = "export_table")
 public class ExportTable implements Serializable {
@@ -47,12 +48,11 @@ public class ExportTable implements Serializable {
     @Column(name = "file_name")
     private String fileName;
 
+    @JdbcTypeCode(Types.BINARY)
     @Column(name = "file")
     private byte[] file;
 
     public static ExportTable create(ExportTable exportElement) {
-        // Log VehicleToBlockConfig in log file
-        logger.info(exportElement.toString());
         // Queue to write object to database
         Core.getInstance().getDbLogger().add(exportElement);
         // Return new VehicleToBlockConfig
@@ -92,23 +92,44 @@ public class ExportTable implements Serializable {
      * @return List of ExportTable objects
      * @throws HibernateException
      */
-    public static List<ExportTable> getExportTable(Session session) throws HibernateException {
-        // String hql = "FROM ExportTable";
-        var query = session.createQuery("FROM ExportTable ORDER BY exportDate DESC", ExportTable.class);
-        return query.list();
+    public static List<ExportTable> getExportTable(Session session) {
+        try {
+            var query = session.createQuery("FROM ExportTable ORDER BY exportDate DESC", ExportTable.class);
+            return query.list();
+        } catch (HibernateException e) {
+            logger.error("Failed to fetch ExportTable list", e);
+            session.close();
+            throw e;
+        }
     }
 
-    public static List<ExportTable> getExportTable(Session session, int type) throws HibernateException {
-        var query = session.createQuery("FROM ExportTable WHERE exportType = :type ORDER BY exportDate DESC", ExportTable.class)
-         .setParameter("type", type);
-        return query.list();
+    public static List<ExportTable> getExportTable(Session session, int type) {
+        try {
+            var query = session.createQuery(
+                            "FROM ExportTable WHERE exportType = :type ORDER BY exportDate DESC",
+                            ExportTable.class)
+                    .setParameter("type", type);
+            return query.list();
+        } catch (HibernateException e) {
+            logger.error("Failed to fetch ExportTable list for type {}", type, e);
+            session.close();
+            throw e;
+        }
     }
 
-    public static List<ExportTable> getExport(Session session, long id) throws HibernateException {
-        return session.createQuery("FROM ExportTable WHERE id = :id", ExportTable.class)
-                .setParameter("id", id)
-                .list();
+    public static List<ExportTable> getExport(Session session, long id) {
+        try {
+            return session.createQuery(
+                            "FROM ExportTable WHERE id = :id", ExportTable.class)
+                    .setParameter("id", id)
+                    .list();
+        } catch (HibernateException e) {
+            logger.error("Failed to fetch ExportTable for id {}", id, e);
+            session.close();
+            throw e;
+        }
     }
+
 
     public static void updateStatus(Session session, String fileName, String info) {
         Transaction transaction = session.beginTransaction();
@@ -120,6 +141,7 @@ public class ExportTable implements Serializable {
             transaction.commit();
         } catch (Throwable t) {
             transaction.rollback();
+            session.close();
             throw t;
         }
     }
@@ -135,6 +157,7 @@ public class ExportTable implements Serializable {
             transaction.commit();
         } catch (Throwable t) {
             transaction.rollback();
+            session.close();
             throw t;
         }
     }
@@ -150,6 +173,7 @@ public class ExportTable implements Serializable {
             transaction.commit();
         } catch (Throwable t) {
             transaction.rollback();
+            session.close();
             throw t;
         }
     }

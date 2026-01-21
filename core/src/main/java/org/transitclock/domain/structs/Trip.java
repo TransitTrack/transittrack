@@ -23,6 +23,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.classic.Lifecycle;
 import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.transitclock.Core;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.TitleFormatter;
@@ -106,7 +107,7 @@ public class Trip implements Lifecycle, Serializable {
     // Contains schedule time for each stop as obtained from GTFS
     // stop_times.txt file. Useful for determining schedule adherence.
     @OrderColumn(name = "list_index")
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "trip_scheduled_times_list", joinColumns = {
             @JoinColumn(name = "trip_config_rev", referencedColumnName = "config_rev"),
             @JoinColumn(name = "trip_trip_id", referencedColumnName = "trip_id"),
@@ -709,16 +710,34 @@ public class Trip implements Lifecycle, Serializable {
      */
     @Nullable
     public ScheduleTime getScheduleTime(int stopPathIndex) {
-        if (scheduledTimesList instanceof PersistentList<?> persistentListTimes) {
-            // TODO this is an anti-pattern
-            // instead find a way to manage sessions more consistently
-            var session = persistentListTimes.getSession();
-            if (session == null) {
-                Session globalLazyLoadSession = Core.getInstance().getDbConfig().getGlobalSession();
-                globalLazyLoadSession.merge(this);
+        try {
+            if (scheduledTimesList instanceof PersistentList<?> persistentListTimes) {
+                // TODO this is an anti-pattern
+                // instead find a way to manage sessions more consistently
+                var session = persistentListTimes.getSession();
+                if (session == null) {
+                    Session globalLazyLoadSession = Core.getInstance().getDbConfig().getGlobalSession();
+                    globalLazyLoadSession.merge(this);
+                }
+            }
+
+            return scheduledTimesList.get(stopPathIndex);
+        } catch (Exception e) {
+        //If transaction has stuck so try to rollback
+        SharedSessionContractImplementor session = null;
+        if (scheduledTimesList instanceof PersistentList<?> persistentListTrips) {
+            session = persistentListTrips.getSession();
+        }
+        if (session != null && session.getTransaction().isActive()) {
+            try {
+                session.getTransaction().rollback();
+                logger.warn("Rolled back transaction after JDBCException");
+            } catch (Exception ex) {
+                logger.error("Failed to rollback after JDBCException", ex);
             }
         }
-        return scheduledTimesList.get(stopPathIndex);
+            return null;
+        }
     }
 
     /**
