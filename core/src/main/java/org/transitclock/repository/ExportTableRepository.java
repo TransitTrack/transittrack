@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.transitclock.Core;
 import org.transitclock.domain.structs.ExportTable;
-import org.transitclock.service.contract.RepositoryInterface;
+import org.transitclock.repository.contract.RepositoryInterface;
 
 import java.util.List;
 

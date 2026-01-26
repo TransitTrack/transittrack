@@ -19,7 +19,7 @@ import org.transitclock.domain.structs.*;
 import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.service.contract.CommandsInterface;
-import org.transitclock.service.contract.RepositoryInterface;
+import org.transitclock.repository.contract.RepositoryInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;

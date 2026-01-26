@@ -10,7 +10,7 @@ import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.repository.ExportTableRepository;
-import org.transitclock.service.contract.RepositoryInterface;
+import org.transitclock.repository.contract.RepositoryInterface;
 import org.transitclock.utils.IntervalTimer;
 
 import java.io.FileWriter;

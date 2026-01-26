@@ -13,7 +13,7 @@ import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.service.contract.ConfigInterface;
-import org.transitclock.service.contract.RepositoryInterface;
+import org.transitclock.repository.contract.RepositoryInterface;
 import org.transitclock.service.dto.*;
 
 import java.util.*;

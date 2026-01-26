@@ -1,4 +1,4 @@
-package org.transitclock.service.contract;
+package org.transitclock.repository.contract;
 
 import org.hibernate.Session;
 
