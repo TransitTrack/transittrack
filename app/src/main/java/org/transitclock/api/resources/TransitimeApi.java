@@ -10,7 +10,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.json.JSONObject;
 import org.transitclock.api.data.*;
 import org.transitclock.api.utils.PredsByLoc;
@@ -19,7 +18,6 @@ import org.transitclock.api.utils.WebUtils;
 import org.transitclock.config.data.ApiConfig;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.reports.Reports;
-import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
@@ -2297,13 +2295,14 @@ public class TransitimeApi {
                                @DefaultValue("0") int type
     ) throws WebApplicationException {
         stdParameters.validate();
+        ConfigInterface inter = stdParameters.getConfigInterface();
         ApiExportsData result = null;
 
-        try (Session session = HibernateUtils.getSession()) {
+        try {
             if (type == 0)
-                result = new ApiExportsData(ExportTable.getExportTable(session));
+                result = new ApiExportsData(inter.getExports());
             else
-                result = new ApiExportsData(ExportTable.getExportTable(session, type));
+                result = new ApiExportsData(inter.getExports(type));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
@@ -2320,9 +2319,10 @@ public class TransitimeApi {
             @Parameter(description = "Export ID") @QueryParam(value = "id") long id)
             throws WebApplicationException {
         stdParameters.validate();
+        ConfigInterface inter = stdParameters.getConfigInterface();
 
-        try (Session session = HibernateUtils.getSession()) {
-            ExportTable result = ExportTable.getExport(session, id).get(0);
+        try {
+            ExportTable result = inter.getExportById(id);
             // return ApiVehicles response
             // return stdParameters.createResponse(result);
             return Response.ok(result.getFile(), MediaType.APPLICATION_OCTET_STREAM)

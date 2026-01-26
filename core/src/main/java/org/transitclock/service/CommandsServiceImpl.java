@@ -3,6 +3,7 @@ package org.transitclock.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.transitclock.Core;
 import org.transitclock.core.AvlProcessor;
 import org.transitclock.core.ServiceUtils;
@@ -14,13 +15,11 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.domain.structs.Block;
-import org.transitclock.domain.structs.ExportTable;
-import org.transitclock.domain.structs.VehicleEvent;
-import org.transitclock.domain.structs.VehicleToBlockConfig;
+import org.transitclock.domain.structs.*;
 import org.transitclock.domain.webstructs.ApiKey;
+import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.service.contract.CommandsInterface;
+import org.transitclock.service.contract.RepositoryInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
@@ -39,6 +38,8 @@ public class CommandsServiceImpl implements CommandsInterface {
 
     // Should only be accessed as singleton class
     private static CommandsServiceImpl singleton;
+
+    private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
 
     public CommandsServiceImpl() {
     }
@@ -242,16 +243,31 @@ public class CommandsServiceImpl implements CommandsInterface {
     }
 
     @Override
+    public ExportTable save(ExportTable exportTable) throws Exception {
+        var export = exportRepo.save(exportTable);
+        logger.info("Successfully save export with order {} to database. ", export.getFileName());
+        return export;
+    }
+
+    @Override
     public ExportTable removeExportById(int id) {
+        Transaction tx = null;
         try (var session = HibernateUtils.getSession()) {
-            var exportsToDelete = ExportTable.getExport(session, id);
-            if (!exportsToDelete.isEmpty() && exportsToDelete.get(0).getId() == id) {
-                ExportTable.deleteExportTableRecord(id, session);
-                boolean isDeleted = ExportTable.getExport(session, id).isEmpty();
-                if (isDeleted) return exportsToDelete.get(0);
+            var exportsToDelete = exportRepo.findById(session, id);
+            if (exportsToDelete != null && exportsToDelete.getId() == id) {
+                //begin tx
+                tx = session.beginTransaction();
+                var isDeleted = exportRepo.deleteById(session, id);
+                tx.commit();
+                if (isDeleted) return exportsToDelete;
             }
+            throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
+        } catch (Exception ex) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw ex;
         }
-        throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
     }
 
     @Override
@@ -311,10 +327,10 @@ public class CommandsServiceImpl implements CommandsInterface {
 
     private boolean setTimesForAssignmentBlocks(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
         ServiceUtils serviceUtils = Core.getInstance().getServiceUtils();
-            Block wantedBlock;
-            var listServIds = serviceUtils.getServiceIdsForDay(SystemTime.getMillis());
+        Block wantedBlock;
+        var listServIds = serviceUtils.getServiceIdsForDay(SystemTime.getMillis());
         wantedBlock = listServIds.stream().map(serviceId -> Core.getInstance().getDbConfig()
-                .getBlock(serviceId, assignment.getBlockId()))
+                        .getBlock(serviceId, assignment.getBlockId()))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);

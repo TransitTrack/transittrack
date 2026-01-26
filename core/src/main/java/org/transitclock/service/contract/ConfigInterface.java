@@ -2,6 +2,7 @@
 package org.transitclock.service.contract;
 
 import org.transitclock.domain.structs.Agency;
+import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.service.dto.*;
 
@@ -204,4 +205,10 @@ public interface ConfigInterface {
      * @throws RuntimeException
      */
     ApiKey getApiKey(String email) throws RemoteException, RuntimeException;
+
+    ExportTable getExportById(long id) throws RuntimeException;
+
+    List<ExportTable> getExports() throws RuntimeException;
+
+    List<ExportTable> getExports(int type) throws RuntimeException;
 }

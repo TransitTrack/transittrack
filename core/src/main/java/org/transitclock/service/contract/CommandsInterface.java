@@ -103,4 +103,12 @@ public interface CommandsInterface {
      * @param apiKey
      */
     String removeApiKey(String apiKey) throws Exception;
+
+    /**
+     * Save exportTable .
+     * Returns ExportTable on success.
+     *
+     * @param exportTable
+     */
+    ExportTable save(ExportTable exportTable) throws Exception;
 }

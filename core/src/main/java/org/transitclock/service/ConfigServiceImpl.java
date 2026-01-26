@@ -2,14 +2,18 @@
 package org.transitclock.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.transitclock.Core;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.ApiKeyManager;
+import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.*;
 import org.transitclock.domain.structs.Calendar;
 import org.transitclock.domain.webstructs.ApiKey;
 import org.transitclock.gtfs.DbConfig;
+import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.service.contract.ConfigInterface;
+import org.transitclock.service.contract.RepositoryInterface;
 import org.transitclock.service.dto.*;
 
 import java.util.*;
@@ -26,6 +30,7 @@ public class ConfigServiceImpl implements ConfigInterface {
     // Should only be accessed as singleton class
     private static ConfigServiceImpl singleton;
 
+    private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
 
     public static ConfigInterface instance() {
         return singleton;
@@ -417,6 +422,50 @@ public class ConfigServiceImpl implements ConfigInterface {
         } catch (Exception exception) {
             logger.error(exception.getMessage());
             throw exception;
+        }
+    }
+
+    @Override
+    public List<ExportTable> getExports() throws RuntimeException {
+        try (Session session = HibernateUtils.getSession()) {
+            session.setDefaultReadOnly(true);
+            var exports = exportRepo.findAll(session);
+            if (exports != null && !exports.isEmpty()) {
+                logger.info("Successfully fetched {} exports", exports.size());
+            return exports;
+            } else throw new IllegalArgumentException("Could not find exports - probably db has not any");
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw ex;
+        }
+    }
+    @Override
+    public List<ExportTable> getExports(int type) throws RuntimeException {
+        try (Session session = HibernateUtils.getSession()) {
+            session.setDefaultReadOnly(true);
+            var exports = exportRepo.findByType(session,  type);
+            if (exports != null && !exports.isEmpty()) {
+                logger.info("Successfully fetched {} exports by type: {}", exports.size(), type);
+                return exports;
+            } else throw new IllegalArgumentException("Could not find exports - probably db has not any");
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw ex;
+        }
+    }
+
+    @Override
+    public ExportTable getExportById(long id) throws  RuntimeException {
+        try (Session session = HibernateUtils.getSession()) {
+            session.setDefaultReadOnly(true);
+            var export = exportRepo.findById(session, id);
+            if (export != null) {
+                logger.info("Successfully get export by ID: {}", id);
+                return export;
+            } else throw new IllegalArgumentException("Could not find export with ID: " + id);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw ex;
         }
     }
 }

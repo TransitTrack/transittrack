@@ -1,27 +1,24 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
+import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.transitclock.Core;
 
-import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Types;
 import java.util.Date;
-import java.util.List;
 
 /**
- * For storing static configuration for vehicle in block.
  *
  * @author Hubert GoEuropa
  */
+@Getter
 @Entity
 @Slf4j
+@DynamicUpdate
 @Table(name = "export_table")
 public class ExportTable implements Serializable {
 
@@ -52,13 +49,6 @@ public class ExportTable implements Serializable {
     @Column(name = "file")
     private byte[] file;
 
-    public static ExportTable create(ExportTable exportElement) {
-        // Queue to write object to database
-        Core.getInstance().getDbLogger().add(exportElement);
-        // Return new VehicleToBlockConfig
-        return exportElement;
-    }
-
     public ExportTable(Date dataDate, int exportType, String fileName) {
         this.dataDate = dataDate;
         this.exportType = exportType;
@@ -75,7 +65,9 @@ public class ExportTable implements Serializable {
         this.exportStatus = exportStatus;
     }
 
-    /** Needed because Hibernate requires no-arg constructor */
+    /**
+     * Needed because Hibernate requires no-arg constructor
+     */
     @SuppressWarnings("unused")
     protected ExportTable() {
         dataDate = null;
@@ -85,152 +77,15 @@ public class ExportTable implements Serializable {
         file = null;
     }
 
-    /**
-     * Reads List of ExportTable objects from database
-     *
-     * @param session
-     * @return List of ExportTable objects
-     * @throws HibernateException
-     */
-    public static List<ExportTable> getExportTable(Session session) {
-        try {
-            var query = session.createQuery("FROM ExportTable ORDER BY exportDate DESC", ExportTable.class);
-            return query.list();
-        } catch (HibernateException e) {
-            logger.error("Failed to fetch ExportTable list", e);
-            session.close();
-            throw e;
-        }
-    }
-
-    public static List<ExportTable> getExportTable(Session session, int type) {
-        try {
-            var query = session.createQuery(
-                            "FROM ExportTable WHERE exportType = :type ORDER BY exportDate DESC",
-                            ExportTable.class)
-                    .setParameter("type", type);
-            return query.list();
-        } catch (HibernateException e) {
-            logger.error("Failed to fetch ExportTable list for type {}", type, e);
-            session.close();
-            throw e;
-        }
-    }
-
-    public static List<ExportTable> getExport(Session session, long id) {
-        try {
-            return session.createQuery(
-                            "FROM ExportTable WHERE id = :id", ExportTable.class)
-                    .setParameter("id", id)
-                    .list();
-        } catch (HibernateException e) {
-            logger.error("Failed to fetch ExportTable for id {}", id, e);
-            session.close();
-            throw e;
-        }
-    }
-
-
-    public static void updateStatus(Session session, String fileName, String info) {
-        Transaction transaction = session.beginTransaction();
-        try {
-        session.createMutationQuery("UPDATE  ExportTable e SET e.exportStatus = 3, e.file = :info  WHERE e.fileName = :name")
-                .setParameter("name", fileName)
-                .setParameter("info", info.getBytes())
-                .executeUpdate();
-            transaction.commit();
-        } catch (Throwable t) {
-            transaction.rollback();
-            session.close();
-            throw t;
-        }
-    }
-
-    public static void deleteExportTableRecord(int id, Session session) throws HibernateException {
-        Transaction transaction = session.beginTransaction();
-        try {
-            var q = session
-                    .createMutationQuery("delete from ExportTable where id = :id")
-                    .setParameter("id", id);
-            q.executeUpdate();
-
-            transaction.commit();
-        } catch (Throwable t) {
-            transaction.rollback();
-            session.close();
-            throw t;
-        }
-    }
-
-    public static void deleteExportTableRecord(String name, Session session) throws HibernateException {
-        Transaction transaction = session.beginTransaction();
-        try {
-            var q = session
-                    .createMutationQuery("delete from ExportTable e where e.fileName = :name")
-                    .setParameter("name", name);
-            q.executeUpdate();
-
-            transaction.commit();
-        } catch (Throwable t) {
-            transaction.rollback();
-            session.close();
-            throw t;
-        }
-    }
-
-    public long getId() {
-        return id;
-    }
-
     public void setId(long id) {
         this.id = id;
-    }
-
-    public Date getDataDate() {
-        return dataDate;
-    }
-
-    public void setDataDate(Date dataDate) {
-        this.dataDate = dataDate;
-    }
-
-    public Date getExportDate() {
-        return exportDate;
-    }
-
-    public void setExportDate(Date exportDate) {
-        this.exportDate = exportDate;
-    }
-
-    public int getExportType() {
-        return exportType;
-    }
-
-    public void setExportType(int exportType) {
-        this.exportType = exportType;
-    }
-
-    public String getFileName() {
-        return fileName;
     }
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
-    public byte[] getFile() {
-        return file;
-    }
-
     public void setFile(byte[] file) {
         this.file = file;
-    }
-
-    public int getExportStatus() {
-        return exportStatus;
-    }
-
-    public void setExportStatus(int exportStatus) {
-        this.exportStatus = exportStatus;
     }
 }
