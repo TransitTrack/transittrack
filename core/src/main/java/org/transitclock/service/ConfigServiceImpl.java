@@ -447,7 +447,7 @@ public class ConfigServiceImpl implements ConfigInterface {
             if (exports != null && !exports.isEmpty()) {
                 logger.info("Successfully fetched {} exports by type: {}", exports.size(), type);
                 return exports;
-            } else throw new IllegalArgumentException("Could not find exports - probably db has not any");
+            } else throw new NoSuchElementException("Could not find exports - probably db has not any");
         } catch (Exception ex) {
             logger.error(ex.getMessage());
             throw ex;

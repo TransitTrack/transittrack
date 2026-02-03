@@ -2305,6 +2305,7 @@ public class TransitimeApi {
                 result = new ApiExportsData(inter.getExports(type));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
+            if (e instanceof NoSuchElementException) return stdParameters.createResponse(List.of());
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }
