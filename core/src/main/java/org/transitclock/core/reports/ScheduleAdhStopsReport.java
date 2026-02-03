@@ -4,10 +4,13 @@ import com.opencsv.CSVWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.transitclock.Core;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Route;
+import org.transitclock.repository.ExportTableRepository;
+import org.transitclock.repository.contract.RepositoryInterface;
 import org.transitclock.utils.IntervalTimer;
 
 import java.io.FileWriter;
@@ -22,16 +25,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.transitclock.domain.structs.ExportTable.deleteExportTableRecord;
-import static org.transitclock.domain.structs.ExportTable.updateStatus;
 
 @Slf4j
 public class ScheduleAdhStopsReport {
 
     private final List<String[]> fullExport = new ArrayList<>(300000);
+    private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
 
     private Connection connection;
-
 
     private static String getSafeString(ResultSet rs, int columnIndex) {
         try {
@@ -39,14 +40,6 @@ public class ScheduleAdhStopsReport {
         } catch (SQLException e) {
             return "";
         }
-    }
-
-    private long getNumDays(LocalDate date1, LocalDate date2) {
-        long numDays = ChronoUnit.DAYS.between(date1, date2);
-        if (numDays > 30 || numDays < 0) {
-            throw new IllegalArgumentException(String.format("%s - %s: more then 31 days or less then 1.", date1, date2));
-        }
-        return numDays;
     }
 
     static LocalDate validateParseToLocalDate(String date) {
@@ -62,6 +55,14 @@ public class ScheduleAdhStopsReport {
             logger.debug("Exception happened while processing parse date: ", e);
             throw new IllegalArgumentException("Invalid date: " + date);
         }
+    }
+
+    private long getNumDays(LocalDate date1, LocalDate date2) {
+        long numDays = ChronoUnit.DAYS.between(date1, date2);
+        if (numDays > 30 || numDays < 0) {
+            throw new IllegalArgumentException(String.format("%s - %s: more then 31 days or less then 1.", date1, date2));
+        }
+        return numDays;
     }
 
     public void createScheduleAdhCSVReportForStops(String agencyId,
@@ -83,7 +84,7 @@ public class ScheduleAdhStopsReport {
         // Validate date range
         long numDays = getNumDays(date1, date2);
 
-        ExportTable.create(new ExportTable(new Date(), 2, 2, FILE_NAME));
+        exportRepo.save(new ExportTable(new Date(), 2, 2, FILE_NAME));
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -104,9 +105,7 @@ public class ScheduleAdhStopsReport {
                         Thread.sleep(300);
                     }
                 } catch (Exception ex) {
-                    Session session = HibernateUtils.getSession();
-                    deleteExportTableRecord(FILE_NAME, session);
-                    session.close();
+                    deleteIfException(FILE_NAME);
                     logger.warn(ex.getMessage());
                     throw new RuntimeException(ex);
                 }
@@ -114,6 +113,23 @@ public class ScheduleAdhStopsReport {
                 writeToCSVFile(FILE_NAME, HOST, timer);
             }
         }).start();
+    }
+
+    private void deleteIfException(String fileName) {
+        Session session = HibernateUtils.getSession();
+        Transaction tx = session.beginTransaction();
+        try {
+//          begin transaction
+            exportRepo.deleteByName(session, fileName);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        } finally {
+            session.close();
+        }
     }
 
     public void createDailyScheduleAdhCSVReportForStops(String agencyId,
@@ -130,7 +146,7 @@ public class ScheduleAdhStopsReport {
 
         LocalDate date1 = validateParseToLocalDate(beginDate);
         List<Route> routes = Core.getInstance().getDbConfig().getRoutes();
-        ExportTable.create(new ExportTable(new Date(), 3, 2, FILE_NAME));
+        exportRepo.save(new ExportTable(new Date(), 3, 2, FILE_NAME));
 
         new Thread(new Runnable() {
             @Override
@@ -151,9 +167,7 @@ public class ScheduleAdhStopsReport {
                         Thread.sleep(300);
                     }
                 } catch (Exception ex) {
-                    Session session = HibernateUtils.getSession();
-                    deleteExportTableRecord(FILE_NAME, session);
-                    session.close();
+                    deleteIfException(FILE_NAME);
                     logger.warn(ex.getMessage());
                     throw new RuntimeException(ex);
                 }
@@ -164,16 +178,22 @@ public class ScheduleAdhStopsReport {
     }
 
     private void writeToCSVFile(String fileName, String host, IntervalTimer timer) {
+        Transaction tx = null;
         try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
              Session session = HibernateUtils.getSession();
         ) {
             writer.writeAll(fullExport);
-            updateStatus(session, fileName, host + fileName);
+//          begin transaction
+            tx = session.beginTransaction();
+            exportRepo.update(session, fileName, (host + fileName).getBytes());
+            tx.commit();
             logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), fileName, timer.elapsedMsec() / 1000);
         } catch (Exception ex) {
-            Session session = HibernateUtils.getSession();
-            deleteExportTableRecord(fileName, session);
-            session.close();
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            logger.warn("Creating report to CSV of name '{}' is failed! Cause: {}", fileName, ex.getMessage());
+            deleteIfException(fileName);
             logger.warn(ex.getMessage());
         }
     }

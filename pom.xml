@@ -22,7 +22,7 @@
         <java.version>17</java.version>
         <lombok.version>1.18.42</lombok.version>
         <querydsl.version>5.0.0</querydsl.version>
-        <hibernate.version>6.6.31.Final</hibernate.version>
+        <hibernate.version>6.6.30.Final</hibernate.version>
     </properties>
 
     <dependencyManagement>

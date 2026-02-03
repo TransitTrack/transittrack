@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: transitclock
       POSTGRES_DB: NAME
     ports:
-      - "5432:5432"
+      - "5433:5432"
   gtfsrt-validator:
     image: ghcr.io/mobilitydata/gtfs-realtime-validator:latest
     ports:

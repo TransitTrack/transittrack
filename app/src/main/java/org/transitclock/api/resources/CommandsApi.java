@@ -552,13 +552,14 @@ public class CommandsApi {
             throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
+        CommandsInterface inter = stdParameters.getCommandsInterface();
 
         try {
             if (avlDate.charAt(4) != '-') {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("MM-dd-yyyy")
+                inter.save(new ExportTable(new SimpleDateFormat("MM-dd-yyyy")
                         .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
             } else {
-                ExportTable.create(new ExportTable(new SimpleDateFormat("yyyy-MM-dd")
+                inter.save(new ExportTable(new SimpleDateFormat("yyyy-MM-dd")
                         .parse(avlDate), 1, "avl_" + avlDate + ".csv"));
             }
         } catch (Exception ex) {
