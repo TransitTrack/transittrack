@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.google.protobuf") version "0.9.4"
+    id("com.google.protobuf")
 }
 
 dependencies {
@@ -34,7 +34,7 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
 
-    api("org.json:json:20240303")
+    api("org.json:json:20250107")
     implementation("org.jasypt:jasypt:1.9.3")
 
     api(group = "org.ehcache", name = "ehcache", classifier = "jakarta") {
@@ -50,7 +50,7 @@ dependencies {
     implementation("commons-codec:commons-codec")
 
     protobuf(files("src/proto"))
-    api("com.google.protobuf:protobuf-java:4.30.2")
+    api("com.google.protobuf:protobuf-java:${protobufVersion}")
 
     testImplementation("org.assertj:assertj-core")
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -58,6 +58,6 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.30.2"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
 }
