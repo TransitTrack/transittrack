@@ -255,4 +255,13 @@ public interface CommandsApi {
                     "'url' - target folder on host, \n" +
                     "'allowableEarly' - in mins (if unset: default 1.0), \n" +
                     "'allowableLate' - in mins (if unset: default 4.0) }", required = true) InputStream requestBody);
+
+    @Operation(
+            summary = "Add multiple vehicles to blocks",
+            description = "Add multiple vehicles to blocks using JSON array of vehicles",
+            tags = {"vehicle", "block"})
+    @PostMapping("/command/vehiclesToBlockAssignments")
+    ResponseEntity<ApiCommandAck> addAllVehiclesToBlocks(
+            StandardParameters stdParameters,
+            @Parameter(description = "JSON with vehicles list.", required = true) InputStream requestBody);
 }

@@ -7,6 +7,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.core.VehicleStatus;
@@ -19,18 +21,29 @@ import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.repository.ExportTableRepository;
 import org.transitclock.domain.repository.VehicleToBlockConfigRepository;
 import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
+import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.AutoBlockAssignerProperties;
 import org.transitclock.service.contract.CommandsService;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.SystemTime;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -46,7 +59,11 @@ public class CommandsServiceImpl implements CommandsService {
     @Autowired
     private DataDbLogger dataDbLogger;
     @Autowired
+    private DbConfig dbConfig;
+    @Autowired
     private AvlReportProcessor avlReportProcessor;
+    @Autowired
+    private AutoBlockAssignerProperties autoBlockAssignerProperties;
 
     /**
      * Called on server side via RMI when AVL data is to be processed
@@ -207,5 +224,69 @@ public class CommandsServiceImpl implements CommandsService {
             }
         }
         throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
+    }
+
+    @Override
+    public Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key) {
+        Map<String, Boolean> resultsOfSaving = new HashMap<>();
+
+        ZonedDateTime startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+        long startOfDayInSeconds = startOfDay.toEpochSecond();
+
+                processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfSaving);
+                logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+                return resultsOfSaving;
+    }
+
+    @Override
+    public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig) {
+        return null;
+    }
+
+    private void processVehicleToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, long startOfDayInSeconds, Map<String, Boolean> resultsOfSaving) {
+        for (VehicleToBlockConfig assignment : vehiclesToBlocks) {
+            try {
+                var isSuccessful = addAssignmentToDB(assignment, startOfDayInSeconds);
+                resultsOfSaving.put(assignment.getVehicleId(), isSuccessful);
+            } catch (Exception e) {
+                logger.warn("Something went wrong while creating VehicleToBlockConfig: {} record, cause={}", assignment, e.getMessage());
+                resultsOfSaving.put(assignment.getVehicleId() + " : " + e.getLocalizedMessage() + " Is created", false);
+            }
+        }
+    }
+
+    private boolean addAssignmentToDB(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        if (assignment.getValidTo() == null && assignment.getTripId() != null) {
+            return setEndTimeForAssignment(assignment, startOfDayInSeconds);
+        } else if (autoBlockAssignerProperties.isOverrideTimesForVehicleToBlock() && assignment.getBlockId() != null) {
+            return setTimesForAssignmentBlocks(assignment, startOfDayInSeconds);
+        } else return dataDbLogger.add(assignment);
+    }
+
+    private boolean setEndTimeForAssignment(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        int endTime = dbConfig.getTrip(assignment.getTripId()).getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 2000);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return dataDbLogger.add(assignment);
+    }
+
+    private boolean setTimesForAssignmentBlocks(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        ServiceUtils serviceUtils = dbConfig.getServiceUtils();
+        Block wantedBlock;
+        var listServIds = serviceUtils.getServiceIdsForDay(SystemTime.getMillis());
+        wantedBlock = listServIds.stream().map(serviceId -> dbConfig
+                        .getBlock(serviceId, assignment.getBlockId()))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        int startTime = wantedBlock.getStartTime();
+        long startTimeInSec = startOfDayInSeconds + (startTime - 300);
+        assignment.setValidFrom(new Date(startTimeInSec * 1000));
+
+        int endTime = wantedBlock.getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 1200);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return dataDbLogger.add(assignment);
     }
 }

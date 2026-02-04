@@ -1478,7 +1478,8 @@ public class AvlProcessor {
         try (Session session = HibernateUtils.getSession()) {
             var config = VehicleToBlockConfigRepository.getVehicleToBlockConfigs(session, avlReport.getVehicleId(), new Date());
             Optional.ofNullable(config).ifPresent(c -> {
-                avlReport.setAssignment(c.getBlockId(), AssignmentType.BLOCK_ID);
+                if (c.getBlockId() != null ) avlReport.setAssignment(c.getBlockId(), AssignmentType.BLOCK_ID);
+                else if (c.getTripId() != null) avlReport.setAssignment(c.getTripId(), AssignmentType.TRIP_ID);
             });
         } catch (Exception e) {
             logger.error("Something happened while processing {}", avlReport, e);

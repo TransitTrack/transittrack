@@ -2,11 +2,11 @@ package org.transitclock.properties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import com.google.common.base.Strings;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
 @Slf4j
@@ -14,6 +14,16 @@ public class AvlProperties {
     public static final int MAX_THREADS = 25;
     // config param: transitclock.avl.gtfsRealtimeFeedURI
     // The URI of the GTFS-realtime feed to use.
+
+    // config param: transitclock.avl.filterVehicleIdRegEx
+    // "For determining a vehicle ID from the GTFS_RT feed if the vehiclePositions proto-buf has multiples agencies. Default of null means simply use vehicle_id without any modification. For example, to get ID what starts from a "1" would use something like "^1"
+    private static String filterVehicleIdRegEx = "";
+
+    public static Pattern vehicleIdForFeedRegExPattern() {
+        if (Strings.isNullOrEmpty(filterVehicleIdRegEx)) return null;
+        return Pattern.compile(filterVehicleIdRegEx);
+    }
+
     private List<String> gtfsRealtimeFeedURI = new ArrayList<>();
 
     // config param: transitclock.avl.feedPollingRateSecs

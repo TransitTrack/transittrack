@@ -1,3 +1,5 @@
+val protobufVersion: String by project
+
 plugins {
     id("java")
     id("com.google.protobuf")

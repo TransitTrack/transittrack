@@ -5,11 +5,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +28,7 @@ import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.MeasuredArrivalTime;
+import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcTrip;
 
@@ -326,6 +330,7 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
         }
     }
 
+    @Override
     public ResponseEntity<ApiCommandAck> addStopsReport(StandardParameters stdParameters, InputStream requestBody) {
         try {
             JSONObject jsonBody = getJsonObject(requestBody);
@@ -349,4 +354,40 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
         }
     }
+
+    @Override
+    public ResponseEntity<ApiCommandAck> addAllVehiclesToBlocks(
+            StandardParameters stdParameters, InputStream requestBody) {
+
+            List<VehicleToBlockConfig> assignments = new ArrayList<>();
+            AtomicReference<Map<String, Boolean>> mapOfResults;
+            try {
+                JSONObject jsonObj = getJsonObject(requestBody);
+                String key = jsonObj.getString("key");
+                JSONArray vehiclesArray = jsonObj.getJSONArray("vehicles");
+
+                for (int i = 0; i < vehiclesArray.length(); i++) {
+                    JSONObject vehicleObj = vehiclesArray.getJSONObject(i);
+
+                    String vehicleId = vehicleObj.getString("vehicleId");
+                    String blockId = vehicleObj.optString("blockId", null);
+                    String tripId = vehicleObj.optString("tripId", null);
+
+                    String validFromStr = vehicleObj.getString("validFrom");
+                    String validToStr = vehicleObj.optString("validTo", null);
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date validFrom = sdf.parse(validFromStr);
+
+                    Date validTo = null;
+                    if (validToStr != null) validTo = sdf.parse(validToStr);
+                    // Execute the command
+                    assignments.add(new VehicleToBlockConfig(vehicleId, blockId, tripId, new Date(), validFrom, validTo));
+                }
+                mapOfResults = new AtomicReference<>(commandsService.addVehiclesToBlocks(assignments, key));
+            } catch (JSONException | IOException | ParseException | IllegalArgumentException e) {
+                throw WebUtils.badRequestException(e);
+            }
+            return stdParameters.createResponse(new ApiCommandAck(true, mapOfResults.toString()));
+        }
 }

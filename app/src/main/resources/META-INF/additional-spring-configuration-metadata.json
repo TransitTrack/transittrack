@@ -181,6 +181,12 @@
       "description": "For when want to test automatic assignments. When set to true then system ignores assignments from AVL feed so vehicles need to be automatically assigned instead"
     },
     {
+      "name": "transitclock.blockAssigner.overrideTimesForVehicleToBlock",
+      "defaultValue": "false",
+      "type": "java.lang.Boolean",
+      "description": "Set true to enable the overriding times from GTFS for VehicleToBlock objects from remote API"
+    },
+    {
       "name": "transitclock.autoBlockAssigner.minDistanceFromCurrentReport",
       "defaultValue": "100.0",
       "type": "java.lang.Double",
