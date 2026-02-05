@@ -5,7 +5,11 @@ import lombok.ToString;
 import org.hibernate.annotations.DynamicUpdate;
 
 import jakarta.persistence.*;
+
+import org.hibernate.annotations.JdbcTypeCode;
+
 import java.io.Serializable;
+import java.sql.Types;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
@@ -44,6 +48,7 @@ public class ExportTable implements Serializable {
     @Column(name = "file_name")
     private String fileName;
 
+    @JdbcTypeCode(Types.BINARY)
     @Column(name = "file")
     private byte[] file;
 

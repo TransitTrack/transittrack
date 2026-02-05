@@ -18,30 +18,37 @@ import java.util.stream.IntStream;
 
 import com.opencsv.CSVWriter;
 
+import org.hibernate.SessionFactory;
+
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 
 import org.transitclock.domain.structs.ExportTable;
+import org.transitclock.domain.structs.Route;
+import org.transitclock.gtfs.DbConfig;
 import org.transitclock.utils.IntervalTimer;
 
 import static org.transitclock.domain.repository.ExportTableRepository.deleteExportTableRecord;
 import static org.transitclock.domain.repository.ExportTableRepository.updateStatus;
 
 @Slf4j
-public class ScheduleAdhStopsReport {
+public class ScheduleAdhStopsCSVReport {
 
     private final DataDbLogger dataDbLogger;
+    private final DbConfig dbConfig;
+
+    private Connection connection;
 
     private final List<String[]> fullExport = new ArrayList<>(300000);
     private final DateTimeFormatter currentFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
     private final DateTimeFormatter requiredFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public ScheduleAdhStopsReport(DataDbLogger dataDbLogger) {
+    public ScheduleAdhStopsCSVReport(DataDbLogger dataDbLogger, DbConfig dbConfig) {
         this.dataDbLogger = dataDbLogger;
+        this.dbConfig = dbConfig;
     }
 
     public void createScheduleAdhCSVReportForStops(String agencyId,
@@ -70,7 +77,7 @@ public class ScheduleAdhStopsReport {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Thread.currentThread().setName("csv-report");
+                Thread.currentThread().setName("stops-adh-report");
                 Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 
                 try (var connection = getConnection(agencyId)) {
@@ -81,7 +88,7 @@ public class ScheduleAdhStopsReport {
                                         "- - - - -", date.toString(), "", "", "", "", "", date.toString(), "- - - - -"});
 
                         fullExport.addAll(getListOfRows(connection,
-                                                        Reports.getSqlForAllStopsSchedAdh(agencyId, date, allowableEarly, allowableLate)));
+                                                        Reports.getSqlForAllStopsSchedAdh(agencyId, date, null, allowableEarly, allowableLate)));
 
                         date = date.plusDays(1);
                         Thread.sleep(300);
@@ -94,19 +101,55 @@ public class ScheduleAdhStopsReport {
                     throw new RuntimeException(ex);
                 }
 
-                try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + FILE_NAME, StandardCharsets.UTF_8));
-                     Session session = HibernateUtils.getSession();
-                ) {
-                    writer.writeAll(fullExport);
-                    updateStatus(session, FILE_NAME, HOST + FILE_NAME);
-                    logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), FILE_NAME, timer.elapsedMsec() / 1000);
-                } catch (Exception ex)
-                {
+                writeToCSVFile(FILE_NAME, HOST, timer);
+            }
+        }).start();
+    }
+
+    public void createDailyScheduleAdhCSVReportForStops(String agencyId,
+                                                        String beginDate,
+                                                        String allowableEarly,
+                                                        String allowableLate,
+                                                        String hostUrl
+    ) {
+        fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
+        IntervalTimer timer = new IntervalTimer();
+
+        final String FILE_NAME = String.format("daily_stops_adh_for_%s.csv", beginDate);
+        final String HOST = hostUrl;
+
+        LocalDate date1 = validate(beginDate);
+        List<Route> routes = dbConfig.getRoutes();
+        dataDbLogger.add(new ExportTable(new Date(), 3, 2, FILE_NAME));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Thread.currentThread().setName("daily-adh-report");
+                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+
+                try (var connection = getConnection(agencyId)) {
+                    var date = date1;
+                    for (Route route : routes) {
+                        fullExport.add(
+                                new String[]{
+                                        "- - - - -", date.toString(), "", route.getName(), "", "", "", date.toString(), "- - - - -"});
+
+                        fullExport.addAll(getListOfRows(connection,
+                                                        Reports.getSqlForAllStopsSchedAdh(agencyId, date, route.getId(), allowableEarly, allowableLate)));
+
+                        date = date.plusDays(1);
+                        Thread.sleep(300);
+                    }
+                } catch (Exception ex) {
                     Session session = HibernateUtils.getSession();
                     deleteExportTableRecord(FILE_NAME, session);
                     session.close();
                     logger.warn(ex.getMessage());
+                    throw new RuntimeException(ex);
                 }
+
+                writeToCSVFile(FILE_NAME, HOST, timer);
             }
         }).start();
     }
@@ -116,6 +159,21 @@ public class ScheduleAdhStopsReport {
             return rs.getString(columnIndex);
         } catch (SQLException e) {
             return "";
+        }
+    }
+
+    private void writeToCSVFile(String fileName, String host, IntervalTimer timer) {
+        try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
+             Session session = HibernateUtils.getSession();
+        ) {
+            writer.writeAll(fullExport);
+            updateStatus(session, fileName, host + fileName);
+            logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), fileName, timer.elapsedMsec() / 1000);
+        } catch (Exception ex) {
+            Session session = HibernateUtils.getSession();
+            deleteExportTableRecord(fileName, session);
+            session.close();
+            logger.warn(ex.getMessage());
         }
     }
 
@@ -157,11 +215,12 @@ public class ScheduleAdhStopsReport {
     }
 
     private Connection getConnection(String agencyId) throws SQLException {
-        var connection = HibernateUtils.getSessionFactory(agencyId)
-                .getSessionFactoryOptions()
-                .getServiceRegistry()
-                .getService(ConnectionProvider.class)
-                .getConnection();
+        SessionFactory sessionFactory = HibernateUtils.getSessionFactory(agencyId);
+        Session session = sessionFactory.openSession();
+        session.doWork(conn -> {
+            this.connection = conn;
+        });
+
         connection.setReadOnly(true);
         logger.debug("Create connection = {}", connection.getCatalog());
         return connection;

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
-import org.transitclock.core.reports.ScheduleAdhStopsReport;
+import org.transitclock.core.reports.ScheduleAdhStopsCSVReport;
 import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.AssignmentType;
@@ -29,6 +29,7 @@ import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.MeasuredArrivalTime;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
+import org.transitclock.gtfs.DbConfig;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcTrip;
 
@@ -47,6 +48,7 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     private static final String AVL_SOURCE = "API";
 
     private final DataDbLogger dataDbLogger;
+    private final DbConfig dbConfig;
 
     @Override
     public ResponseEntity<ApiCommandAck> pushAvlData(
@@ -339,15 +341,13 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             String hostUrl = jsonBody.getString("url");
             String allowableEarly = jsonBody.getString("allowableEarly");
             String allowableLate = jsonBody.getString("allowableLate");
+            boolean isDaily = jsonBody.has("isDaily") && jsonBody.getBoolean("isDaily");
 
-            ScheduleAdhStopsReport generator = new ScheduleAdhStopsReport(dataDbLogger);
-            generator.createScheduleAdhCSVReportForStops(
-                    stdParameters.getAgencyId(),
-                    beginDate,
-                    endDate,
-                    allowableEarly,
-                    allowableLate,
-                    hostUrl);
+            ScheduleAdhStopsCSVReport reportCreator = new ScheduleAdhStopsCSVReport(dataDbLogger, dbConfig);
+            if (isDaily) reportCreator
+                    .createDailyScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, allowableEarly, allowableLate, hostUrl);
+            else reportCreator
+                    .createScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, endDate, allowableEarly, allowableLate, hostUrl);
             return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
         } catch (Exception ex) {
             // If problem getting data then return a message
@@ -390,4 +390,36 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
             }
             return stdParameters.createResponse(new ApiCommandAck(true, mapOfResults.toString()));
         }
+
+    @Override
+    public ResponseEntity<ApiCommandAck> updateVehicleToBlock(StandardParameters stdParameters, InputStream requestBody) {
+        VehicleToBlockConfig result = null;
+        try { JSONObject jsonObj = getJsonObject(requestBody);
+
+            long id = jsonObj.getLong("id");
+            String vehicleId = jsonObj.getString("vehicleId");
+            String blockId = jsonObj.optString("blockId", null);
+            String tripId = jsonObj.optString("tripId", null);
+            String validFromStr = jsonObj.getString("validFrom");
+            String validToStr = jsonObj.getString("validTo");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date validFrom = sdf.parse(validFromStr);
+            Date validTo = sdf.parse(validToStr);
+
+            result = commandsService.updateVehicleToBlockConfig(new  VehicleToBlockConfig(
+                    id,
+                    vehicleId,
+                    blockId,
+                    tripId,
+                    new Date(),
+                    validFrom,
+                    validTo)
+            );
+        } catch (JSONException | IOException | ParseException e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+        return stdParameters.createResponse(new ApiCommandAck(true, result.toString()));
+    }
 }

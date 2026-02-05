@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.transitclock.domain.webstructs.WebAgency;
 
 import com.google.common.base.Strings;
@@ -835,10 +837,11 @@ public class Reports {
         return json;
     }
 
-    public static String getSqlForAllStopsSchedAdh (String agencyId,
-                                                    LocalDate date,
-                                                    String allowableEarly,
-                                                    String allowableLate) {
+    public static String getSqlForAllStopsSchedAdh(String agencyId,
+                                                   LocalDate date,
+                                                   String routeId,
+                                                   String allowableEarly,
+                                                   String allowableLate) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
 
         if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
@@ -870,6 +873,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("      AND scheduled_time - time > ");
             sqlBuilder.append(allowableEarlyMinutesStr);
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("),\n");
             sqlBuilder.append("     on_time AS (\n");
@@ -894,6 +898,7 @@ public class Reports {
             sqlBuilder.append(" \n");
             sqlBuilder.append("           AND time - scheduled_time <= ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" \n");
             sqlBuilder.append("     ),\n");
             sqlBuilder.append("     late AS (\n");
@@ -915,6 +920,7 @@ public class Reports {
             sqlBuilder.append(SqlUtils.timeRangeClause(date, date));
             sqlBuilder.append("           AND time - scheduled_time > ");
             sqlBuilder.append(allowableLateMinutesStr);
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append(" AND ad.route_id = '").append(routeId).append("'\n");
             sqlBuilder.append(" )\n");
             sqlBuilder.append("SELECT *\n");
             sqlBuilder.append("FROM (\n");
@@ -924,7 +930,9 @@ public class Reports {
             sqlBuilder.append("         UNION ALL\n");
             sqlBuilder.append("         SELECT category_order, time, name, route, trip, block, vehicle, schedule, difference FROM late\n");
             sqlBuilder.append("     ) AS combined_results\n");
-            sqlBuilder.append("ORDER BY category_order, time;\n");
+            if (StringUtils.isNotEmpty(routeId)) sqlBuilder.append("ORDER BY category_order, trip, time;\n");
+            else sqlBuilder.append("ORDER BY category_order, time;\n");
+
             sql = sqlBuilder.toString();
         }
         return sql;
