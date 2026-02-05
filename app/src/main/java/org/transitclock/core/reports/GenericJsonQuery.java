@@ -41,6 +41,10 @@ public class GenericJsonQuery extends GenericQuery {
         strBuilder.append("\"").append(value).append("\"");
     }
 
+    private void addStringWithoutDQuotation(int i, String value) {
+        strBuilder.append(value);
+    }
+
     private void addRowElement(int i, Timestamp value) {
         strBuilder.append("\"").append(value).append("\"");
     }
@@ -69,11 +73,13 @@ public class GenericJsonQuery extends GenericQuery {
 
             // Output value of attribute
             if (o instanceof Double || o instanceof Float) {
-                addRowElement(i, ((Number) o).doubleValue());
+                addRowElement(i, ((double) o));
             } else if (o instanceof Number) {
                 addRowElement(i, ((Number) o).longValue());
             } else if (o instanceof String) {
-                addRowElement(i, (String) o);
+                if (o.toString().startsWith("["))
+                    addStringWithoutDQuotation(i, (String) o);
+                else addRowElement(i, (String) o);
             } else if (o instanceof Timestamp) {
                 addRowElement(i, ((Timestamp) o));
             }

@@ -1,10 +1,12 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +16,10 @@ import org.transitclock.domain.webstructs.WebAgency;
 import com.google.common.base.Strings;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import static org.transitclock.core.reports.ScheduleAdhStopsCSVReport.validateParseToLocalDate;
+import static org.transitclock.utils.Time.DAY_IN_MSECS;
+import static org.transitclock.utils.Time.YEAR_IN_MSECS;
 
 public class Reports {
 
@@ -146,11 +152,10 @@ public class Reports {
         return json;
     }
 
-
     public static String getTripWithTravelTimes(String agencyId, String tripId, String date) {
         // postgresql only, should throw error if it's other database type
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT arrivals_departures.trip_id             AS tripId,\n");
+        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId,\n");
         sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
         sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
         sqlBuilder.append("       stops.code                              AS stopCode,\n");
@@ -165,6 +170,8 @@ public class Reports {
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN avl_reports.passenger_count = -1 THEN NULL\n");
         sqlBuilder.append("           ELSE avl_reports.passenger_count END AS passenger_count,");
+        sqlBuilder.append("  LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
+        sqlBuilder.append("  OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("	 CASE WHEN ADDeparture.scheduled_time ISNULL");
         sqlBuilder.append("	 THEN DATE('");
         sqlBuilder.append(date);
@@ -205,7 +212,12 @@ public class Reports {
         sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('");
         sqlBuilder.append(date);
         sqlBuilder.append("')\n");
-        sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC");
+        sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
+        sqlBuilder.append("       CASE\n");
+        sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
+        sqlBuilder.append("FROM include_prev_passenger pp\n");
+        sqlBuilder.append("ORDER BY stopOrder");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, tripId, date);
     }
@@ -213,7 +225,7 @@ public class Reports {
     public static String getTripsWithTravelTimes(String agencyId, String date) {
         // postgresql only, should throw error if it's other database type
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT arrivals_departures.trip_id             AS tripId,\n");
+        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId,\n");
         sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
         sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
         sqlBuilder.append("       stops.code                              AS stopCode,\n");
@@ -233,6 +245,8 @@ public class Reports {
         sqlBuilder.append(date);
         sqlBuilder.append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
         sqlBuilder.append("         ELSE ADDeparture.scheduled_time END AS scheduledTime,\n");
+        sqlBuilder.append("    LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
+        sqlBuilder.append("    OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("    CASE\n");
         sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('");
         sqlBuilder.append(date);
@@ -266,9 +280,149 @@ public class Reports {
         sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('");
         sqlBuilder.append(date);
         sqlBuilder.append("')\n");
-        sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC");
+        sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
+        sqlBuilder.append("       CASE\n");
+        sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
+        sqlBuilder.append("FROM include_prev_passenger pp\n");
+        sqlBuilder.append("ORDER BY stopOrder");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
+    }
+
+    public static String getMaxIncreasePaxPerRoute(String agencyId, String routId, String routeShortName, String date) {
+        Date beginDate = getValidateDate(date);
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH passenger_deltas AS (\n");
+        sqlBuilder.append("    SELECT ad.trip_id,\n");
+        sqlBuilder.append("           t.route_id,\n");
+        sqlBuilder.append("           t.route_short_name   AS route_Name,\n");
+        sqlBuilder.append("           t.headsign           AS headsign,\n");
+        sqlBuilder.append("           vehicle_configs.name AS vehicle_Name,\n");
+        sqlBuilder.append("           ad.vehicle_id,\n");
+        sqlBuilder.append("           ad.block_id,\n");
+        sqlBuilder.append("           TO_CHAR((t.start_time || 'second')::interval, 'HH24:MI:SS') AS start_Time,\n");
+        sqlBuilder.append("           TO_CHAR((t.end_time || 'second')::interval, 'HH24:MI:SS')   AS end_Time,\n");
+        sqlBuilder.append("           CASE\n");
+        sqlBuilder.append("               WHEN ar.passenger_count = -1 THEN NULL\n");
+        sqlBuilder.append("               ELSE ar.passenger_count\n");
+        sqlBuilder.append("               END AS passenger_Count,\n");
+        sqlBuilder.append("           LAG(\n");
+        sqlBuilder.append("           CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END\n");
+        sqlBuilder.append("              ) OVER (PARTITION BY ad.trip_id ORDER BY ad.time) AS prev_passenger_Count\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("             LEFT JOIN trips t ON t.trip_id = ad.trip_id AND t.config_rev = ad.config_rev\n");
+        sqlBuilder.append("             LEFT JOIN vehicle_configs ON vehicle_configs.id = ad.vehicle_id\n");
+        sqlBuilder.append("             LEFT JOIN avl_reports ar\n");
+        sqlBuilder.append("                       ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
+        sqlBuilder.append("    WHERE ");
+        if (routId != null && !routId.isEmpty()) {
+            sqlBuilder.append("ad.route_id = '");
+            sqlBuilder.append(routId);
+            sqlBuilder.append("' AND ");
+        } else if (routeShortName != null && !routeShortName.isEmpty()) {
+            sqlBuilder.append("ad.route_short_name = '");
+            sqlBuilder.append(routeShortName);
+            sqlBuilder.append("' AND ");
+        }
+        sqlBuilder.append("DATE(ad.time) = DATE('");
+        sqlBuilder.append(beginDate);
+        sqlBuilder.append("')\n");
+        sqlBuilder.append("         AND ad.is_arrival = true),\n");
+        sqlBuilder.append("summed_increase AS (\n");
+        sqlBuilder.append("    SELECT trip_id, route_id, route_Name, headsign, vehicle_Name, vehicle_id, block_id, start_Time, end_Time,\n");
+        sqlBuilder.append("           SUM(\n");
+        sqlBuilder.append("                   CASE\n");
+        sqlBuilder.append("                       WHEN prev_passenger_Count IS NULL AND passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           THEN passenger_Count\n");
+        sqlBuilder.append("                       WHEN passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           AND prev_passenger_Count IS NOT NULL\n");
+        sqlBuilder.append("                           AND passenger_Count > prev_passenger_Count\n");
+        sqlBuilder.append("                           THEN passenger_Count - prev_passenger_Count\n");
+        sqlBuilder.append("                       END\n");
+        sqlBuilder.append("           ) AS max_passenger_count\n");
+        sqlBuilder.append("    FROM passenger_deltas\n");
+        sqlBuilder.append("    GROUP BY trip_id, route_id, route_Name, headsign,\n");
+        sqlBuilder.append("             vehicle_Name, vehicle_id, block_id, start_Time, end_Time )\n");
+        sqlBuilder.append("SELECT *\n");
+        sqlBuilder.append("FROM summed_increase\n");
+        sqlBuilder.append("WHERE max_passenger_count IS NOT NULL\n");
+        sqlBuilder.append("ORDER BY start_Time;");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
+    }
+
+    public static String getOccupancyPerTripWithContinuePickUp(String agencyId, String tripId, String date) {
+        Date beginDate = getValidateDate(date);
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH enriched_arrivals AS (");
+        sqlBuilder.append("    SELECT\n");
+        sqlBuilder.append("        ad.trip_id AS tripId,\n");
+        sqlBuilder.append("        tr.route_short_name AS routeId,\n");
+        sqlBuilder.append("        tr.headsign AS headsing,\n");
+        sqlBuilder.append("        ad.stop_id AS stopId,\n");
+        sqlBuilder.append("        ar.lat AS lat,\n");
+        sqlBuilder.append("        ar.lon AS lon,\n");
+        sqlBuilder.append("        ad.stop_order AS stopOrder,\n");
+        sqlBuilder.append("        ad.vehicle_id AS vehicleId,\n");
+        sqlBuilder.append("        ar.vehicle_name AS vehicleName,\n");
+        sqlBuilder.append("        ad.time AS arrivalTime,\n");
+        sqlBuilder.append("        CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END AS passengerCount,\n");
+        sqlBuilder.append("        LAG(CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END)\n");
+        sqlBuilder.append("        OVER (PARTITION BY ad.vehicle_id ORDER BY ad.time) AS prevPassengerCount\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("             LEFT JOIN avl_reports ar\n");
+        sqlBuilder.append("                       ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
+        sqlBuilder.append("             LEFT JOIN trips tr\n");
+        sqlBuilder.append("                       ON tr.trip_id = ad.trip_id AND tr.config_rev = ad.config_rev\n");
+        sqlBuilder.append("    WHERE ad.is_arrival = TRUE\n");
+        sqlBuilder.append("      AND ad.trip_id = '");
+        sqlBuilder.append(tripId);
+        sqlBuilder.append("'\n");
+        sqlBuilder.append("      AND DATE(ad.time) = DATE('");
+        sqlBuilder.append(beginDate);
+        sqlBuilder.append("')),\n");
+        sqlBuilder.append("     passenger_increases AS (\n");
+        sqlBuilder.append("         SELECT\n");
+        sqlBuilder.append("             vehicle_id AS vehicleId,\n");
+        sqlBuilder.append("             vehicle_name AS vehicleName,\n");
+        sqlBuilder.append("             time AS avlTime,\n");
+        sqlBuilder.append("             lon,\n");
+        sqlBuilder.append("             lat,\n");
+        sqlBuilder.append("             CASE WHEN passenger_count = -1 THEN NULL ELSE passenger_count END AS passengerCount,\n");
+        sqlBuilder.append("             LAG(CASE WHEN passenger_count = -1 THEN NULL ELSE passenger_count END)\n");
+        sqlBuilder.append("             OVER (PARTITION BY vehicle_id ORDER BY time) AS prevPassengerCount\n");
+        sqlBuilder.append("         FROM avl_reports),\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("     filtered_increases AS (\n");
+        sqlBuilder.append("         SELECT *, (passengerCount - prevPassengerCount) AS pi_passengerIncrease\n");
+        sqlBuilder.append("         FROM passenger_increases\n");
+        sqlBuilder.append("         WHERE passengerCount IS NOT NULL AND prevPassengerCount IS NOT NULL AND passengerCount > prevPassengerCount),\n");
+        sqlBuilder.append("     time_bounds AS (\n");
+        sqlBuilder.append("         SELECT MIN(arrivalTime) AS min_time, MAX(arrivalTime) AS max_time, vehicleId\n");
+        sqlBuilder.append("         FROM enriched_arrivals\n");
+        sqlBuilder.append("         GROUP BY vehicleId),\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("     filtered_increases_within_bounds AS (\n");
+        sqlBuilder.append("         SELECT pi.*\n");
+        sqlBuilder.append("         FROM filtered_increases pi\n");
+        sqlBuilder.append("                  JOIN time_bounds tb\n");
+        sqlBuilder.append("                       ON pi.vehicleId = tb.vehicleId\n");
+        sqlBuilder.append("                           AND pi.avlTime BETWEEN tb.min_time AND tb.max_time\n");
+        sqlBuilder.append("         WHERE NOT EXISTS (\n");
+        sqlBuilder.append("             SELECT 1\n");
+        sqlBuilder.append("             FROM enriched_arrivals ea\n");
+        sqlBuilder.append("             WHERE ea.vehicleId = pi.vehicleId AND ea.arrivalTime = pi.avlTime AND ea.lat = pi.lat AND ea.lon = pi.lon))\n");
+        sqlBuilder.append("SELECT ea.tripId, ea.routeId, ea.headsing, ea.stopId, ea.lat, ea.lon, ea.stopOrder, ea.vehicleId, ea.vehicleName, ea.passengerCount, ea.prevPassengerCount, (ea.passengerCount - ea.prevPassengerCount) AS passengerIncrease, NULL AS pi_passengerCount, NULL AS pi_prevPassengerCount, NULL AS pi_passengerIncrease, ea.arrivalTime AS time\n");
+        sqlBuilder.append("FROM enriched_arrivals ea\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("UNION ALL\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("SELECT NULL AS tripId, NULL AS routeId, NULL AS headsing, NULL AS stopId, pi.lat, pi.lon, NULL AS stopOrder,pi.vehicleId,pi.vehicleName, NULL AS passengerCount, NULL AS prevPassengerCount, NULL AS passengerIncrease, pi.passengerCount AS between_passengerCount, pi.prevPassengerCount AS between_prevPassengerCount, pi.pi_passengerIncrease AS between_passengerIncrease, pi.avlTime AS time\n");
+        sqlBuilder.append("FROM filtered_increases_within_bounds pi\n");
+        sqlBuilder.append("ORDER BY time;\n");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
 
     /* Provides schedule adherence data in JSON format. Provides for
@@ -300,7 +454,6 @@ public class Reports {
 
         if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "4.0";
         String allowableLateMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + " seconds'";
-
         // To get stop name
         // Only need arrivals/departures that have a schedule time
         // Specifies which routes to provide data for
@@ -690,6 +843,168 @@ public class Reports {
         return jsonString;
     }
 
+    /**
+     * Queries agency for Stop ID and returns result as a JSON string. Limited to returning
+     *
+     * @return Stop reports in JSON format. Can be empty JSON array if no data meets criteria.
+     */
+    public static String getOnTimePerformance(String agencyId,
+                                              boolean isForAllRoutes,
+                                              String accuracy,
+                                              String beginDate,
+                                              String endDate,
+                                              String allowableEarly,
+                                              String allowableLate) {
+        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+
+        if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
+        String allowableEarlySecondsStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + "'";
+
+        if (allowableLate == null || allowableLate.isEmpty()) allowableLate = "3.0";
+        String allowableLateSecondsStr = "'" + SqlUtils.convertMinutesToSecs(allowableLate) + "'";
+
+        Date begin = getValidateDate(beginDate);
+        Date end = getValidateDate(endDate);
+        // 6 months validator
+        if ((end.getTime() - begin.getTime()) > (YEAR_IN_MSECS / 2) + DAY_IN_MSECS)
+            throw new IllegalArgumentException("The period of time is longer then 6 months");
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT \n");
+        if (isForAllRoutes) sqlBuilder.append("COALESCE(ad.route_short_name, 'ALL_ROUTES') AS route, \n");
+        else if (accuracy.equals("day"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('day', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS day, \n");
+        else if (accuracy.equals("week"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('week', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS week, \n");
+        else if (accuracy.equals("month"))
+            sqlBuilder.append("COALESCE(TO_CHAR(DATE_TRUNC('month', ad.scheduled_time), 'YYYY-MM-DD'), 'TOTAL') AS month, \n");
+        sqlBuilder.append("COUNT(CASE WHEN scheduled_time - time > interval ").append(allowableEarlySecondsStr).append(" THEN 1 END) AS early,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN scheduled_time - time > interval ").append(allowableEarlySecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS early_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(CASE WHEN scheduled_time - time <= interval ").append(allowableEarlySecondsStr).append("\n");
+        sqlBuilder.append("                AND time - scheduled_time <= interval ").append(allowableLateSecondsStr).append(" THEN 1 END) AS ontime,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN scheduled_time - time <= interval ").append(allowableEarlySecondsStr).append("\n");
+        sqlBuilder.append("                   AND time - scheduled_time <= interval ").append(allowableLateSecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS ontime_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(CASE WHEN time - scheduled_time > interval ").append(allowableLateSecondsStr).append(" THEN 1 END) AS late,\n");
+        sqlBuilder.append("    ROUND(\n");
+        sqlBuilder.append("        COUNT(CASE WHEN time - scheduled_time > interval ").append(allowableLateSecondsStr).append(" THEN 1 END) * 100.0 \n");
+        sqlBuilder.append("        / NULLIF(COUNT(*), 0), 2\n");
+        sqlBuilder.append("    )::text AS late_pct,\n");
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    COUNT(*) AS total\n");
+        sqlBuilder.append("FROM arrivals_departures ad\n");
+        sqlBuilder.append("WHERE ad.scheduled_time IS NOT NULL\n");
+        sqlBuilder.append("AND DATE(ad.time) BETWEEN DATE('").append(begin).append("') AND DATE('").append(end).append("')\n");
+        sqlBuilder.append("\n");
+        if (isForAllRoutes) {
+            sqlBuilder.append("GROUP BY GROUPING SETS ((ad.route_short_name), ()) \n");
+            sqlBuilder.append("HAVING COUNT(*) > 0 \n");
+            sqlBuilder.append("ORDER BY route; \n");
+        } else {
+            sqlBuilder.append("GROUP BY ROLLUP (DATE_TRUNC('").append(accuracy).append("', ad.scheduled_time)) \n");
+            sqlBuilder.append("HAVING COUNT(*) > 0 \n");
+            sqlBuilder.append("ORDER BY ").append(accuracy).append(";");
+        }
+
+        return GenericJsonQuery.getJsonString(agency.getAgencyId(), sqlBuilder
+                .toString());
+    }
+
+    public static String getAvgSpeedPerRoute(String agencyId,
+                                             String beginDate,
+                                             String endDate,
+                                             String routeShortName,
+                                             String routeId,
+                                             String directionId,
+                                             String beginTime,
+                                             String endTime,
+                                             boolean isMph
+    ) throws SQLException {
+
+        String MPS_MPH = "2.23694";
+        String MPS_KMH = "3.6";
+
+        long numDays = ChronoUnit.DAYS.between(
+                validateParseToLocalDate(beginDate),
+                validateParseToLocalDate(endDate)) +1;
+
+        if (numDays > 31) throw new IllegalArgumentException(String.format("%s - %s: more then 31!", beginDate, endDate));
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH ordered AS (SELECT\n");
+        sqlBuilder.append("a.config_rev, a.vehicle_id, a.trip_id, a.route_id, a.route_short_name, a.direction_id, a.gtfs_stop_seq, a.stop_id, a.stop_path_length,\n");
+        sqlBuilder.append("a.time AS stop_time,\n");
+        sqlBuilder.append("LEAD(a.time) OVER ( PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq ) AS next_stop_time,\n");
+        sqlBuilder.append("LEAD(a.stop_id) OVER ( PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq ) AS next_stop_id,\n");
+        sqlBuilder.append("LEAD(a.stop_path_length) OVER ( PARTITION BY a.config_rev, a.vehicle_id, a.trip_id ORDER BY a.gtfs_stop_seq ) AS next_stop_path_length");
+        sqlBuilder.append("    FROM arrivals_departures a\n");
+        sqlBuilder.append("    WHERE a.scheduled_time IS NOT NULL");
+        if (routeId != null && !routeId.isEmpty()) {
+            sqlBuilder.append("      AND a.route_id = '").append(routeId).append("'\n");
+        } else if (routeShortName != null && !routeShortName.isEmpty()) {
+            sqlBuilder.append("      AND a.route_short_name = '").append(routeShortName).append("'\n");
+        } else throw new SQLException("Route id or route short name not specified");
+        sqlBuilder.append("      AND a.direction_id = '").append(!directionId.isEmpty() ? directionId : "0").append("'\n");
+        sqlBuilder.append(SqlUtils.timeRangeClause("a.time", 31,(int) numDays, beginTime, endTime, beginDate));
+        sqlBuilder.append("),\n");
+        sqlBuilder.append("travel_times AS (SELECT \n");
+        sqlBuilder.append("             config_rev, route_short_name, direction_id, trip_id, gtfs_stop_seq,\n");
+        sqlBuilder.append("             stop_id                    AS from_stop_id,\n");
+        sqlBuilder.append("             next_stop_id               AS to_stop_id,\n");
+        sqlBuilder.append("             stop_path_length           AS from_stop_path_length,\n");
+        sqlBuilder.append("             next_stop_path_length      AS to_stop_path_length,\n");
+        sqlBuilder.append("             next_stop_path_length      AS segment_length,\n");
+        sqlBuilder.append("             EXTRACT(EPOCH FROM (next_stop_time - stop_time)) AS travel_time_sec\n");
+        sqlBuilder.append("         FROM ordered\n");
+        sqlBuilder.append("         WHERE next_stop_time IS NOT NULL\n");
+        sqlBuilder.append("           AND next_stop_id IS NOT NULL\n");
+        sqlBuilder.append("           AND next_stop_id <> stop_id\n");
+        sqlBuilder.append("           AND next_stop_time > stop_time\n");
+        sqlBuilder.append("           AND EXTRACT(EPOCH FROM (next_stop_time - stop_time)) > 20\n");
+        sqlBuilder.append("           AND next_stop_path_length IS NOT NULL\n");
+        sqlBuilder.append("           AND next_stop_path_length > 0 ),\n");
+        sqlBuilder.append("avg_speed AS (SELECT \n");
+        sqlBuilder.append("   (t.from_stop_id || '_to_' || t.to_stop_id)                                 AS segment_id,\n");
+        sqlBuilder.append("    MAX(t.config_rev)                                                         AS config_rev,\n");
+        sqlBuilder.append("    MIN(t.gtfs_stop_seq)                                                      AS stop_order,\n");
+        sqlBuilder.append("    t.from_stop_id,\n");
+        sqlBuilder.append("    t.to_stop_id,\n");
+        sqlBuilder.append("    fs.name                                                                   AS from_stop_name,\n");
+        sqlBuilder.append("    ts.name                                                                   AS to_stop_name,\n");
+        sqlBuilder.append("    t.route_short_name,\n");
+        sqlBuilder.append("    t.direction_id,\n");
+        sqlBuilder.append("    ROUND(AVG(t.segment_length)::numeric, 3)                                  AS segment_length_in_meters,");
+        sqlBuilder.append("    COUNT(*) AS num_trips,\n");
+        sqlBuilder.append("    ROUND(AVG(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMph ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS avg_speed,\n");
+        sqlBuilder.append("    ROUND(MIN(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMph ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS min_speed,\n");
+        sqlBuilder.append("    ROUND(MAX(t.segment_length / NULLIF(t.travel_time_sec,0) * ").append(isMph ? MPS_MPH : MPS_KMH).append(")::numeric, 2)::text AS max_speed,\n");
+        sqlBuilder.append("    ROUND(percentile_cont(0.10) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
+                .append(isMph ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p10_speed,\n");
+        sqlBuilder.append("    ROUND(percentile_cont(0.25) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
+                .append(isMph ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p25_speed,\n");
+        sqlBuilder.append("    ROUND(percentile_cont(0.50) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
+                .append(isMph ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS median_speed,\n");
+        sqlBuilder.append("    ROUND(percentile_cont(0.75) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
+                .append(isMph ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p75_speed,\n");
+        sqlBuilder.append("    ROUND(percentile_cont(0.90) WITHIN GROUP (ORDER BY (t.segment_length / NULLIF(t.travel_time_sec,0) * ")
+                .append(isMph ? MPS_MPH : MPS_KMH).append("))::numeric, 2)::text AS p90_speed,");
+        sqlBuilder.append("    '").append(isMph ? "mph" : "kmh").append("' AS units\n");
+        sqlBuilder.append("FROM travel_times t\n");
+        sqlBuilder.append("         JOIN stops fs ON fs.config_rev = t.config_rev AND fs.id = t.from_stop_id\n");
+        sqlBuilder.append("         JOIN stops ts ON ts.config_rev = t.config_rev AND ts.id = t.to_stop_id\n");
+        sqlBuilder.append("GROUP BY\n");
+        sqlBuilder.append("    t.config_rev, t.route_short_name, t.direction_id, t.from_stop_id, fs.name, t.to_stop_id, ts.name)\n");
+        sqlBuilder.append("SELECT DISTINCT ON (route_short_name, direction_id, stop_order) *\n");
+        sqlBuilder.append("FROM avg_speed\n");
+        sqlBuilder.append("ORDER BY route_short_name, direction_id, stop_order, num_trips DESC;");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
+    }
 
     /**
      * Queries agency for Stop ID and returns result as a JSON string. Limited to returning
@@ -936,5 +1251,21 @@ public class Reports {
             sql = sqlBuilder.toString();
         }
         return sql;
+    }
+
+    private static Date getValidateDate(String beginDate) {
+        Date startdate = null;
+        try {
+            if (beginDate.charAt(4) != '-') {
+                DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+                startdate = defaultDateFormat.parse(beginDate);
+            } else {
+                DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                startdate = altDateFormat.parse(beginDate);
+            }
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return startdate;
     }
 }

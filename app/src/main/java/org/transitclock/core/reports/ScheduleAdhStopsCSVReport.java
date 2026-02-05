@@ -43,8 +43,6 @@ public class ScheduleAdhStopsCSVReport {
     private Connection connection;
 
     private final List<String[]> fullExport = new ArrayList<>(300000);
-    private final DateTimeFormatter currentFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
-    private final DateTimeFormatter requiredFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public ScheduleAdhStopsCSVReport(DataDbLogger dataDbLogger, DbConfig dbConfig) {
         this.dataDbLogger = dataDbLogger;
@@ -65,8 +63,8 @@ public class ScheduleAdhStopsCSVReport {
         final String HOST = hostUrl;
 
         // Validate date
-        LocalDate date1 = validate(beginDate);
-        LocalDate date2 = validate(endDate);
+        LocalDate date1 = validateParseToLocalDate(beginDate);
+        LocalDate date2 = validateParseToLocalDate(endDate);
         long numDays = ChronoUnit.DAYS.between(date1, date2);
         // Validate date range
         if (numDays > 30 || numDays < 0) {
@@ -118,7 +116,7 @@ public class ScheduleAdhStopsCSVReport {
         final String FILE_NAME = String.format("daily_stops_adh_for_%s.csv", beginDate);
         final String HOST = hostUrl;
 
-        LocalDate date1 = validate(beginDate);
+        LocalDate date1 = validateParseToLocalDate(beginDate);
         List<Route> routes = dbConfig.getRoutes();
         dataDbLogger.add(new ExportTable(new Date(), 3, 2, FILE_NAME));
 
@@ -177,7 +175,9 @@ public class ScheduleAdhStopsCSVReport {
         }
     }
 
-    private LocalDate validate(String date) {
+    static LocalDate validateParseToLocalDate(String date) {
+        DateTimeFormatter currentFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        DateTimeFormatter requiredFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try {
             if (date.charAt(4) != '-') {
                 return LocalDate.parse(date, currentFormat);

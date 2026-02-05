@@ -1,7 +1,5 @@
 package org.transitclock.api.resources;
 
-import com.google.common.base.Strings;
-
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -13,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.transitclock.api.reports.ChartGenericJsonQuery;
 import org.transitclock.api.reports.PredAccuracyIntervalQuery;
 import org.transitclock.api.reports.PredAccuracyRangeQuery;
@@ -24,8 +20,11 @@ import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.core.reports.Reports;
 import org.transitclock.core.reports.SqlUtils;
+import org.transitclock.properties.AvlProperties;
 import org.transitclock.utils.Time;
 
+import com.google.common.base.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -36,6 +35,8 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
 
     @Autowired
     ScheduleAdherenceController scheduleAdherenceController;
+    @Autowired
+    AvlProperties avlProperties;
 
     @Override
     public ResponseEntity<String> getTripsWithTravelTimes(
@@ -65,12 +66,12 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
                         stdParameters.getAgencyId(), beginDate, beginTime, endTime);
                 return stdParameters.createResponse(response);
             }
-        String response = Reports.getAvlJson(
-                stdParameters.getAgencyId(),
-                vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
-        return ResponseEntity.ok(response);
+            String response = Reports.getAvlJson(
+                    stdParameters.getAgencyId(),
+                    vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -139,6 +140,94 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     }
 
     @Override
+    public ResponseEntity<String> avgSpeedPerRoute(StandardParameters stdParameters,
+                                                   String beginDate,
+                                                   String endDate,
+                                                   String routeName,
+                                                   String routeId,
+                                                   String directionId,
+                                                   String beginTime,
+                                                   String endTime)
+    {
+        try { String response = Reports.getAvgSpeedPerRoute(stdParameters.getAgencyId(),
+                                                          beginDate,
+                                                          endDate,
+                                                          routeName,
+                                                          routeId,
+                                                          directionId,
+                                                          beginTime,
+                                                          endTime, avlProperties.getSpeedInMiles());
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> onTimePerformance(StandardParameters stdParameters,
+                                                    String beginDate,
+                                                    String endDate,
+                                                    String accuracy,
+                                                    String allowableEarly,
+                                                    String allowableLate)
+    {
+        try { String response = Reports.getOnTimePerformance(stdParameters.getAgencyId(),
+                                                           false,
+                                                           accuracy,
+                                                           beginDate,
+                                                           endDate,
+                                                           allowableEarly,
+                                                           allowableLate);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> onTimePerformanceAllRoutes(StandardParameters stdParameters,
+                                                             String beginDate,
+                                                             String endDate,
+                                                             String allowableEarly,
+                                                             String allowableLate)
+    {
+        try { String response = Reports.getOnTimePerformance(stdParameters.getAgencyId(),
+                                                           true,
+                                                           null,
+                                                           beginDate,
+                                                           endDate,
+                                                           allowableEarly,
+                                                           allowableLate);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters, String date, String tripId) {
+        try {
+            String response = Reports.getOccupancyPerTripWithContinuePickUp(stdParameters.getAgencyId(), tripId, date);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> getMaxOccupancyByTripDate(StandardParameters stdParameters, String date, String routeId, String routeShortName) {
+        try {
+            String response = Reports.getMaxIncreasePaxPerRoute(stdParameters.getAgencyId(), routeId, routeShortName, date);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Override
     public ResponseEntity<String> getLastAvlJsonData(StandardParameters stdParameters) {
         String response = Reports.getLastAvlJson(stdParameters.getAgencyId());
         return ResponseEntity.ok(response);
@@ -165,8 +254,9 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         double intervalPercentage1 = 0.68; // Default value
         String intervalPercentage1Str = request.getParameter("intervalPercentage1");
         try {
-            if (intervalPercentage1Str != null && !intervalPercentage1Str.isEmpty())
+            if (intervalPercentage1Str != null && !intervalPercentage1Str.isEmpty()) {
                 intervalPercentage1 = Double.parseDouble(intervalPercentage1Str);
+            }
         } catch (NumberFormatException e) {
             return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
                     .body("Could not parse Interval Percentage 1 of " + intervalPercentage1Str);
@@ -175,8 +265,9 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         double intervalPercentage2 = Double.NaN; // Default value
         String intervalPercentage2Str = request.getParameter("intervalPercentage2");
         try {
-            if (intervalPercentage2Str != null && !intervalPercentage2Str.isEmpty())
+            if (intervalPercentage2Str != null && !intervalPercentage2Str.isEmpty()) {
                 intervalPercentage2 = Double.parseDouble(intervalPercentage2Str);
+            }
         } catch (NumberFormatException e) {
             return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
                     .body("Could not parse Interval Percentage 2 of " + intervalPercentage2Str);
@@ -353,8 +444,9 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
 
         boolean showTooltips = true;
         String showTooltipsStr = request.getParameter("tooltips");
-        if (showTooltipsStr != null && showTooltipsStr.equalsIgnoreCase("false"))
+        if (showTooltipsStr != null && showTooltipsStr.equalsIgnoreCase("false")) {
             showTooltips = false;
+        }
 
         if (agencyId == null || beginDate == null || numDays == null) {
             return ResponseEntity.badRequest()
@@ -398,7 +490,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
         }
 
         String tooltipsSql = "";
-        if (showTooltips)
+        if (showTooltips) {
             tooltipsSql =
                     ", format(E'predAccuracy= %s\\n"
                             + "prediction=%s\\n"
@@ -419,6 +511,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
                             + "   vehicle_id,"
                             + "   prediction_Source,"
                             + "   CASE WHEN affected_by_wait_stop THEN 'True' ELSE 'False' END) AS tooltip ";
+        }
 
         String predLengthSql = "     to_char(predicted_time-prediction_read_time, 'SSSS')::integer ";
         String predAccuracySql = "     prediction_accuracy_msecs/1000 as predAccuracy ";
