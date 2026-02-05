@@ -58,6 +58,17 @@ public class VehicleToBlockConfig implements Serializable {
         this.validTo = validTo;
     }
 
+    public VehicleToBlockConfig(long id,
+                                String vehicleId, String blockId, String tripId, Date assignmentDate, Date validFrom, Date validTo) {
+        this.vehicleId = vehicleId;
+        this.id = id;
+        this.blockId = blockId;
+        this.tripId = tripId;
+        this.assignmentDate = assignmentDate;
+        this.validFrom = validFrom;
+        this.validTo = validTo;
+    }
+
     /** Needed because Hibernate requires no-arg constructor */
     @SuppressWarnings("unused")
     protected VehicleToBlockConfig() {

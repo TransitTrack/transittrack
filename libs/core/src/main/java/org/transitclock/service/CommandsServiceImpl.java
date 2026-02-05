@@ -239,14 +239,20 @@ public class CommandsServiceImpl implements CommandsService {
     }
 
     @Override
-    public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig) {
-        return null;
+    public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlocks) {
+        try { var isUpdated = dataDbLogger.add(vehicleToBlocks);
+            if (isUpdated) return vehicleToBlocks;
+            throw new RuntimeException("Failed to update vehicle block config obj");
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw ex;
+        }
     }
 
     private void processVehicleToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, long startOfDayInSeconds, Map<String, Boolean> resultsOfSaving) {
         for (VehicleToBlockConfig assignment : vehiclesToBlocks) {
             try {
-                var isSuccessful = addAssignmentToDB(assignment, startOfDayInSeconds);
+                var isSuccessful = addAssignmentToDb(assignment, startOfDayInSeconds);
                 resultsOfSaving.put(assignment.getVehicleId(), isSuccessful);
             } catch (Exception e) {
                 logger.warn("Something went wrong while creating VehicleToBlockConfig: {} record, cause={}", assignment, e.getMessage());
@@ -255,7 +261,7 @@ public class CommandsServiceImpl implements CommandsService {
         }
     }
 
-    private boolean addAssignmentToDB(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+    private boolean addAssignmentToDb(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
         if (assignment.getValidTo() == null && assignment.getTripId() != null) {
             return setEndTimeForAssignment(assignment, startOfDayInSeconds);
         } else if (autoBlockAssignerProperties.isOverrideTimesForVehicleToBlock() && assignment.getBlockId() != null) {

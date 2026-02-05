@@ -12,6 +12,10 @@ public class AutoBlockAssignerProperties {
     // For when want to test automatic assignments. When set to true then system ignores assignments from AVL feed so vehicles need to be automatically assigned instead
     private boolean ignoreAvlAssignments = false;
 
+   // config param: transitclock.blockAssigner.overrideTimesForVehicleToBlock
+   // Set true to enable the overriding times from GTFS for VehicleToBlock objects from remote API
+    private boolean isOverrideTimesForVehicleToBlock = false;
+
     // config param: transitclock.autoBlockAssigner.minDistanceFromCurrentReport
     // AutoBlockAssigner looks at two AVL reports to match vehicle. This parameter specifies how far away those AVL reports need to be sure that the vehicle really is moving and in service. If getting incorrect matches then this value should likely be increased.
     private double minDistanceFromCurrentReport = 100.0;

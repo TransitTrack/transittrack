@@ -3,6 +3,8 @@ package org.transitclock.api.resources;
 import java.io.InputStream;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.PutMapping;
+
 import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 
@@ -258,10 +260,23 @@ public interface CommandsApi {
 
     @Operation(
             summary = "Add multiple vehicles to blocks",
-            description = "Add multiple vehicles to blocks using JSON array of vehicles",
+            description = "Add multiple vehicles to blocks using JSON array of vehicle's assignments",
             tags = {"vehicle", "block"})
-    @PostMapping("/command/vehiclesToBlockAssignments")
+    @PostMapping(path = "/command/vehiclesToBlockAssignments",
+            produces = {MediaType.APPLICATION_JSON_VALUE},
+            consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> addAllVehiclesToBlocks(
             StandardParameters stdParameters,
             @Parameter(description = "JSON with vehicles list.", required = true) InputStream requestBody);
+
+    @Operation(
+            summary = "Edit an exist vehicle to block assignment",
+            description = "Edit an exist vehicle to block assignment",
+            tags = {"vehicle", "block"})
+    @PutMapping(path = "/command/vehicleToBlock",
+            produces = {MediaType.APPLICATION_JSON_VALUE},
+            consumes = {MediaType.APPLICATION_JSON_VALUE})
+    ResponseEntity<ApiCommandAck> updateVehicleToBlock(
+            StandardParameters stdParameters,
+            @Parameter(description = "Json of vehicle to block.", required = true) InputStream requestBody);
 }

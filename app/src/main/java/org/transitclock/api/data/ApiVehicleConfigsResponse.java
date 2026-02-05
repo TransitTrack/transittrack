@@ -20,7 +20,7 @@ public class ApiVehicleConfigsResponse {
 
     // Need to use @XmlElementRef so that the element name used for each
     // ApiVehicle object will be what is specified in the ApiVehicle class.
-    @JsonProperty("data")
+    @JsonProperty("vehicleConfigs")
     private List<ApiVehicleConfig> data;
 
 
