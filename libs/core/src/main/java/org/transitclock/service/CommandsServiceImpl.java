@@ -204,14 +204,14 @@ public class CommandsServiceImpl implements CommandsService {
     @Override
     public String removeVehicleToBlock(long id) {
         try (Session session = HibernateUtils.getSession()) {
-            VehicleToBlockConfigRepository.deleteVehicleToBlockConfig(id, session);
+            var vehicleId =  VehicleToBlockConfigRepository.deleteVehicleToBlockConfig(id, session);
+            setVehicleUnpredictable(vehicleId);
+            return vehicleId;
         } catch (Exception ex) {
            logger.warn("Something went wrong when trying to delete a raw from {} table",
                        CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
            throw new HibernateException(ex.getMessage());
         }
-
-        return null;
     }
 
     @Override
@@ -242,7 +242,7 @@ public class CommandsServiceImpl implements CommandsService {
     public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlocks) {
         try { var isUpdated = dataDbLogger.add(vehicleToBlocks);
             if (isUpdated) return vehicleToBlocks;
-            throw new RuntimeException("Failed to update vehicle block config obj");
+            throw new RuntimeException("Failed to update vehicleToBlock config obj");
         } catch (Exception ex) {
             logger.error(ex.getMessage());
             throw ex;

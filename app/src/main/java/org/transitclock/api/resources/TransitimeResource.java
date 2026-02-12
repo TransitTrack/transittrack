@@ -125,7 +125,7 @@ public class TransitimeResource extends BaseApiResource implements TransitimeApi
             String blockId) {
         // Get Vehicle data from server
         if (actual) {
-            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs(blockId);
+            var actualConfigs = vehiclesService.getActualVehicleToBlockConfigs();
             ApiVehicleToBlockResponse response = new ApiVehicleToBlockResponse(actualConfigs);
             // return actual ApiVehicles response
             return ResponseEntity.ok(response);

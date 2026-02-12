@@ -109,10 +109,10 @@ public interface TransitimeApi {
     )
     ResponseEntity<ApiVehicleToBlockResponse> getVehiclesToBlock(
             StandardParameters stdParameters,
-            @Parameter(description = "If set 'true', returns only the data with actual time windows.", required = false)
+            @Parameter(description = "If set 'true', returns only the data with actual time windows.")
             @RequestParam(value = "actual", required = false, defaultValue = "false")
             boolean actual,
-            @Parameter(description = "Block id", required = false)
+            @Parameter(description = "Block id")
             @RequestParam(value = "blockId", required = false)
             String blockId);
 

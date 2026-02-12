@@ -6,6 +6,7 @@ import org.hibernate.Transaction;
 
 import org.transitclock.domain.structs.VehicleToBlockConfig;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -23,26 +24,23 @@ public class VehicleToBlockConfigRepository extends BaseRepository<VehicleToBloc
                 .list();
     }
 
-    /**
-     * Reads List of VehicleConfig objects from database
-     *
-     * @param vehicleToBlockConfig, session
-     * @throws HibernateException
-     */
-    public static void updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig, Session session)
-            throws HibernateException {
-        session.merge(vehicleToBlockConfig);
+    public static List<VehicleToBlockConfig> getActualVehicleToBlockConfigs(Session session) throws HibernateException {
+        return session
+                .createQuery("FROM VehicleToBlockConfig WHERE validTo > CURRENT_TIMESTAMP ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
+                .list();
     }
 
-    public static void deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
+    public static String deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
         Transaction transaction = session.beginTransaction();
+        String vehicleId = session
+                .createQuery("FROM VehicleToBlockConfig WHERE id = :id", VehicleToBlockConfig.class)
+                .setParameter("id", id).getSingleResult().getVehicleId();
         try {
-            session
-                    .createMutationQuery("delete from VehicleToBlockConfig where id = :id")
+            session.createMutationQuery("DELETE FROM VehicleToBlockConfig WHERE id = :id")
                     .setParameter("id", id)
                     .executeUpdate();
-
             transaction.commit();
+            return vehicleId;
         } catch (Throwable t) {
             transaction.rollback();
             throw t;
@@ -62,8 +60,8 @@ public class VehicleToBlockConfigRepository extends BaseRepository<VehicleToBloc
                 .list();
     }
 
-    public static VehicleToBlockConfig getVehicleToBlockConfigs(Session session, String vehicleId, Date date) throws HibernateException {
-        return session.createQuery("FROM VehicleToBlockConfig WHERE vehicleId = :vehicleId AND validFrom >= :date AND validTo <= :date AND blockId IS NOT NULL ORDER BY assignmentDate DESC LIMIT 1", VehicleToBlockConfig.class)
+    public static VehicleToBlockConfig getVehicleToBlockConfigs(Session session, String vehicleId, LocalDateTime date) throws HibernateException {
+        return session.createQuery("FROM VehicleToBlockConfig WHERE vehicleId = :vehicleId AND validFrom <= :date AND validTo >= :date AND blockId IS NOT NULL ORDER BY assignmentDate DESC LIMIT 1", VehicleToBlockConfig.class)
             .setParameter("vehicleId", vehicleId)
             .setParameter("date", date)
             .getSingleResultOrNull();

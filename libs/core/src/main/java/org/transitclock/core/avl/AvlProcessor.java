@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -1476,7 +1477,7 @@ public class AvlProcessor {
         }
 
         try (Session session = HibernateUtils.getSession()) {
-            var config = VehicleToBlockConfigRepository.getVehicleToBlockConfigs(session, avlReport.getVehicleId(), new Date());
+            var config = VehicleToBlockConfigRepository.getVehicleToBlockConfigs(session, avlReport.getVehicleId(), LocalDateTime.now());
             Optional.ofNullable(config).ifPresent(c -> {
                 if (c.getBlockId() != null ) avlReport.setAssignment(c.getBlockId(), AssignmentType.BLOCK_ID);
                 else if (c.getTripId() != null) avlReport.setAssignment(c.getTripId(), AssignmentType.TRIP_ID);

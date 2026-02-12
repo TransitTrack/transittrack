@@ -288,13 +288,12 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
         try {
             // Remove vehicle
            var vehicleId = commandsService.removeVehicleToBlock(id);
-           // Reset vehicle
-           commandsService.setVehicleUnpredictable(vehicleId);
+           // Reset vehicleId
+        return stdParameters.createResponse(new ApiCommandAck(true, "Processed: "+vehicleId));
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }
-        return stdParameters.createResponse(new ApiCommandAck(true, "Processed"));
     }
 
     @Override

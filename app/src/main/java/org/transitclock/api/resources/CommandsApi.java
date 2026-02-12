@@ -262,7 +262,7 @@ public interface CommandsApi {
             summary = "Add multiple vehicles to blocks",
             description = "Add multiple vehicles to blocks using JSON array of vehicle's assignments",
             tags = {"vehicle", "block"})
-    @PostMapping(path = "/command/vehiclesToBlockAssignments",
+    @PostMapping(value = "/command/vehiclesToBlockAssignments",
             produces = {MediaType.APPLICATION_JSON_VALUE},
             consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> addAllVehiclesToBlocks(
@@ -273,7 +273,7 @@ public interface CommandsApi {
             summary = "Edit an exist vehicle to block assignment",
             description = "Edit an exist vehicle to block assignment",
             tags = {"vehicle", "block"})
-    @PutMapping(path = "/command/vehicleToBlock",
+    @PutMapping(value = "/command/vehicleToBlock",
             produces = {MediaType.APPLICATION_JSON_VALUE},
             consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> updateVehicleToBlock(
