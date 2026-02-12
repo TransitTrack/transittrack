@@ -19,7 +19,7 @@ apply(plugin = "org.rodnansol.spring-configuration-property-documenter")
 
 jib {
     from {
-        image = "eclipse-temurin:21-jre"
+        image = "eclipse-temurin:23-jre"
         platforms {
             platform {
                 architecture = "amd64"

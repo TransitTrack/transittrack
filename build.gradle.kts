@@ -34,10 +34,7 @@ subprojects {
         }
     }
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+    java { toolchain { languageVersion.set(JavaLanguageVersion.of(23)) } }
 
     tasks.test {
         useJUnitPlatform()
@@ -85,5 +82,5 @@ allprojects {
 
 
 tasks.wrapper {
-    gradleVersion = "8.14"
+    gradleVersion = "8.14.4"
 }
