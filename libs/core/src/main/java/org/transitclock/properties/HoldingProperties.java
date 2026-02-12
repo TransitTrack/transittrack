@@ -36,4 +36,12 @@ public class HoldingProperties {
     // This is a list of stops to generate holding times for.
     private List<String> controlStops = new ArrayList<>();
 
+    // config param: transitclock.api.headwayExpectedMaxLimitInSecs
+    // Number of seconds to accept that vehicle is gapped
+    private Integer headwayExpectedMaxLimitInSecs = 300;
+
+    // config param: transitclock.api.headwayExpectedMinLimitInSecs
+    // Number of seconds to accept that vehicle is bunched
+    private Integer headwayExpectedMinLimitInSecs = 300;
+
 }

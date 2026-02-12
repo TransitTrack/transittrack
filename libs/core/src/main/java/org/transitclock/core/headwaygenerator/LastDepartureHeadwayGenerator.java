@@ -87,37 +87,39 @@ class LastDepartureHeadwayGenerator implements HeadwayGenerator {
                 if (previousVehicleArrivalIndex != -1 && lastStopArrivalIndex != -1) {
                     long headwayTime = Math.abs(
                             stopList.get(lastStopArrivalIndex).getTime().getTime()
-                                    - stopList.get(previousVehicleArrivalIndex)
-                                            .getTime()
-                                            .getTime());
+                                    - stopList.get(previousVehicleArrivalIndex).getTime()
+                                    .getTime());
+
+                    long expected = Math.abs(
+                            dbConfig.getTrip(stopList.get(lastStopArrivalIndex).getTripId()).getStartTime() -
+                                    dbConfig.getTrip(stopList.get(previousVehicleArrivalIndex).getTripId()).getStartTime()) *
+                            1000L;
+                    if (expected <= 0) return null;
 
                     Headway headway = new Headway(
                             dbConfig.getConfigRev(),
-                            headwayTime,
+                            headwayTime, expected, (headwayTime - expected),
                             new Date(date),
                             vehicleId,
                             stopList.get(previousVehicleArrivalIndex).getVehicleId(),
                             stopId,
                             vehicleStatus.getTrip().getId(),
                             vehicleStatus.getTrip().getRouteId(),
-                            new Date(
-                                    stopList.get(lastStopArrivalIndex).getTime().getTime()),
-                            new Date(stopList.get(previousVehicleArrivalIndex)
-                                    .getTime()
-                                    .getTime()));
-                    // TODO Core.getInstance().getDbLogger().add(headway);
+                            new Date(stopList.get(lastStopArrivalIndex).getTime().getTime()),
+                            new Date(stopList.get(previousVehicleArrivalIndex).getTime().getTime()));
 
                     // remove rubish data from departure sfrom t
                     if (Math.abs(headway.getCreationTime().getTime()
-                                            - headway.getFirstDeparture().getTime())
-                                    > 1200000
+                                         - headway.getFirstDeparture().getTime())
+                            > 1200000
                             || lastStopArrivalIndex > 5) {
                         headway = null;
                         vehicleStatus.setHeadway(null);
                         return null;
                     }
                     if (headway != null) {
-                        if (vehicleStatus.getHeadway() == null || !vehicleStatus.getHeadway().equals(headway)) {
+                        if (vehicleStatus.getHeadway() == null
+                                || !vehicleStatus.getHeadway().equals(headway)) {
                             vehicleStatus.setHeadway(headway);
                             setSystemVariance(headway);
                             return headway;
@@ -128,7 +130,7 @@ class LastDepartureHeadwayGenerator implements HeadwayGenerator {
                 }
             }
         } catch (Exception e) {
-            logger.warn("Something happened while processing.", e);
+            logger.warn("Something went wrong when try to generate headway: {}", e.getMessage());
         }
         return null;
     }
@@ -136,37 +138,37 @@ class LastDepartureHeadwayGenerator implements HeadwayGenerator {
     private void setSystemVariance(Headway headway) {
         List<Headway> headways = new ArrayList<>();
 
-        int total_with_headway = 0;
-        int total_vehicles = 0;
+        int totalWithHeadway = 0;
+        int totalVehicles = 0;
         boolean error = false;
 
         for (IpcVehicleComplete currentVehicle : vehicleDataCache.getVehicles()) {
             VehicleStatus vehicleStatus = vehicleStatusManager.getStatus(currentVehicle.getId());
             if (vehicleStatus.getHeadway() != null) {
                 headways.add(vehicleStatus.getHeadway());
-                total_with_headway++;
+                totalWithHeadway++;
             }
-            total_vehicles++;
+            totalVehicles++;
         }
         // ONLY SET IF HAVE VALES FOR ALL VEHICLES ON ROUTE.
         if (vehicleDataCache.getVehicles().size() == headways.size()
-                && total_vehicles == total_with_headway) {
+                && totalVehicles == totalWithHeadway) {
             headway.setAverage(average(headways));
             headway.setVariance(variance(headways));
             headway.setCoefficientOfVariation(coefficientOfVariance(headways));
-            headway.setNumVehicles(headways.size());
+            headway.setNumVehicles(totalWithHeadway);
         } else {
             headway.setAverage(-1);
             headway.setVariance(-1);
             headway.setCoefficientOfVariation(-1);
-            headway.setNumVehicles(total_with_headway);
+            headway.setNumVehicles(totalWithHeadway);
         }
     }
 
     private double average(List<Headway> headways) {
         double total = 0;
         for (Headway headway : headways) {
-            total = total + headway.getHeadway();
+            total += headway.getHeadway();
         }
         return total / headways.size();
     }
@@ -175,7 +177,7 @@ class LastDepartureHeadwayGenerator implements HeadwayGenerator {
         double topline = 0;
         double average = average(headways);
         for (Headway headway : headways) {
-            topline = topline + ((headway.getHeadway() - average) * (headway.getHeadway() - average));
+            topline += ((headway.getHeadway() - average) * (headway.getHeadway() - average));
         }
         return topline / headways.size();
     }

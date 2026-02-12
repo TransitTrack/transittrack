@@ -8,12 +8,12 @@ import java.util.Optional;
 import org.transitclock.api.resources.TransitimeApi.UiMode;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
+import org.transitclock.properties.HoldingProperties;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.Time;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +25,9 @@ import lombok.ToString;
  *
  * @author SkiBu Smith
  */
-@Getter @Setter @ToString
+@Getter
+@Setter
+@ToString
 @EqualsAndHashCode(callSuper = true)
 public class ApiVehicleDetails extends ApiVehicleAbstract {
 
@@ -100,6 +102,14 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     @JsonProperty
     private double headway;
 
+    @JsonProperty
+    private double expectedHeadway;
+
+    @JsonProperty
+    private double headwayDeviation;
+
+    @JsonProperty
+    private String headwayDeviationCategory;
     /**
      * Takes a Vehicle object for client/server communication and constructs a ApiVehicle object for
      * the API.
@@ -139,10 +149,14 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         licensePlate = vehicle.getLicensePlate();
         isCanceled = false;
         headway = -1;
+        headwayDeviationCategory = "UNAVAILABLE";
         if (vehicle instanceof IpcVehicleComplete && tripId != null) {
             distanceAlongTrip = ((IpcVehicleComplete) vehicle).getDistanceAlongTrip();
             isCanceled = ((IpcVehicleComplete) vehicle).isCanceled();
-            headway = ((IpcVehicleComplete) vehicle).getHeadway();
+            headway = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getHeadway();
+            expectedHeadway = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getExpected();
+            headwayDeviation = vehicle.isLayover() ? -1 : ((IpcVehicleComplete) vehicle).getHeadway().getDeviation();
+            headwayDeviationCategory = getHeadwayDeviationCategory(((IpcVehicleComplete) vehicle).getHeadway().getDeviation());
         }
         isScheduledService = vehicle.getFreqStartTime() <= 0;
         if (!isScheduledService) {
@@ -156,5 +170,32 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         this.holdingTime = Optional.ofNullable(vehicle.getHoldingTime())
                 .map(ApiHoldingTime::new)
                 .orElse(null);
+    }
+
+//    private String convertFullness(IpcVehicle vehicle) {
+//        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) {
+//            if (vehicle.isPredictable()) {
+//                final float FULLNESS = vehicle.getAvl().getPassengerFullness();
+//                if (vehicle.getAvl().getPassengerCount() < 0) return "NO_DATA_AVAILABLE";
+//                else if (FULLNESS == 0) return "EMPTY";
+//                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
+//                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return "FEW_SEATS_AVAILABLE";
+//                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return "STANDING_ROOM_ONLY";
+//                else if (FULLNESS >= 100) return "FULL";
+//            } else return "NO_DATA_AVAILABLE";
+//        }
+//        return null;
+//    }
+
+    private String getHeadwayDeviationCategory(double headwayDeviation) {
+        HoldingProperties holdingProperties = new HoldingProperties();
+        if (headway != -1 && headwayDeviation > holdingProperties.getHeadwayExpectedMaxLimitInSecs() * 1000) {
+            return "GAPPED";
+        } else if (headway != -1 && headwayDeviation < holdingProperties.getHeadwayExpectedMinLimitInSecs() * -1000) {
+            return "BUNCHED";
+        } else if (headway == -1 || expectedHeadway <= 0) {
+            return "UNAVAILABLE";
+        } else
+            return "EXPECTED";
     }
 }
