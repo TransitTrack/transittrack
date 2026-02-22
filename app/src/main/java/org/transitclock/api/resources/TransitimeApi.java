@@ -152,9 +152,9 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getVehiclesToBlock(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "If set 'true', returns only the data with actual time windows.", required = false)
+            @Parameter(description = "If set 'true', returns only the data with actual time windows.")
             @QueryParam(value = "actual") boolean isActual,
-            @Parameter(description = "If set, returns only the data for that block Id.", required = false)
+            @Parameter(description = "If set, returns only the data for that block Id.")
             @QueryParam(value = "blockId") String blockId)
             throws WebApplicationException {
 

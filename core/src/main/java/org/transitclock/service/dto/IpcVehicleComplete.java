@@ -353,6 +353,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
         return headway;
     }
 
+    @Override
     public String toString() {
         return "IpcExtVehicle ["
                 + "vehicleId="

@@ -391,10 +391,10 @@ public class VehiclesServiceImpl implements VehiclesInterface {
     public List<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs() {
         List<IpcVehicleToBlockConfig> result = new ArrayList<>();
         try (Session session = HibernateUtils.getSession()) {
-            for (VehicleToBlockConfig vehicleToBlockConfig : VehicleToBlockConfig
-                    .getActualVehicleToBlockConfigs(session)) {
-                result.add(new IpcVehicleToBlockConfig(vehicleToBlockConfig));
-            }
+            return VehicleToBlockConfig.getActualVehicleToBlockConfigs(session)
+                    .stream()
+                    .map(IpcVehicleToBlockConfig::new)
+                    .collect(Collectors.toList());
         } catch (Exception ex) {
             logger.error("Something happened while fetching the data: ", ex);
         }

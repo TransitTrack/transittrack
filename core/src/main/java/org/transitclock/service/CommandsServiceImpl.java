@@ -238,7 +238,6 @@ public class CommandsServiceImpl implements CommandsInterface {
             VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
         } catch (Exception ex) {
             logger.warn(ex.getMessage());
-
         }
     }
 

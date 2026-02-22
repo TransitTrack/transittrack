@@ -398,7 +398,6 @@ public class CommandsApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "JSON with vehicles list.", required = true) InputStream requestBody)
             throws WebApplicationException {
-
         // Validate parameters
         stdParameters.validate();
         List<VehicleToBlockConfig> assignments = new ArrayList<>();

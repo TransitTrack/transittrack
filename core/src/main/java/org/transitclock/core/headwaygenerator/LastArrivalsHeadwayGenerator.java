@@ -30,9 +30,7 @@ public class LastArrivalsHeadwayGenerator implements HeadwayGenerator {
 
     @Override
     public Headway generate(VehicleState vehicleState) {
-
         try {
-
             if (vehicleState.getMatch().getMatchAtPreviousStop() == null) return null;
 
             String stopId =

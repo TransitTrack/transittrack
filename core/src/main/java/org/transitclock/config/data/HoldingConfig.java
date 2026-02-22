@@ -45,6 +45,6 @@ public class HoldingConfig {
             "Number of seconds to accept that vehicle is bunched");
 
     public static int getHeadwayExpectedMinLimitInSecs() {
-        return headwayExpectedMaxLimitInSecs.getValue();
+        return headwayExpectedMinLimitInSecs.getValue();
     }
 }
