@@ -44,13 +44,13 @@ public interface CommandsService {
      * Cancel a trip. It should exists in current predictions.
      * Retruns null on success
      */
-    String cancelTrip(String tripId, String startTripTime) throws ParseException;
+    String cancelTrip(String tripId, int startTripTime);
 
     /*
      * Enable a canceled trip. It should exists in current predictions.
      * Retruns null on success
      */
-    String reenableTrip(String tripId, String startTripTime) throws ParseException;
+    String reenableTrip(String tripId, int startTripTime);
 
     /*
      * Add vehicle to Block to predictions.

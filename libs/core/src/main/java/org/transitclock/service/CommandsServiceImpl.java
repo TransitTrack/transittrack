@@ -1,18 +1,21 @@
 /* (C)2023 */
 package org.transitclock.service;
 
-import com.google.common.base.CaseFormat;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import org.transitclock.core.ServiceUtils;
-import org.transitclock.core.avl.AvlProcessor;
-import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.AvlReportProcessor;
+import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
@@ -32,18 +35,14 @@ import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import com.google.common.base.CaseFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import org.transitclock.utils.Time;
 
 @Slf4j
 @Component
@@ -69,6 +68,7 @@ public class CommandsServiceImpl implements CommandsService {
      * Called on server side via RMI when AVL data is to be processed
      *
      * @param avlData AVL data sent to server
+     *
      * @return Null if OK, otherwise an error message
      */
     @Override
@@ -86,6 +86,7 @@ public class CommandsServiceImpl implements CommandsService {
      * Called on server side via RMI when AVL data is to be processed
      *
      * @param avlDataCollection AVL data sent to server
+     *
      * @return Null if OK, otherwise an error message
      */
     @Override
@@ -133,19 +134,14 @@ public class CommandsServiceImpl implements CommandsService {
         vehicleDataCache.updateVehicle(vehicleStatus);
     }
 
-    private VehicleStatus getVehicleStateForTrip(String tripId, String tripTime) throws ParseException {
-        DateFormat defaultDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm");
-        Date dateTimeOfTrip = defaultDateFormat.parse(tripTime);
-        /* The startTripTime parameter should not be null if noSchedule */
-        long startTripTime = 0;
-        if (dateTimeOfTrip != null)
-            startTripTime = dateTimeOfTrip.getTime();
+    private VehicleStatus getVehicleStateForTrip(String tripId, int tripTime) {
+        ZonedDateTime startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+        long startOfDayInSeconds = startOfDay.toEpochSecond();
         /*
          * Get the vehicle associated to the tripId. Is it possible to have more than 1 bus with the
          * same tripId??
          */
-        Collection<IpcVehicleComplete> ipcVehicleCompletList =
-                vehicleDataCache.getVehiclesIncludingSchedBasedOnes();
+        Collection<IpcVehicleComplete> ipcVehicleCompletList = vehicleDataCache.getVehiclesIncludingSchedBasedOnes();
         VehicleStatus vehicleStatus = null;
         for (IpcVehicleComplete _ipcVehicle : ipcVehicleCompletList) {
 
@@ -155,7 +151,7 @@ public class CommandsServiceImpl implements CommandsService {
                 if (!noSchedule) {
                     vehicleStatus = _vehicleStatus;
                     break;
-                } else if (noSchedule && _ipcVehicle.getTripStartEpochTime() == startTripTime) {
+                } else if (_ipcVehicle.getTripStartEpochTime() == (startOfDayInSeconds + tripTime) * Time.SEC_IN_MSECS) {
                     vehicleStatus = _vehicleStatus;
                     break;
                 }
@@ -165,10 +161,12 @@ public class CommandsServiceImpl implements CommandsService {
     }
 
     @Override
-    public String cancelTrip(String tripId, String startTripTime) throws ParseException {
+    public String cancelTrip(String tripId, int startTripTime) {
 
-        VehicleStatus vehicleStatus = this.getVehicleStateForTrip(tripId, startTripTime);
-        if (vehicleStatus == null) return "TripId id is not currently available";
+        VehicleStatus vehicleStatus = getVehicleStateForTrip(tripId, startTripTime);
+        if (vehicleStatus == null) {
+            return "TripId id is not currently available";
+        }
 
         AvlReport avlReport = vehicleStatus.getAvlReport();
         if (avlReport != null) {
@@ -176,21 +174,27 @@ public class CommandsServiceImpl implements CommandsService {
             vehicleDataCache.updateVehicle(vehicleStatus);
             avlProcessor.processAvlReport(avlReport);
             return null;
-        } else return "Vehicle with this trip id does not have avl report";
+        } else {
+            return "Vehicle with this trip id does not have avl report";
+        }
     }
 
     @Override
-    public String reenableTrip(String tripId, String startTripTime) throws ParseException {
+    public String reenableTrip(String tripId, int startTripTime) {
 
-        VehicleStatus vehicleStatus = this.getVehicleStateForTrip(tripId, startTripTime);
-        if (vehicleStatus == null) return "TripId id is not currently available";
+        VehicleStatus vehicleStatus = getVehicleStateForTrip(tripId, startTripTime);
+        if (vehicleStatus == null) {
+            return "TripId id is not currently available";
+        }
         AvlReport avlReport = vehicleStatus.getAvlReport();
         if (avlReport != null) {
             vehicleStatus.setCanceled(false);
             vehicleDataCache.updateVehicle(vehicleStatus);
             avlProcessor.processAvlReport(avlReport);
             return null;
-        } else return "Vehicle with this trip id does not have avl report";
+        } else {
+            return "Vehicle with this trip id does not have avl report";
+        }
     }
 
     @Override

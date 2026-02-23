@@ -224,14 +224,13 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     @Override
     public ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,
-            String tripId,
-            String at
+            String tripId
     ) {
         String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
         if (ipcTrip == null) throw WebUtils.badRequestException("TripId = " + tripId + " does not exist.");
         try {
-            result = commandsService.cancelTrip(tripId, at);
+            result = commandsService.cancelTrip(tripId, ipcTrip.getStartTime());
         } catch (Exception e) {
             throw WebUtils.badRequestException(e);
         }
@@ -243,13 +242,12 @@ public class CommandsResource extends BaseApiResource implements CommandsApi {
     @Override
     public ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
-            String tripId,
-            String at) {
+            String tripId) {
         String result;
         IpcTrip ipcTrip = configService.getTrip(tripId);
         if (ipcTrip == null) throw WebUtils.badRequestException("TripId = " + tripId + " does not exist.");
         try {
-            result = commandsService.reenableTrip(tripId, at);
+            result = commandsService.reenableTrip(tripId, ipcTrip.getStartTime());
         } catch (Exception e) {
             throw WebUtils.badRequestException(e);
         }

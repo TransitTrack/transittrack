@@ -178,9 +178,7 @@ public interface CommandsApi {
     ResponseEntity<ApiCommandAck> cancelTrip(
             StandardParameters stdParameters,
             @Parameter(description = "tripId to be marked as canceled.", required = true)
-            @PathVariable(name = "tripId") String tripId,
-            @Parameter(description = "start trip time like \"20270707 13:30\"")
-            @RequestParam(value = "at") String at);
+            @PathVariable(name = "tripId") String tripId);
 
     @GetMapping(
             value = "/command/reenableTrip/{tripId}",
@@ -194,9 +192,7 @@ public interface CommandsApi {
     ResponseEntity<ApiCommandAck> reenableTrip(
             StandardParameters stdParameters,
             @Parameter(description = "tripId to remove the canceled satate.", required = true)
-            @PathVariable("tripId") String tripId,
-            @Parameter(description = "start trip time like \"20270707 13:30\"", required = false)
-            @RequestParam(value = "at") String at);
+            @PathVariable("tripId") String tripId);
 
     @Operation(
             summary = "Add vehicles to block",
