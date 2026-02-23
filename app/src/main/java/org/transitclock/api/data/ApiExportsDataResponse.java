@@ -21,7 +21,7 @@ import lombok.Data;
 @Data
 public class ApiExportsDataResponse implements Serializable {
 
-    @JsonProperty("exports")
+    @JsonProperty("exportsData")
     private List<ApiExportData> data;
 
     public ApiExportsDataResponse(List<ExportTable> exportData) {

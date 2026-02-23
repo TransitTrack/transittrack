@@ -1,27 +1,30 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import lombok.ToString;
-import org.hibernate.annotations.DynamicUpdate;
-
-import jakarta.persistence.*;
-
-import org.hibernate.annotations.JdbcTypeCode;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.io.Serializable;
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Objects;
+
+import lombok.Data;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.JdbcTypeCode;
 
 /**
  * For storing static configuration for vehicle in block.
  *
  * @author Hubert GoEuropa
  */
+@Data
 @Entity
 @DynamicUpdate
-@ToString
 @Table(name = "export_table")
 public class ExportTable implements Serializable {
 
@@ -68,7 +71,9 @@ public class ExportTable implements Serializable {
         this.exportStatus = exportStatus;
     }
 
-    /** Needed because Hibernate requires no-arg constructor */
+    /**
+     * Needed because Hibernate requires no-arg constructor
+     */
     @SuppressWarnings("unused")
     protected ExportTable() {
         dataDate = null;
@@ -76,73 +81,5 @@ public class ExportTable implements Serializable {
         exportType = 0;
         fileName = null;
         file = null;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Date getDataDate() {
-        return dataDate;
-    }
-
-    public void setDataDate(Date dataDate) {
-        this.dataDate = dataDate;
-    }
-
-    public Date getExportDate() {
-        return exportDate;
-    }
-
-    public void setExportDate(Date exportDate) {
-        this.exportDate = exportDate;
-    }
-
-    public int getExportType() {
-        return exportType;
-    }
-
-    public void setExportType(int exportType) {
-        this.exportType = exportType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public byte[] getFile() {
-        return file;
-    }
-
-    public void setFile(byte[] file) {
-        this.file = file;
-    }
-
-    public int getExportStatus() {
-        return exportStatus;
-    }
-
-    public void setExportStatus(int exportStatus) {
-        this.exportStatus = exportStatus;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ExportTable that)) return false;
-        return id == that.id && exportType == that.exportType && exportStatus == that.exportStatus && Objects.equals(dataDate, that.dataDate) && Objects.equals(exportDate, that.exportDate) && Objects.equals(fileName, that.fileName) && Objects.deepEquals(file, that.file);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, dataDate, exportDate, exportType, exportStatus, fileName, Arrays.hashCode(file));
     }
 }

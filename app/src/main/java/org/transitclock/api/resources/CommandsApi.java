@@ -230,15 +230,15 @@ public interface CommandsApi {
             @Parameter(description = "AVL date(MM-DD-YYYY or YYYY-MM-DD).") @RequestParam(value = "avlDate") String avlDate);
 
     @Operation(
-            summary="Delete an export",
-            description="Delete exports by IDs",
-            tags= {"export"})
+            summary = "Delete an export",
+            description = "Delete exports by IDs",
+            tags = {"export"})
     @DeleteMapping(value = "/command/export",
             produces = {MediaType.APPLICATION_JSON_VALUE},
             consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> deleteExport(
             StandardParameters stdParameters,
-            @Parameter(description="Id to delete", required = true) @RequestParam(value = "id") int exportId);
+            @Parameter(description = "Id to delete", required = true) @RequestParam(value = "id") int exportId);
 
     @Operation(summary = "All stops Report",
             description = "Order export for all stops schedule adherence report",
