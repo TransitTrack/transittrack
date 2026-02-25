@@ -337,7 +337,7 @@ public class CommandsApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "tripId to be marked as canceled.", required = true) @PathParam("tripId")
             String tripId,
-            @Parameter(description = "start trip time", required = false) @QueryParam(value = "at") DateTimeParam at) {
+            @Parameter(description = "start trip time") @QueryParam(value = "at") DateTimeParam at) {
         stdParameters.validate();
         String result;
         CommandsInterface inter = stdParameters.getCommandsInterface();
