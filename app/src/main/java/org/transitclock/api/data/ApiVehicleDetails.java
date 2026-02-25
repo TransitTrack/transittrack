@@ -97,6 +97,9 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     private String licensePlate;
 
     @JsonProperty
+    private String fullness;
+
+    @JsonProperty
     private boolean isCanceled;
 
     @JsonProperty
@@ -170,22 +173,23 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         this.holdingTime = Optional.ofNullable(vehicle.getHoldingTime())
                 .map(ApiHoldingTime::new)
                 .orElse(null);
+
+        this.fullness = convertFullness(vehicle);
     }
 
-//    private String convertFullness(IpcVehicle vehicle) {
-//        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) {
-//            if (vehicle.isPredictable()) {
-//                final float FULLNESS = vehicle.getAvl().getPassengerFullness();
-//                if (vehicle.getAvl().getPassengerCount() < 0) return "NO_DATA_AVAILABLE";
-//                else if (FULLNESS == 0) return "EMPTY";
-//                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
-//                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return "FEW_SEATS_AVAILABLE";
-//                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return "STANDING_ROOM_ONLY";
-//                else if (FULLNESS >= 100) return "FULL";
-//            } else return "NO_DATA_AVAILABLE";
-//        }
-//        return null;
-//    }
+    private String convertFullness(IpcVehicle vehicle) {
+            if (vehicle.isPredictable()) {
+                final float FULLNESS = vehicle.getAvl().getPassengerFullness();
+                if (vehicle.getAvl().getPassengerCount() < 0) return "NO_DATA_AVAILABLE";
+                else if (FULLNESS == 0) return "EMPTY";
+                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
+                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return "FEW_SEATS_AVAILABLE";
+                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return "STANDING_ROOM_ONLY";
+                else if (FULLNESS >= 100) return "FULL";
+            } else return "NO_DATA_AVAILABLE";
+
+        return null;
+    }
 
     private String getHeadwayDeviationCategory(double headwayDeviation) {
         HoldingProperties holdingProperties = new HoldingProperties();

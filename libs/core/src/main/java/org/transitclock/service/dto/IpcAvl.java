@@ -5,16 +5,20 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import org.transitclock.domain.structs.AvlReport;
+
 import org.transitclock.domain.structs.AssignmentType;
+import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
+
+import lombok.Getter;
 
 /**
  * A serializable object used by RMI to transfer AVL data to client.
  *
  * @author SkiBu Smith
  */
+@Getter
 public class IpcAvl implements Serializable {
 
     private final String vehicleId;
@@ -29,6 +33,7 @@ public class IpcAvl implements Serializable {
     private final String driverId;
     private final String licensePlate;
     private final int passengerCount;
+    private final float passengerFullness;
 
     /**
      * @param vehicleId
@@ -69,24 +74,74 @@ public class IpcAvl implements Serializable {
         this.driverId = driverId;
         this.licensePlate = licensePlate;
         this.passengerCount = passengerCount;
+        this.passengerFullness = Float.NaN;
     }
 
     /**
-     * @param lastAvlReport
+     * @param avl
      */
-    public IpcAvl(AvlReport a) {
-        this.vehicleId = a.getVehicleId();
-        this.time = a.getTime();
-        this.latitude = (float) a.getLat();
-        this.longitude = (float) a.getLon();
-        this.speed = a.getSpeed();
-        this.heading = a.getHeading();
-        this.source = a.getSource();
-        this.assignmentId = a.getAssignmentId();
-        this.assignmentType = a.getAssignmentType();
-        this.driverId = a.getDriverId();
-        this.licensePlate = a.getLicensePlate();
-        this.passengerCount = a.getPassengerCount();
+    public IpcAvl(AvlReport avl) {
+        this.vehicleId = avl.getVehicleId();
+        this.time = avl.getTime();
+        this.latitude = (float) avl.getLat();
+        this.longitude = (float) avl.getLon();
+        this.speed = avl.getSpeed();
+        this.heading = avl.getHeading();
+        this.source = avl.getSource();
+        this.assignmentId = avl.getAssignmentId();
+        this.assignmentType = avl.getAssignmentType();
+        this.driverId = avl.getDriverId();
+        this.licensePlate = avl.getLicensePlate();
+        this.passengerCount = avl.getPassengerCount();
+        this.passengerFullness = avl.getPassengerFullness();
+    }
+
+    /*
+     * Needed as part of using a SerializationProxy. When Vehicle object
+     * is serialized the SerializationProxy will instead be used.
+     */
+    private Object writeReplace() {
+        return new SerializationProxy(this);
+    }
+
+    /*
+     * Needed as part of using a SerializationProxy. Makes sure that Vehicle
+     * object cannot be deserialized without using proxy, thereby eliminating
+     * possibility of such an attack as described in "Effective Java".
+     */
+    private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+        throw new InvalidObjectException("Must use proxy instead");
+    }
+
+    @Override
+    public String toString() {
+        return "IpcAvl [vehicleId="
+                + vehicleId
+                + ", time="
+                + Time.dateTimeStr(time)
+                + ", latitude="
+                + latitude
+                + ", longitude="
+                + longitude
+                + ", speed="
+                + Geo.speedFormat(speed)
+                + ", heading="
+                + Geo.headingFormat(heading)
+                + ", source="
+                + source
+                + ", assignmentId="
+                + assignmentId
+                + ", assignmentType="
+                + assignmentType
+                + ", driverId="
+                + driverId
+                + ", licensePlate="
+                + licensePlate
+                + ", passengerCount="
+                + passengerCount
+                + ", passengerFullness="
+                + passengerFullness
+                + "]";
     }
 
     /*
@@ -94,6 +149,8 @@ public class IpcAvl implements Serializable {
      * and so that can do versioning of objects.
      */
     private static class SerializationProxy implements Serializable {
+        private static final long serialVersionUID = 6220698347690060245L;
+        private static final short serializationVersion = 0;
         // Exact copy of fields of Vehicle object
         private String vehicleId;
         private long time;
@@ -107,9 +164,6 @@ public class IpcAvl implements Serializable {
         private String driverId;
         private String licensePlate;
         private int passengerCount;
-
-        private static final long serialVersionUID = 6220698347690060245L;
-        private static final short serializationVersion = 0;
 
         /*
          * Only to be used within this class.
@@ -177,13 +231,13 @@ public class IpcAvl implements Serializable {
         /*
          * Custom method of deserializing a SerializationProy object.
          */
-        private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
             short readVersion = stream.readShort();
             if (serializationVersion != readVersion) {
                 throw new IOException("Serialization error when reading "
-                        + getClass().getSimpleName()
-                        + " object. Read serializationVersion="
-                        + readVersion);
+                                              + getClass().getSimpleName()
+                                              + " object. Read serializationVersion="
+                                              + readVersion);
             }
 
             // serialization version is OK so read in object
@@ -200,105 +254,5 @@ public class IpcAvl implements Serializable {
             licensePlate = (String) stream.readObject();
             passengerCount = stream.readInt();
         }
-    }
-
-    /*
-     * Needed as part of using a SerializationProxy. When Vehicle object
-     * is serialized the SerializationProxy will instead be used.
-     */
-    private Object writeReplace() {
-        return new SerializationProxy(this);
-    }
-
-    /*
-     * Needed as part of using a SerializationProxy. Makes sure that Vehicle
-     * object cannot be deserialized without using proxy, thereby eliminating
-     * possibility of such an attack as described in "Effective Java".
-     */
-    private void readObject(ObjectInputStream stream) throws InvalidObjectException {
-        throw new InvalidObjectException("Must use proxy instead");
-    }
-
-    public String getVehicleId() {
-        return vehicleId;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public float getLatitude() {
-        return latitude;
-    }
-
-    public float getLongitude() {
-        return longitude;
-    }
-
-    /**
-     * @return Speed of vehicle in m/s, or NaN if speed not defined.
-     */
-    public float getSpeed() {
-        return speed;
-    }
-
-    /**
-     * @return Heading of vehicle, or NaN if speed not defined.
-     */
-    public float getHeading() {
-        return heading;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public String getAssignmentId() {
-        return assignmentId;
-    }
-
-    public AssignmentType getAssignmentType() {
-        return assignmentType;
-    }
-
-    public String getDriverId() {
-        return driverId;
-    }
-
-    public String getLicensePlate() {
-        return licensePlate;
-    }
-
-    public int getPassengerCount() {
-        return passengerCount;
-    }
-
-    @Override
-    public String toString() {
-        return "IpcAvl [vehicleId="
-                + vehicleId
-                + ", time="
-                + Time.dateTimeStr(time)
-                + ", latitude="
-                + latitude
-                + ", longitude="
-                + longitude
-                + ", speed="
-                + Geo.speedFormat(speed)
-                + ", heading="
-                + Geo.headingFormat(heading)
-                + ", source="
-                + source
-                + ", assignmentId="
-                + assignmentId
-                + ", assignmentType="
-                + assignmentType
-                + ", driverId="
-                + driverId
-                + ", licensePlate="
-                + licensePlate
-                + ", passengerCount="
-                + passengerCount
-                + "]";
     }
 }

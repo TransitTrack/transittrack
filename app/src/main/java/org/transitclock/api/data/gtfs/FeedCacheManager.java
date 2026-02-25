@@ -2,6 +2,7 @@ package org.transitclock.api.data.gtfs;
 
 import org.transitclock.api.utils.AgencyTimezoneCache;
 import org.transitclock.properties.ApiProperties;
+import org.transitclock.properties.AvlProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.contract.PredictionsService;
 import org.transitclock.service.contract.VehiclesService;
@@ -14,11 +15,13 @@ public class FeedCacheManager {
     private final DataCache vehicleFeedDataCache;
     private final DataCache tripFeedDataCache;
     private final ApiProperties apiProperties;
+    private final AvlProperties avlProperties;
 
-    public FeedCacheManager(ApiProperties apiProperties) {
+    public FeedCacheManager(ApiProperties apiProperties, AvlProperties avlProperties) {
         this.vehicleFeedDataCache = new DataCache(apiProperties.getGtfsRtCacheSeconds());
         this.tripFeedDataCache = new DataCache(apiProperties.getGtfsRtCacheSeconds());
         this.apiProperties = apiProperties;
+        this.avlProperties = avlProperties;
     }
 
     /**
@@ -39,7 +42,7 @@ public class FeedCacheManager {
             feedMessage = vehicleFeedDataCache.get(agencyId);
             if (feedMessage != null) return feedMessage;
 
-            GtfsRtVehicleFeed feed = new GtfsRtVehicleFeed(agencyId, vehiclesService, agencyTimezoneCache);
+            GtfsRtVehicleFeed feed = new GtfsRtVehicleFeed(agencyId, vehiclesService, agencyTimezoneCache, avlProperties);
             feedMessage = feed.createMessage();
             vehicleFeedDataCache.put(agencyId, feedMessage);
         }

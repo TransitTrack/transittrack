@@ -7,9 +7,11 @@ import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelations
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition.VehicleStopStatus;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.util.StringUtils;
+
 import org.transitclock.api.utils.AgencyTimezoneCache;
+import org.transitclock.properties.AvlProperties;
 import org.transitclock.service.contract.VehiclesService;
-import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleConfig;
 import org.transitclock.service.dto.IpcVehicleGtfsRealtime;
 import org.transitclock.utils.Time;
@@ -27,13 +29,15 @@ import java.util.Date;
 @Slf4j
 public class GtfsRtVehicleFeed {
 
+    private final VehiclesService vehiclesService;
+    private final AvlProperties avlProperties;
     // For outputting date in GTFS-realtime format
     private SimpleDateFormat gtfsRealtimeDateFormatter = new SimpleDateFormat("yyyyMMdd");
     private SimpleDateFormat gtfsRealtimeTimeFormatter = new SimpleDateFormat("HH:mm:ss");
-    private final VehiclesService vehiclesService;
 
-    public GtfsRtVehicleFeed(String agencyId, VehiclesService vehiclesService, AgencyTimezoneCache agencyTimezoneCache) {
+    public GtfsRtVehicleFeed(String agencyId, VehiclesService vehiclesService, AgencyTimezoneCache agencyTimezoneCache, AvlProperties avlProperties) {
         this.vehiclesService = vehiclesService;
+        this.avlProperties = avlProperties;
         this.gtfsRealtimeDateFormatter.setTimeZone(agencyTimezoneCache.get(agencyId));
     }
 
@@ -41,7 +45,9 @@ public class GtfsRtVehicleFeed {
      * Takes in IpcGtfsRealtimeVehicle and puts it into a GTFS-realtime VehiclePosition object.
      *
      * @param vehicleData
+     *
      * @return the resulting VehiclePosition
+     *
      * @throws ParseException
      */
     private VehiclePosition createVehiclePosition(IpcVehicleGtfsRealtime vehicleData) throws ParseException {
@@ -55,7 +61,10 @@ public class GtfsRtVehicleFeed {
                     .setRouteId(vehicleData.getRouteId())
                     .setTripId(vehicleData.getTripId())
                     .setStartDate(tripStartDateStr);
-            if (vehicleData.isCanceled()) tripDescriptor.setScheduleRelationship(ScheduleRelationship.CANCELED);
+            if (vehicleData.isCanceled()) {
+                tripDescriptor.setScheduleRelationship(ScheduleRelationship.CANCELED);
+                vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NOT_BOARDABLE);
+            }
             if (vehicleData.getFreqStartTime() > 0) {
                 String tripStartTimeStr = gtfsRealtimeTimeFormatter.format(new Date(vehicleData.getFreqStartTime()));
                 tripDescriptor.setStartTime(tripStartTimeStr);
@@ -77,11 +86,35 @@ public class GtfsRtVehicleFeed {
             vehiclePosition.setTrip(tripDescriptor);
         }
 
+        //  Set status if available
+        if (!StringUtils.isEmpty(avlProperties.getOccupancyBaseUrl())) {
+            if (vehicleData.isPredictable()) {
+                final float FULLNESS = vehicleData.getAvl().getPassengerFullness();
+                if (vehicleData.getAvl().getPassengerCount() < 0) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
+                } else if (FULLNESS == 0) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.EMPTY);
+                } else if (FULLNESS <= 49 && FULLNESS >= 0.01) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.MANY_SEATS_AVAILABLE);
+                } else if (FULLNESS <= 75 && FULLNESS >= 49.01) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FEW_SEATS_AVAILABLE);
+                } else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.STANDING_ROOM_ONLY);
+                } else if (FULLNESS >= 100) {
+                    vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FULL);
+                }
+            } else {
+                vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
+            }
+        }
+
         // Add the VehicleDescriptor information
         VehicleDescriptor.Builder vehicleDescriptor =
                 VehicleDescriptor.newBuilder().setId(vehicleData.getId());
         // License plate information is optional so only add it if not null
-        if (vehicleData.getLicensePlate() != null) vehicleDescriptor.setLicensePlate(vehicleData.getLicensePlate());
+        if (vehicleData.getLicensePlate() != null) {
+            vehicleDescriptor.setLicensePlate(vehicleData.getLicensePlate());
+        }
         vehiclePosition.setVehicle(vehicleDescriptor);
 
         // Add the Position information
@@ -104,7 +137,9 @@ public class GtfsRtVehicleFeed {
 
         // Set the stop_id if at a stop or going to a stop
         String stopId = vehicleData.getAtOrNextStopId();
-        if (stopId != null) vehiclePosition.setStopId(stopId);
+        if (stopId != null) {
+            vehiclePosition.setStopId(stopId);
+        }
 
         // Set current_status part of vehiclePosition if vehicle is actually
         // predictable. If not predictable then the vehicle stop status will
@@ -114,8 +149,9 @@ public class GtfsRtVehicleFeed {
                     vehicleData.isAtStop() ? VehicleStopStatus.STOPPED_AT : VehicleStopStatus.IN_TRANSIT_TO;
             vehiclePosition.setCurrentStatus(currentStatus);
 
-            if (vehicleData.getAtOrNextGtfsStopSeq() != null)
+            if (vehicleData.getAtOrNextGtfsStopSeq() != null) {
                 vehiclePosition.setCurrentStopSequence(vehicleData.getAtOrNextGtfsStopSeq());
+            }
         }
 
         // Return the results
@@ -126,6 +162,7 @@ public class GtfsRtVehicleFeed {
      * Creates a GTFS-realtime message for the list of ApiVehicle passed in.
      *
      * @param vehicles the data to be put into the GTFS-realtime message
+     *
      * @return the GTFS-realtime FeedMessage
      */
     private FeedMessage createMessage(Collection<IpcVehicleGtfsRealtime> vehicles) {
@@ -139,24 +176,10 @@ public class GtfsRtVehicleFeed {
 
         for (IpcVehicleGtfsRealtime vehicle : vehicles) {
 
-            IpcAvl newAvl = new IpcAvl(
-                    vehicle.getVehicleName() == null ? vehicle.getId() : vehicle.getVehicleName(),
-                    vehicle.getAvl().getTime(),
-                    vehicle.getAvl().getLatitude(),
-                    vehicle.getAvl().getLongitude(),
-                    vehicle.getAvl().getSpeed(),
-                    vehicle.getAvl().getHeading(),
-                    vehicle.getAvl().getSource(),
-                    vehicle.getAvl().getAssignmentId(),
-                    vehicle.getAvl().getAssignmentType(),
-                    vehicle.getAvl().getDriverId(),
-                    vehicle.getAvl().getLicensePlate(),
-                    vehicle.getAvl().getPassengerCount());
-
             IpcVehicleGtfsRealtime newVehicle = new IpcVehicleGtfsRealtime(
                     vehicle.getBlockId(),
                     vehicle.getBlockAssignmentMethod(),
-                    newAvl,
+                    vehicle.getAvl(),
                     vehicle.getHeading(),
                     vehicle.getRouteId(),
                     vehicle.getRouteShortName(),
