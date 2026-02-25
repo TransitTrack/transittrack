@@ -51,10 +51,10 @@ public interface ReportsApi {
             StandardParameters stdParameters,
             @Parameter(description = "Vehicle id") @RequestParam(value = "v", required = false) String vehicleId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD") @RequestParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
-            @Parameter(description = "Begin time(HH:MM)", required = false) @RequestParam(value = "beginTime", required = false) String beginTime,
-            @Parameter(description = "End time(HH:MM)", required = false) @RequestParam(value = "endTime", required = false) String endTime,
-            @Parameter(description = "For Screenshot", required = false) @RequestParam(value = "screenShot") boolean isForScreenShot);
+            @Parameter(description = "Num days.") @RequestParam(value = "numDays", defaultValue = "1", required = false) int numDays,
+            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
+            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime,
+            @Parameter(description = "For Screenshot") @RequestParam(value = "screenShot", required = false) boolean isForScreenShot);
 
     /**
      * Handles the "tripWithTravelTimes" command which outputs arrival and departures data for the
@@ -144,11 +144,11 @@ public interface ReportsApi {
     ResponseEntity<String> avgSpeedPerRoute( StandardParameters stdParameters,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @RequestParam (value = "beginDate") String beginDate,
             @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @RequestParam (value = "endDate") String endDate,
-            @Parameter(description = "Route short name") @RequestParam String routeName,
-            @Parameter(description = "Route ID") @RequestParam String routeId,
-            @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @RequestParam (value = "dir") String directionId,
-            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime") String beginTime,
-            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime") String endTime);
+            @Parameter(description = "Route short name") @RequestParam (value = "routeName", required = false) String routeName,
+            @Parameter(description = "Route ID") @RequestParam (value = "routeId", required = false) String routeId,
+            @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @RequestParam (value = "dir", defaultValue = "0", required = false) String directionId,
+            @Parameter(description = "Begin time(HH:MM)") @RequestParam(value = "beginTime", required = false) String beginTime,
+            @Parameter(description = "End time(HH:MM)") @RequestParam(value = "endTime", required = false) String endTime);
 
     @Operation(
             summary = "Returns on-time performance report.",
@@ -159,9 +159,9 @@ public interface ReportsApi {
     ResponseEntity<String> onTimePerformance(StandardParameters stdParameters,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @RequestParam (value = "beginDate") String beginDate,
             @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @RequestParam (value = "endDate") String endDate,
-            @Parameter(description = "Partition accuracies: 'day', 'week', 'month'", required = true) @DefaultValue("day") @RequestParam (value = "accuracy") String accuracy,
-            @Parameter(description = "Allowable early in mins(default 1.0)") @RequestParam (value = "allowableEarly") String allowableEarly,
-            @Parameter(description = "Allowable late in mins(default 3.0)") @RequestParam (value = "allowableLate") String allowableLate);
+            @Parameter(description = "Partition accuracies: 'day', 'week', 'month'", required = true) @DefaultValue("day") @RequestParam (value = "accuracy", defaultValue = "day", required = false) String accuracy,
+            @Parameter(description = "Allowable early in mins(default 1.0)") @RequestParam (value = "allowableEarly", required = false) String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 3.0)") @RequestParam (value = "allowableLate", required = false) String allowableLate);
 
     @Operation(
             summary = "Returns on-time performance report.",
@@ -172,8 +172,8 @@ public interface ReportsApi {
     ResponseEntity<String> onTimePerformanceAllRoutes( StandardParameters stdParameters,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @RequestParam (value = "beginDate") String beginDate,
             @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @RequestParam (value = "endDate") String endDate,
-            @Parameter(description = "Allowable early in mins(default 1.0)") @RequestParam (value = "allowableEarly") String allowableEarly,
-            @Parameter(description = "Allowable late in mins(default 3.0)") @RequestParam (value = "allowableLate") String allowableLate);
+            @Parameter(description = "Allowable early in mins(default 1.0)") @RequestParam (value = "allowableEarly", required = false) String allowableEarly,
+            @Parameter(description = "Allowable late in mins(default 3.0)") @RequestParam (value = "allowableLate", required = false) String allowableLate);
 
     @Operation(
             summary = "Gets occupancies by date and specific trip.",
@@ -181,11 +181,9 @@ public interface ReportsApi {
             tags = {"report", "trip"})
     @GetMapping(value = "/reports/occupanciesByTripWithContinuePickUp",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters,
-            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
-            @RequestParam(value = "date") String date,
-            @Parameter(description = "Specific trip ID.")
-            @RequestParam(value = "tripId") String tripId);
+    ResponseEntity<String> getOccupancyByTripDateWithContinuePickUp(StandardParameters stdParameters,
+                                                                    @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true) @RequestParam(value = "date") String date,
+                                                                    @Parameter(description = "Specific trip ID.") @RequestParam(value = "tripId") String tripId);
 
     @Operation(
             summary = "Gets max sum occupancies by specific route for single day.",
@@ -193,13 +191,10 @@ public interface ReportsApi {
             tags = {"report", "route"})
     @GetMapping(value = "/reports/maxOccupanciesByRoute",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    ResponseEntity<String> getMaxOccupancyByTripDate(StandardParameters stdParameters,
-            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
-            @RequestParam(value = "date") String date,
-            @Parameter(description = "Specific rout ID.")
-            @RequestParam(value = "routeId") String routeId,
-            @Parameter(description = "Route short name.")
-            @RequestParam(value = "routeName") String routeShortName);
+    ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters,
+                                                      @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true) @RequestParam(value = "date") String date,
+                                                      @Parameter(description = "Specific rout ID.") @RequestParam(value = "routeId", required = false) String routeId,
+                                                      @Parameter(description = "Route short name.") @RequestParam(value = "routeName", required = false) String routeShortName);
 
     @GetMapping(value = "/reports/lastAvlJsonData",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})

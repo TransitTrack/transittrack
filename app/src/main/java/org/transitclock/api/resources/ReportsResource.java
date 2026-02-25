@@ -208,7 +208,7 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     }
 
     @Override
-    public ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters, String date, String tripId) {
+    public ResponseEntity<String> getOccupancyByTripDateWithContinuePickUp(StandardParameters stdParameters, String date, String tripId) {
         try {
             String response = Reports.getOccupancyPerTripWithContinuePickUp(stdParameters.getAgencyId(), tripId, date);
             return stdParameters.createResponse(response);
@@ -218,8 +218,10 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     }
 
     @Override
-    public ResponseEntity<String> getMaxOccupancyByTripDate(StandardParameters stdParameters, String date, String routeId, String routeShortName) {
+    public ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters, String date, String routeId, String routeShortName) {
         try {
+            if(StringUtils.isEmpty(routeShortName) && StringUtils.isEmpty(routeId) ) return ResponseEntity.badRequest().body(
+                    "Route ID or name must be provided as request parameter: \"routId\" or \"routeName\"");
             String response = Reports.getMaxIncreasePaxPerRoute(stdParameters.getAgencyId(), routeId, routeShortName, date);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
