@@ -16,7 +16,7 @@ import lombok.Data;
  */
 @Data
 public class ApiBlocksTerseResponse {
-    @JsonProperty("data")
+    @JsonProperty("block")
     private List<ApiBlockTerse> data;
 
     public ApiBlocksTerseResponse(Collection<IpcBlock> blocks) {

@@ -3,8 +3,6 @@ package org.transitclock.api.resources;
 import java.io.InputStream;
 import java.util.List;
 
-import org.springframework.web.bind.annotation.PutMapping;
-
 import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 
@@ -16,6 +14,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -248,7 +247,7 @@ public interface CommandsApi {
             consumes = {MediaType.APPLICATION_JSON_VALUE})
     ResponseEntity<ApiCommandAck> addStopsReport(
             StandardParameters stdParameters,
-            @Parameter(description="Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
+            @Parameter(description = "Parameters in body: { 'beginDate' (MM-DD-YYYY or YYYY-MM-DD), \n" +
                     "'endDate', \n" +
                     "'url' - target folder on host, \n" +
                     "'allowableEarly' - in mins (if unset: default 1.0), \n" +

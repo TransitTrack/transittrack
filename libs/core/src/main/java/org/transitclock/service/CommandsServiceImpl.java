@@ -208,19 +208,19 @@ public class CommandsServiceImpl implements CommandsService {
     @Override
     public String removeVehicleToBlock(long id) {
         try (Session session = HibernateUtils.getSession()) {
-            var vehicleId =  VehicleToBlockConfigRepository.deleteVehicleToBlockConfig(id, session);
+            var vehicleId = VehicleToBlockConfigRepository.deleteVehicleToBlockConfig(id, session);
             setVehicleUnpredictable(vehicleId);
             return vehicleId;
         } catch (Exception ex) {
-           logger.warn("Something went wrong when trying to delete a raw from {} table",
-                       CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
-           throw new HibernateException(ex.getMessage());
+            logger.warn("Something went wrong when trying to delete a record from {} table",
+                        CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, VehicleToBlockConfig.class.getSimpleName()));
+            throw new HibernateException(ex.getMessage());
         }
     }
 
     @Override
     public ExportTable removeExportById(int id) {
-        try(var session = HibernateUtils.getSession()) {
+        try (var session = HibernateUtils.getSession()) {
             var exportsToDelete = ExportTableRepository.getExport(session, id);
             if (!exportsToDelete.isEmpty() && exportsToDelete.get(0).getId() == id) {
                 ExportTableRepository.deleteExportTableRecord(id, session);
@@ -237,15 +237,18 @@ public class CommandsServiceImpl implements CommandsService {
         ZonedDateTime startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault());
         long startOfDayInSeconds = startOfDay.toEpochSecond();
 
-                processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfSaving);
-                logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
-                return resultsOfSaving;
+        processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfSaving);
+        logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+        return resultsOfSaving;
     }
 
     @Override
     public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlocks) {
-        try { var isUpdated = dataDbLogger.add(vehicleToBlocks);
-            if (isUpdated) return vehicleToBlocks;
+        try {
+            var isUpdated = dataDbLogger.add(vehicleToBlocks);
+            if (isUpdated) {
+                return vehicleToBlocks;
+            }
             throw new RuntimeException("Failed to update vehicleToBlock config obj");
         } catch (Exception ex) {
             logger.error(ex.getMessage());
@@ -270,7 +273,9 @@ public class CommandsServiceImpl implements CommandsService {
             return setEndTimeForAssignment(assignment, startOfDayInSeconds);
         } else if (autoBlockAssignerProperties.isOverrideTimesForVehicleToBlock() && assignment.getBlockId() != null) {
             return setTimesForAssignmentBlocks(assignment, startOfDayInSeconds);
-        } else return dataDbLogger.add(assignment);
+        } else {
+            return dataDbLogger.add(assignment);
+        }
     }
 
     private boolean setEndTimeForAssignment(VehicleToBlockConfig assignment, long startOfDayInSeconds) {

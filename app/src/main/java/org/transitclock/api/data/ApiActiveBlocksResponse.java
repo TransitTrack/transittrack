@@ -19,7 +19,7 @@ import lombok.Data;
 @Data
 public class ApiActiveBlocksResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("blocks")
     private List<ApiActiveBlock> data;
 
     public ApiActiveBlocksResponse(Collection<IpcActiveBlock> ipcActiveBlocks, String agencyId) {

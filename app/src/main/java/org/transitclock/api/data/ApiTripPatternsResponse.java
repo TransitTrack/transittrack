@@ -17,7 +17,7 @@ import lombok.Data;
 @Data
 public class ApiTripPatternsResponse {
 
-    @JsonProperty("data")
+    @JsonProperty("tripPatterns")
     private List<ApiTripPattern> data;
 
 
