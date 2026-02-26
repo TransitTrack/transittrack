@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.transitclock.api.resources.TransitimeApi.UiMode;
+import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.service.dto.IpcVehicle;
@@ -37,7 +38,7 @@ public class ApiVehiclesDetailsResponse {
      */
     public ApiVehiclesDetailsResponse(Collection<IpcVehicle> vehicles, String agencyId, Map<String, UiMode> uiTypesForVehicles, boolean assigned) {
         // Get Time object based on timezone for agency
-        WebAgency webAgency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency webAgency = WebAgencyCache.getCachedWebAgency(agencyId);
         Agency agency = webAgency.getAgency();
         Time timeForAgency = agency != null ? agency.getTime() : new Time((String) null);
 

@@ -11,6 +11,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.webstructs.WebAgency;
 
 import com.google.common.base.Strings;
@@ -44,7 +45,7 @@ public class Reports {
             String agencyId, String vehicleId, String beginDate, String numdays, String beginTime, String endTime) {
         // Determine the time portion of the SQL
         String timeSql = "";
-        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency agency = WebAgencyCache.getCachedWebAgency(agencyId);
         // If beginTime or endTime set but not both then use default values
         if (Strings.isNullOrEmpty(beginTime) || Strings.isNullOrEmpty(endTime)) {
             if (Strings.isNullOrEmpty(beginTime)) {
@@ -855,7 +856,7 @@ public class Reports {
                                               String endDate,
                                               String allowableEarly,
                                               String allowableLate) {
-        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency agency = WebAgencyCache.getCachedWebAgency(agencyId);
 
         if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
         String allowableEarlySecondsStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + "'";
@@ -1128,7 +1129,7 @@ public class Reports {
      * @return Last AVL reports in JSON format. Can be empty JSON array if no data meets criteria.
      */
     public static String getLastAvlJson(String agencyId) {
-        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency agency = WebAgencyCache.getCachedWebAgency(agencyId);
         String sql = "";
         if (agency.getDbType().equals("mysql")) {
             sql = "SELECT a.vehicle_id, vC.name, maxTime, lat, lon "
@@ -1157,7 +1158,7 @@ public class Reports {
                                                    String routeId,
                                                    String allowableEarly,
                                                    String allowableLate) {
-        WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency agency = WebAgencyCache.getCachedWebAgency(agencyId);
 
         if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
         String allowableEarlyMinutesStr = "'" + SqlUtils.convertMinutesToSecs(allowableEarly) + " seconds'";

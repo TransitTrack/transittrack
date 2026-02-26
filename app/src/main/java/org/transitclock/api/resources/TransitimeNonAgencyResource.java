@@ -9,6 +9,7 @@ import org.transitclock.api.data.ApiNearbyPredictionsForAgenciesResponse;
 import org.transitclock.api.data.ApiPredictionsResponse;
 import org.transitclock.api.utils.PredsByLoc;
 import org.transitclock.api.utils.StandardParameters;
+import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.WebAgency;
@@ -42,7 +43,7 @@ public class TransitimeNonAgencyResource extends BaseApiResource implements Tran
     public ResponseEntity<ApiAgenciesResponse> getAgencies(StandardParameters stdParameters) {
         final  boolean isMiles = avlProperties.getSpeedInMiles();
         List<ApiAgency> apiAgencyList = new ArrayList<>();
-        List<WebAgency> webAgencies = WebAgency.getCachedOrderedListOfWebAgencies();
+        List<WebAgency> webAgencies = WebAgencyCache.getCachedOrderedListOfWebAgencies();
 
         for (WebAgency webAgency : webAgencies) {
             String agencyId = webAgency.getAgencyId();
@@ -86,7 +87,7 @@ public class TransitimeNonAgencyResource extends BaseApiResource implements Tran
 
             // Add additional agency related info so can describe the
             // agency in the API.
-            WebAgency webAgency = WebAgency.getCachedWebAgency(agencyId);
+            WebAgency webAgency = WebAgencyCache.getCachedWebAgency(agencyId);
             String agencyName = webAgency.getAgencyName();
             predictionsData.set(agencyId, agencyName);
 

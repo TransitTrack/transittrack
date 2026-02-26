@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.service.dto.IpcActiveBlock;
 import org.transitclock.service.dto.IpcBlock;
@@ -51,7 +52,7 @@ public class ApiActiveBlock implements Serializable {
         trip = new ApiTripTerse(ipcTrip);
 
         // Get Time object based on timezone for agency
-        WebAgency webAgency = WebAgency.getCachedWebAgency(agencyId);
+        WebAgency webAgency = WebAgencyCache.getCachedWebAgency(agencyId);
         Time timeForAgency = webAgency.getAgency().getTime();
 
         vehicles = new ArrayList<>();

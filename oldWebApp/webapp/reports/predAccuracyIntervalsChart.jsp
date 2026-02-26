@@ -2,7 +2,7 @@
          pageEncoding="UTF-8" %>
 
 <%@page import="org.transitclock.api.utils.WebUtils" %>
-<%@page import="org.transitclock.domain.webstructs.WebAgency" %>
+<%@page import="org.transitclock.core.dataCache.WebAgencyCache" %>
 <%@page import="java.util.ResourceBundle" %>
 
 <%
@@ -39,7 +39,7 @@
     String endTime = request.getParameter("endTime");
 
     String chartTitle = "Prediction Accuracy for "
-            + WebAgency.getCachedWebAgency(agencyId).getAgencyName()
+            + WebAgencyCache.getCachedWebAgency(agencyId).getAgencyName()
             + titleRoutes
             + source
             + ", " + beginDate + " " + labels.getString("div.for") + " " + numDays + " " + (Integer.parseInt(numDays) > 1 ? labels.getString("Days") : labels.getString("DayGenitive"));
@@ -145,15 +145,15 @@
             lineWidth: 4,
             intervals: {'style': 'area'},
             legend: 'bottom',
-            // Usually will first be displaying Transitime predictions and 
+            // Usually will first be displaying Transitime predictions and
             // those will get the first color. If both Transitime and Tther
             // predictions shown then the Other ones will get the second color.
-            // But want color for the Other predictions to be consistent 
+            // But want color for the Other predictions to be consistent
             // whether only Other predictions or both Other and Transitime ones
             // are shown. Therefore do something fancy here for consistency.
             series: [{'color': '<%= (sourceParam==null || !sourceParam.equals("Other")) ? "blue" : "red" %>'}, {'color': 'red'}],
             chartArea: {
-                // Use most of available area. But need to not use 100% or else 
+                // Use most of available area. But need to not use 100% or else
                 // labels won't appear
                 width: '90%',
                 height: '80%',
@@ -206,4 +206,3 @@
 
 </script>
 </html>
- 

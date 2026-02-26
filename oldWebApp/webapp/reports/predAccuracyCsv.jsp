@@ -1,8 +1,8 @@
 <%@ page import="org.transitclock.domain.GenericCsvQuery" %>
-<%@ page import="org.transitclock.domain.webstructs.WebAgency" %>
+<%@ page import="org.transitclock.core.dataCache.WebAgencyCache" %>
 <%@ page import="org.transitclock.utils.Time" %>
 <%@ page import="java.text.ParseException" %>
-<%-- This file is for outputting prediction accuracy data in CSV format. 
+<%-- This file is for outputting prediction accuracy data in CSV format.
   --%>
 <%
     // In order to make at least Windows based systems treat the file as
@@ -52,7 +52,7 @@
 // single quotes around "'1 day'", etc.
 
 
-    WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
+    WebAgency agency = WebAgencyCache.getCachedWebAgency(agencyId);
     String dbtype = agency.getDbType();
     String sql = null;
     if (dbtype.equals("mysql")) {
@@ -98,7 +98,7 @@
     }
 
 
-// Do the actual query	
+// Do the actual query
     String csvStr = GenericCsvQuery.getCsvString(agencyId, sql);
     response.getWriter().write(csvStr);
 %>

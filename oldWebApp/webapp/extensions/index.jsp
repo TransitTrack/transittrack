@@ -1,4 +1,4 @@
-<%@page import="org.transitclock.domain.webstructs.WebAgency" %>
+<%@page import="org.transitclock.core.dataCache.WebAgencyCache" %>
 
 <%@ page language="java" contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
@@ -19,7 +19,7 @@
 <body>
 <%@include file="/template/header.jsp" %>
 <div id="mainDiv">
-    <div id="title"><fmt:message key="div.ef"/> <%= WebAgency.getCachedWebAgency(agencyId).getAgencyName() %>
+    <div id="title"><fmt:message key="div.ef"/> <%= WebAgencyCache.getCachedWebAgency(agencyId).getAgencyName() %>
     </div>
     <ul class="choicesList">
         <li>

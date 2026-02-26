@@ -3,7 +3,7 @@
 <%@ page import="org.transitclock.api.utils.WebUtils" %>
 <%@page import="java.util.ResourceBundle" %>
 <%@page import="java.util.Locale" %>
-<%@page import="org.transitclock.domain.webstructs.WebAgency" %>
+<%@page import="org.transitclock.core.dataCache.WebAgencyCache" %>
 <%
     // Determine all the parameters from the query string
     ResourceBundle labels = ResourceBundle.getBundle("org.transitclock.i18n.text", request.getLocale());
@@ -39,7 +39,7 @@
     String endTime = request.getParameter("endTime");
 
     String chartTitle = labels.getString("PredictionAccuracyRangeFor") + " "
-            + WebAgency.getCachedWebAgency(agencyId).getAgencyName()
+            + WebAgencyCache.getCachedWebAgency(agencyId).getAgencyName()
             + titleRoutes
             + source
             + ", " + beginDate + " " + labels.getString("div.for") + " " + numDays + " " + (Integer.parseInt(numDays) > 1 ? labels.getString("Days") : labels.getString("DayGenitive"));

@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Extent;
 import org.transitclock.domain.structs.Location;
@@ -44,7 +46,7 @@ public class PredsByLoc {
         }
 
         // Haven't updated cache in a while so update it now
-        Collection<WebAgency> webAgencies = WebAgency.getCachedOrderedListOfWebAgencies();
+        Collection<WebAgency> webAgencies = WebAgencyCache.getCachedOrderedListOfWebAgencies();
 
         // For each agency get the extent
         for (WebAgency webAgency : webAgencies) {

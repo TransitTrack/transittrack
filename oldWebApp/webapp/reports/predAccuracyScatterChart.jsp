@@ -1,5 +1,5 @@
 <%@ page import="org.transitclock.api.utils.WebUtils" %>
-<%@page import="org.transitclock.domain.webstructs.WebAgency" %>
+<%@page import="org.transitclock.core.dataCache.WebAgencyCache" %>
 <%
     // Create title for chart
     String agencyId = request.getParameter("a");
@@ -29,7 +29,7 @@
     String endTime = request.getParameter("endTime");
 
     String chartTitle = "Prediction Accuracy for "
-            + WebAgency.getCachedWebAgency(agencyId).getAgencyName()
+            + WebAgencyCache.getCachedWebAgency(agencyId).getAgencyName()
             + titleRoutes
             + source
             + ", " + beginDate + " for " + numDays + " day" + (Integer.parseInt(numDays) > 1 ? "s" : "");

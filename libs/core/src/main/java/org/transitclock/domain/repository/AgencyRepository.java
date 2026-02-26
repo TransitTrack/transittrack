@@ -14,19 +14,6 @@ import java.util.TimeZone;
 
 @Slf4j
 public class AgencyRepository extends BaseRepository<Agency> {
-    /**
-     * Deletes rev from the Agencies table
-     *
-     * @param session
-     * @param configRev
-     * @return Number of rows deleted
-     * @throws HibernateException
-     */
-    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
-        // Note that hql uses class name, not the table name
-        return session.createMutationQuery("DELETE Agency WHERE configRev=" + configRev)
-                .executeUpdate();
-    }
 
     /**
      * Returns List of Agency objects for the specified database revision.
@@ -69,5 +56,19 @@ public class AgencyRepository extends BaseRepository<Agency> {
         List<Agency> agencies = getAgencies(agencyId, configRev);
         if (!agencies.isEmpty()) return agencies.get(0).getTimeZone();
         else return null;
+    }
+
+    /**
+     * Deletes rev from the Agencies table
+     *
+     * @param session
+     * @param configRev
+     * @return Number of rows deleted
+     * @throws HibernateException
+     */
+    public static int deleteFromRev(Session session, int configRev) throws HibernateException {
+        // Note that hql uses class name, not the table name
+        return session.createMutationQuery("DELETE Agency WHERE configRev=" + configRev)
+                .executeUpdate();
     }
 }

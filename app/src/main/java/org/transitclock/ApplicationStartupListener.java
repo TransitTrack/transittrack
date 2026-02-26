@@ -2,6 +2,7 @@ package org.transitclock;
 
 import java.util.TimeZone;
 
+import org.transitclock.domain.repository.WebAgencyRepository;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.properties.CoreProperties;
 
@@ -27,8 +28,7 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
         TimeZone aDefault = TimeZone.getDefault();
         logger.warn("Application started using Timezone [{}, offset={}, daylight={}]", aDefault.getID(), aDefault.getRawOffset(), aDefault.useDaylightTime());
 
-        String agencyId = properties.getAgencyId();
-        WebAgency webAgency = new WebAgency(agencyId,
+        WebAgency webAgency = new WebAgency(properties.getAgencyId(),
             "127.0.0.1",
             true,
             dataSourceProperties.getName(),
@@ -39,7 +39,7 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
 
         try {
             // Store the WebAgency
-            webAgency.store(agencyId);
+            WebAgencyRepository.store(webAgency);
         } catch (IllegalArgumentException ignored) {
 
         }
