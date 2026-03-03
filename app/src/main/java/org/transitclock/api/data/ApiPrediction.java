@@ -83,7 +83,7 @@ public class ApiPrediction {
         // Only set schedBasedPreds if it is schedule based so that the
         // attribute is not output for the majority of the times that it
         // is not schedule based.
-        schedBasedPreds = prediction.isSchedBasedPred() ? true : null;
+        schedBasedPreds = prediction.isSchedBasedPred();
 
         if (!prediction.isArrival()) isDeparture = true;
 

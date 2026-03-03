@@ -139,8 +139,8 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         blockAssignmentMethod = vehicle.getBlockAssignmentMethod();
         tripId = vehicle.getTripId();
         tripPatternId = vehicle.getTripPatternId();
-        isDelayed = vehicle.isDelayed() ? true : null;
-        isLayover = vehicle.isLayover() ? true : null;
+        isDelayed = vehicle.isDelayed();
+        isLayover = vehicle.isLayover();
         layoverDepTime = vehicle.isLayover() ? vehicle.getLayoverDepartureTime() / Time.MS_PER_SEC : null;
 
         layoverDepTimeStr =

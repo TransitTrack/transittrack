@@ -50,6 +50,6 @@ public class ApiStop extends ApiLocation {
         this.pathLength = stop.getStopPathLength() == null ? 0.0 : stop.getStopPathLength();
         // If true then set to null so that this attribute won't then be
         // output as XML/JSON, therefore making output a bit more compact.
-        this.minor = stop.isUiStop() ? null : true;
+        this.minor = !stop.isUiStop();
     }
 }

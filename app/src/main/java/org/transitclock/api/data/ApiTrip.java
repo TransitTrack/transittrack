@@ -60,7 +60,7 @@ public class ApiTrip {
     @JsonProperty
     private Boolean noSchedule;
 
-    @JsonProperty("times")
+    @JsonProperty("schedule")
     private List<ApiScheduleArrDepTime> times;
 
     /**
@@ -82,7 +82,7 @@ public class ApiTrip {
         blockId = ipcTrip.getBlockId();
         shapeId = ipcTrip.getShapeId();
 
-        noSchedule = ipcTrip.isNoSchedule() ? true : null;
+        noSchedule = ipcTrip.isNoSchedule();
 
         times = ipcTrip.getScheduleTimes()
                 .stream()

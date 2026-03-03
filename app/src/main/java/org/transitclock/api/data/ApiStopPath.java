@@ -65,9 +65,9 @@ public class ApiStopPath {
         stopId = ipcStopPath.getStopId();
         stopName = ipcStopPath.getStopName();
         gtfsStopSeq = ipcStopPath.getGtfsStopSeq();
-        layoverStop = ipcStopPath.isLayoverStop() ? true : null;
-        waitStop = ipcStopPath.isWaitStop() ? true : null;
-        scheduleAdherenceStop = ipcStopPath.isScheduleAdherenceStop() ? true : null;
+        layoverStop = ipcStopPath.isLayoverStop();
+        waitStop = ipcStopPath.isWaitStop();
+        scheduleAdherenceStop = ipcStopPath.isScheduleAdherenceStop();
         breakTime = ipcStopPath.getBreakTime().orElse(null);
 
         locations = new ArrayList<>();

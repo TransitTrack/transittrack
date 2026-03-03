@@ -82,6 +82,6 @@ public abstract class ApiVehicleAbstract {
             this.uiType = "minor";
         }
 
-        this.schedBasedPreds = vehicle.isForSchedBasedPred() ? true : null;
+        this.schedBasedPreds = vehicle.isForSchedBasedPred();
     }
 }
