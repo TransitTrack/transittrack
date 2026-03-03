@@ -21,10 +21,10 @@ public class ApiExportData {
     private long id;
 
     @JsonProperty
-    private Date dataDate;
+    private long dataDate;
 
     @JsonProperty
-    private Date exportDate;
+    private long exportDate;
 
     @JsonProperty
     private int exportType;
@@ -44,19 +44,10 @@ public class ApiExportData {
         this.exportType = exportTable.getExportType();
         this.exportStatus = exportTable.getExportStatus();
         this.fileName = exportTable.getFileName();
-        this.dataDate = exportTable.getDataDate();
-        this.exportDate = exportTable.getExportDate();
+        this.dataDate = exportTable.getDataDate().getTime();
+        this.exportDate = exportTable.getExportDate().getTime();
         this.file = exportTable.getExportType() >= 2
                 && exportTable.getFile() != null
                 ? new String(exportTable.getFile(), StandardCharsets.UTF_8) : "";
-    }
-
-    public ApiExportData(Long id, Date dataDate, Date exportDate, Integer exportType, Integer exportStatus, String fileName) {
-        this.id = id;
-        this.exportType = exportType;
-        this.fileName = fileName;
-        this.dataDate = dataDate;
-        this.exportDate = exportDate;
-        this.exportStatus = exportStatus;
     }
 }
