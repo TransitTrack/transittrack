@@ -2,6 +2,7 @@
 package org.transitclock.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.transitclock.Core;
 import org.transitclock.core.dataCache.VehicleDataCache;
@@ -167,19 +168,16 @@ public class ConfigServiceImpl implements ConfigInterface {
      */
     @Override
     public Collection<IpcBlock> getBlocks(String blockId) {
-        // For returning results
-        List<IpcBlock> ipcBlocks = new ArrayList<>();
-
-        // Get the blocks with specified ID
-        Collection<Block> dbBlocks = Core.getInstance().getDbConfig().getBlocksForAllServiceIds(blockId);
-
-        // Convert blocks from DB into IpcBlocks
-        for (Block dbBlock : dbBlocks) {
-            ipcBlocks.add(new IpcBlock(dbBlock));
+        // For all Blocks if don't set an ID
+        if (StringUtils.isEmpty(blockId)) {
+            return Core.getInstance().getDbConfig().getBlocks().stream()
+                    .map(IpcBlock::new)
+                    .collect(Collectors.toList());
         }
-
-        // Return result
-        return ipcBlocks;
+        // Get the block with specified ID & convert blocks from DB into IpcBlocks
+        return Core.getInstance().getDbConfig().getBlocksForAllServiceIds(blockId).stream()
+                .map(IpcBlock::new)
+                .collect(Collectors.toList());
     }
 
     /* (non-Javadoc)

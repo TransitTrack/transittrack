@@ -1315,13 +1315,13 @@ public class TransitimeApi {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Operation(
-            summary = "Retrives configuration data for the specified block ID.",
-            description = "Retrives configuration data for the specified block ID. It does not include"
-                    + " trip patterns.Every trip is associated with a block.",
+            summary = "Retrieves configuration data for the specified block ID if set.",
+            description = "Retrieves configuration data for all or the specified block ID. It does not include"
+                    + " trip patterns. Every trip is associated with a block.",
             tags = {"base data", "trip", "block"})
     public Response getBlocksTerse(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Block id to be asked.", required = true) @QueryParam(value = "blockId")
+            @Parameter(description = "Block id to be asked.", required = false) @QueryParam(value = "blockId")
             String blockId)
             throws WebApplicationException {
 
@@ -1335,7 +1335,7 @@ public class TransitimeApi {
 
             // If the block doesn't exist then throw exception such that
             // Bad Request with an appropriate message is returned.
-            if (ipcBlocks.isEmpty()) throw WebUtils.badRequestException("The blockId=" + blockId + " does not exist.");
+            if (ipcBlocks.isEmpty() && !blockId.isBlank()) throw WebUtils.badRequestException("The blockId=" + blockId + " does not exist.");
 
             // Create and return ApiBlock response
             ApiBlocksTerse apiBlocks = new ApiBlocksTerse(ipcBlocks);
