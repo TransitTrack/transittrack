@@ -297,6 +297,22 @@ public class CommandsServiceImpl implements CommandsInterface {
         }
     }
 
+    @Override
+    public String removeVehilceFromCache(String vehicleId) {
+        setVehicleUnpredictable(vehicleId);
+        VehicleDataCache dataCache = VehicleDataCache.getInstance();
+        String avl = dataCache.removeVehicle(vehicleId);
+        logger.info("Removed from vehicle data-cache the unused vehicle with ID: {}", vehicleId);
+        return avl;
+    }
+
+    @Override
+    public void resetVehicleDataCache() {
+        VehicleDataCache dataCache = VehicleDataCache.getInstance();
+        dataCache.resetVehiclesCache();
+        logger.info("Initiate a vehicle cache reset to eliminate any unused vehicles.");
+    }
+
     private void processVehicleToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, long startOfDayInSeconds, Map<String, Boolean> resultsOfAdding) {
         for (VehicleToBlockConfig assignment : vehiclesToBlocks) {
             try {

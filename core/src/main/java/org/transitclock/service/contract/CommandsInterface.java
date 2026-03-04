@@ -98,11 +98,23 @@ public interface CommandsInterface {
 
     /**
      * Delete application key.
-     * Returns applicationName on success.
+     * Returns key on success.
      *
      * @param apiKey
      */
     String removeApiKey(String apiKey) throws Exception;
+
+    /**
+     * Delete vehicleId.
+     *
+     * @param vehicleId
+     */
+    String removeVehilceFromCache(String vehicleId);
+
+    /**
+     * Delete all vehicles from cache.
+     */
+    void resetVehicleDataCache();
 
     /**
      * Save exportTable .
