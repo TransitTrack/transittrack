@@ -109,7 +109,7 @@ public interface CommandsInterface {
      *
      * @param vehicleId
      */
-    String removeVehilceFromCache(String vehicleId);
+    String removeVehicleFromCache(String vehicleId);
 
     /**
      * Delete all vehicles from cache.

@@ -489,7 +489,10 @@ public class VehicleDataCache {
         vehiclesMap.remove(vehicleId);
         vehicleConfigsMap.remove(vehicleId);
 //        Return latest avl for deleted vehicle
-        return vehicle.getAvl().toString();
+        return new StringBuilder("Vehicle's name: ")
+                .append(vehicle.getVehicleName())
+                .append(". and ID: ")
+                .append(vehicle.getId()).toString();
     }
 
     public void resetVehiclesCache() {

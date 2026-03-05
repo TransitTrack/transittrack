@@ -400,7 +400,7 @@ public class CacheApi {
                 inter.resetVehicleDataCache();
                 return stdParameters.createResponse("Vehicle's cache has been successfully reseed.");
             } else if (!vehicleId.isBlank()) {
-                String avl = inter.removeVehilceFromCache(vehicleId);
+                String avl = inter.removeVehicleFromCache(vehicleId);
                 return stdParameters.createResponse("Successfully deleted vehicle: " + avl);
             } else throw WebUtils.badRequestException("Isn't set any parameter.");
         } catch (Exception e) {

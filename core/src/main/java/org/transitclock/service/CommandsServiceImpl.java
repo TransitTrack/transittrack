@@ -298,7 +298,7 @@ public class CommandsServiceImpl implements CommandsInterface {
     }
 
     @Override
-    public String removeVehilceFromCache(String vehicleId) {
+    public String removeVehicleFromCache(String vehicleId) {
         setVehicleUnpredictable(vehicleId);
         VehicleDataCache dataCache = VehicleDataCache.getInstance();
         String avl = dataCache.removeVehicle(vehicleId);
