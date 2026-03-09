@@ -220,8 +220,6 @@ public class ReportsResource extends BaseApiResource implements ReportsApi {
     @Override
     public ResponseEntity<String> getMaxOccupancyByRouteDate(StandardParameters stdParameters, String date, String routeId, String routeShortName) {
         try {
-            if(StringUtils.isEmpty(routeShortName) && StringUtils.isEmpty(routeId) ) return ResponseEntity.badRequest().body(
-                    "Route ID or name must be provided as request parameter: \"routId\" or \"routeName\"");
             String response = Reports.getMaxIncreasePaxPerRoute(stdParameters.getAgencyId(), routeId, routeShortName, date);
             return stdParameters.createResponse(response);
         } catch (Exception e) {

@@ -24,7 +24,7 @@ import static org.transitclock.utils.Time.YEAR_IN_MSECS;
 
 public class Reports {
 
-    private static final int MAX_ROWS = 50000;
+    private static final int MAX_ROWS = 150000;
     private static final int MAX_NUM_DAYS = 7;
 
     /**
