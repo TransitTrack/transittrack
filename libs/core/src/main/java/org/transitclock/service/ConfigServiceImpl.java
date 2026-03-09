@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.util.StringUtils;
+
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.structs.Agency;
@@ -191,19 +193,16 @@ public class ConfigServiceImpl implements ConfigService {
      */
     @Override
     public Collection<IpcBlock> getBlocks(String blockId) {
-        // For returning results
-        List<IpcBlock> ipcBlocks = new ArrayList<>();
-
-        // Get the blocks with specified ID
-        Collection<Block> dbBlocks = dbConfig.getBlocksForAllServiceIds(blockId);
-
-        // Convert blocks from DB into IpcBlocks
-        for (Block dbBlock : dbBlocks) {
-            ipcBlocks.add(new IpcBlock(dbBlock, dbConfig));
+        // For all Blocks if don't set an ID
+        if (StringUtils.isEmpty(blockId)) {
+            return dbConfig.getBlocks().stream()
+                    .map(dbBlock -> new IpcBlock(dbBlock, dbConfig))
+                    .collect(Collectors.toList());
         }
-
-        // Return result
-        return ipcBlocks;
+        // Get the blocks with specified ID & convert blocks from DB into IpcBlocks
+        return dbConfig.getBlocksForAllServiceIds(blockId).stream()
+                .map(dbBlock -> new IpcBlock(dbBlock, dbConfig))
+                .collect(Collectors.toList());
     }
 
     /* (non-Javadoc)
@@ -390,7 +389,7 @@ public class ConfigServiceImpl implements ConfigService {
                                              null))
                 .collect(Collectors.toList());
     }
-  
+
     /* (non-Javadoc)
      * @see org.transitclock.ipc.interfaces.ConfigInterface#getServiceIdsWithBlockIds()
      */

@@ -457,13 +457,13 @@ public interface TransitimeApi {
     @GetMapping(value = "/command/blocksTerse",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     @Operation(
-            summary = "Retrives configuration data for the specified block ID.",
-            description = "Retrives configuration data for the specified block ID. It does not include"
-                    + " trip patterns.Every trip is associated with a block.",
+            summary = "Retrieves configuration data for the specified block ID if set.",
+            description = "Retrieves configuration data for all or the specified block ID. It does not include"
+                    + " trip patterns. Every trip is associated with a block.",
             tags = {"base data", "trip", "block"})
     ResponseEntity<ApiBlocksTerseResponse> getBlocksTerse(
             StandardParameters stdParameters,
-            @Parameter(description = "Block id to be asked.", required = true) @RequestParam(value = "blockId")
+            @Parameter(description = "Block id to be asked.") @RequestParam(value = "blockId", required = false)
             String blockId);
 
     /**

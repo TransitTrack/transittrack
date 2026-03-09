@@ -15,6 +15,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.hibernate.HibernateUtils;
@@ -529,6 +530,13 @@ public class Block implements Serializable {
     }
 
     /**
+     * @return the trips
+     */
+    public List<Trip> getTrips(String id) {
+        return trips;
+    }
+
+    /**
      * Uses lazy initialization to determine the trips for the block.
      *
      * @return the trips as an unmodifiable collection
@@ -643,7 +651,7 @@ public class Block implements Serializable {
 
                     // Now that have attached a new session lazy load the trips
                     // data
-                    trips.get(0);
+                    trips.getFirst();
                 } else {
                     // Not a socket timeout. Therefore don't know handle
                     // to handle so just log and throw the exception
@@ -652,11 +660,25 @@ public class Block implements Serializable {
                             e.getSQL(),
                             e.getSQLException().getMessage(),
                             e);
+
+                    //If transaction has stuck so try to rollback
+                    SharedSessionContractImplementor session = null;
+                    if (trips instanceof PersistentList<?> persistentListTrips) {
+                        session = persistentListTrips.getSession();
+                    }
+                    if (session != null && session.getTransaction().isActive()) {
+                        try {
+                            session.getTransaction().rollback();
+                            logger.warn("Rolled back transaction after JDBCException");
+                        } catch (Exception ex) {
+                            logger.error("Failed to rollback after JDBCException", ex);
+                        }
+                    }
                     throw e;
                 }
 
                 // Actually lazy-load the trips
-                trips.get(0);
+                trips.getFirst();
             }
 
             logger.debug(
@@ -743,6 +765,7 @@ public class Block implements Serializable {
      */
     public Set<String> getRouteIds() {
         return routeIds;
+    }
         //      Note: previously was getting them from trips but this requires a call
         //      to getTrips() which loads in all the data from db for the trips for
         //      the block, which is quite slow. By generating the routeIds when the
@@ -753,7 +776,6 @@ public class Block implements Serializable {
         //			routeIdsSet.add(trip.getRouteId());
         //		}
         //		return routeIdsSet;
-    }
 
     /**
      * Returns the trip patterns associated with the block. Note that these are not in any kind of

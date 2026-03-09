@@ -1,6 +1,8 @@
 /* (C)2023 */
 package org.transitclock.gtfs;
 
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,6 +11,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import org.hibernate.Hibernate;
+import org.hibernate.JDBCException;
+import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.internal.SessionImpl;
 
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.HibernateUtils;
@@ -37,6 +45,7 @@ import org.transitclock.domain.structs.Transfer;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.properties.ServiceProperties;
+import org.transitclock.utils.ExceptionUtils;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.SystemTime;
@@ -422,6 +431,159 @@ public class DbConfig {
 
         // Return cached trip data
         return tripsMap;
+    }
+
+    public List<Trip> getTrips(Block block) {
+        var trips = block.getTrips(block.getBlockId());
+        // If trips already lazy loaded then simply return them
+        if (Hibernate.isInitialized(trips))
+            return Collections.unmodifiableList(trips);
+
+        // Trips not yet lazy loaded so do so now.
+        // It appears that lazy initialization is problematic when have multiple
+        // simultaneous threads. Get "org.hibernate.AssertionFailure: force
+        // initialize loading collection". Therefore need to make sure that
+        // only loading lazy sub-data serially. Since it is desirable to have
+        // trips collection be lazy loaded so that app starts right away without
+        // loading all the sub-data for every block assignment need to make
+        // sure this is done in a serialized way. Having app not load all data
+        // at startup is especially important when debugging.
+        // trips not yet initialized so synchronize so only a single
+        // thread can initialize at once and then access something
+        // in trips that will cause it to be lazy loaded.
+        synchronized (BlockRepository.lazyLoadingSyncObject) {
+            String serviceId = block.getServiceId();
+            String id = block.getId();
+
+            logger.debug("About to do lazy load for trips data for " + "blockId={} serviceId={}...", id, serviceId);
+            IntervalTimer timer = new IntervalTimer();
+
+            // Access the collection so that it is lazy loaded.
+            // Problems can be difficult to debug so log error along
+            // with the SQL.
+            try {
+                // First see if the session associated with trips is different
+                // from the current global session. This can happen if a new
+                // global session was created when trips for another block was
+                // loaded and it was found that the old session was no longer
+                // valid, such as when the db is rebooted.
+                if (trips instanceof PersistentList<?> persistentListTrips) {
+                    // Get the current session associated with the trips.
+                    // Can be null.
+                    var session = persistentListTrips.getSession();
+
+                    // If the session is different from the global
+                    // session then need to attach the new session to the
+                    // object.
+                    Session threadSession = HibernateUtils.getSession();
+                    if (session != threadSession) {
+                        // The persistent object is using an old session so
+                        // switch to new one
+                        logger.info(
+                                "For blockId={} was using an old session "
+                                        + "(hash={}) instead of the current "
+                                        + "globalLazyLoadSession (hash={}). Therefore "
+                                        + "switching the Block to use the new "
+                                        + "globalLazyLoadSession.",
+                                id,
+                                session == null ? null : session.hashCode(),
+                                threadSession.hashCode());
+
+                        threadSession.merge(block);
+                    }
+                } else {
+                    logger.error("Blocks.trips member is not a PersistentList!?!?. ");
+                }
+                // Actually lazy-load the trips
+                trips.getFirst();
+
+            } catch (JDBCException e) {
+                // TODO this is an anti-pattern
+                // If root cause of exception is a SocketTimeoutException
+                // then somehow lost connection to the database. Might have
+                // been rebooted or such. For this situation need to attach
+                // object to new session.
+                Throwable rootCause = ExceptionUtils.getRootCause(e);
+                if (rootCause instanceof SocketTimeoutException || rootCause instanceof SocketException) {
+                    logger.error("Socket timeout in getTrips() for blockId={}. Database might have been rebooted. Creating a new session.",
+                                 id, e);
+
+                    // Even though there was a timeout meaning that the
+                    // session is no longer any good the Block object
+                    // might still be associated with the old session.
+                    // In order to attach the Block to a newly created
+                    // session need to first close the old session or else
+                    // system will complain that trying to add a object
+                    // to two live sessions. Tried using session.evict(this)
+                    // but still got exception "Illegal attempt to associate
+                    // a collection with two open sessions"
+                    var persistentListTrips = (PersistentList<?>) trips;
+                    var sessionImpl = persistentListTrips.getSession();
+                    SessionImpl session = (SessionImpl) sessionImpl;
+                    if (!session.isClosed()) {
+                        try {
+                            // Note: this causes a stack trace to be output
+                            // to stdout by Hibernate. Seems that this
+                            // cannot be avoided since need to close the
+                            // session.
+                            session.close();
+                        } catch (HibernateException e1) {
+                            logger.error(
+                                    "Exception occurred when trying "
+                                            + "to close session when lazy loading "
+                                            + "data after socket timeout occurred.",
+                                    e1);
+                        }
+                    }
+
+                    // Get new session, update object to use it, and try again.
+                    // Note: before calling get(0) to load the data first made
+                    // sure that the session used for the Block.trips is the same
+                    // as the current session. Therefore if made it here then it
+                    // means that definitely need to create new session.
+                    Session globalLazyLoadSession = HibernateUtils.getSession();
+                    globalLazyLoadSession.merge(block);
+
+                    // Now that have attached a new session lazy load the trips
+                    // data
+                    trips.getFirst();
+
+                } else {
+                    // Not a socket timeout. Therefore don't know handle
+                    // to handle so just log and throw the exception
+                    logger.error(
+                            "In Block.getTrips() got JDBCException. " + "SQL=\"{}\" msg={}",
+                            e.getSQL(),
+                            e.getSQLException().getMessage(),
+                            e);
+
+                    //If transaction has stuck so try to rollback
+                    SharedSessionContractImplementor session = null;
+                    if (trips instanceof PersistentList<?> persistentListTrips) {
+                        session = persistentListTrips.getSession();
+                    }
+                    if (session != null && session.getTransaction().isActive()) {
+                        try {
+                            session.getTransaction().rollback();
+                            logger.warn("Rolled back transaction after JDBCException");
+                        } catch (Exception ex) {
+                            logger.error("Failed to rollback after JDBCException", ex);
+                        }
+                    }
+                    throw e;
+                }
+                // Actually lazy-load the trips
+                trips.getFirst();
+            }
+
+            logger.debug(
+                    "Finished lazy load for trips data for " + "blockId={} serviceId={}. Took {} msec",
+                    id,
+                    serviceId,
+                    timer.elapsedMsec());
+        }
+
+        return Collections.unmodifiableList(trips);
     }
 
     /**

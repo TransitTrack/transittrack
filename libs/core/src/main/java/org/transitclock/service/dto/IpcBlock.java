@@ -34,16 +34,13 @@ public class IpcBlock implements Serializable {
         startTime = dbBlock.getStartTime();
         endTime = dbBlock.getEndTime();
 
-        trips = new ArrayList<IpcTrip>();
-        for (Trip dbTrip : dbBlock.getTrips()) {
-            trips.add(new IpcTrip(dbTrip, dbConfig));
-        }
+        trips = dbConfig.getTrips(dbBlock).stream()
+                .map(dbTrip -> new IpcTrip(dbTrip, dbConfig)).toList();
 
-        routeSummaries = new ArrayList<>();
-        for (String routeId : dbBlock.getRouteIds()) {
-            Route dbRoute = dbConfig.getRouteById(routeId);
-            routeSummaries.add(new IpcRouteSummary(dbRoute));
-        }
+        routeSummaries = dbBlock.getRouteIds().stream()
+                .map(dbConfig::getRouteById)
+                .map(IpcRouteSummary::new)
+                .toList();
     }
 
     @Override

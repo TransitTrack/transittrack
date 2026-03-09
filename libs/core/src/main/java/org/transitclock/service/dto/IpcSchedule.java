@@ -252,7 +252,7 @@ public class IpcSchedule implements Serializable {
             String serviceId = block.getServiceId();
             String serviceName = serviceId;
 
-            for (Trip trip : block.getTrips()) {
+            for (Trip trip : dbConfig.getTrips(block)) {
                 // Can have interlining where have different routes for a
                 // block. Therefore throw out trips that are not part of block.
                 if (!trip.getRouteId().equals(route.getId())) continue;
