@@ -13,7 +13,7 @@ import org.transitclock.api.data.ApiCommandAck;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
 import org.transitclock.config.data.ApiConfig;
-import org.transitclock.core.reports.ScheduleAdhStopsReport;
+import org.transitclock.core.reports.ReportsToCsvService;
 import org.transitclock.domain.GenericQuery;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
@@ -595,7 +595,7 @@ public class CommandsApi {
             String allowableLate = jsonBody.getString("allowableLate");
             boolean isDaily = jsonBody.has("isDaily") && jsonBody.getBoolean("isDaily");
 
-            ScheduleAdhStopsReport reportCreator = new ScheduleAdhStopsReport();
+            ReportsToCsvService reportCreator = new ReportsToCsvService();
             if (isDaily) reportCreator
                     .createDailyScheduleAdhCSVReportForStops(stdParameters.getAgencyId(), beginDate, allowableEarly, allowableLate, hostUrl);
             else reportCreator

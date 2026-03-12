@@ -6,11 +6,13 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.transitclock.Core;
+import org.transitclock.core.dataCache.ExportTableCache;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.repository.contract.RepositoryInterface;
+import org.transitclock.service.CommandsServiceImpl;
 import org.transitclock.utils.IntervalTimer;
 
 import java.io.FileWriter;
@@ -27,7 +29,7 @@ import java.util.stream.IntStream;
 
 
 @Slf4j
-public class ScheduleAdhStopsReport {
+public class ReportsToCsvService {
 
     private final List<String[]> fullExport = new ArrayList<>(300000);
     private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
@@ -71,7 +73,7 @@ public class ScheduleAdhStopsReport {
                                                    String allowableEarly,
                                                    String allowableLate,
                                                    String hostUrl
-    ) {
+    ) throws Exception {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
@@ -84,7 +86,8 @@ public class ScheduleAdhStopsReport {
         // Validate date range
         long numDays = getNumDays(date1, date2);
 
-        exportRepo.save(new ExportTable(new Date(), 2, 2, FILE_NAME));
+        ExportTable newExport = CommandsServiceImpl.instance().save(new ExportTable(new Date(), 2, 2, FILE_NAME));
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -105,23 +108,24 @@ public class ScheduleAdhStopsReport {
                         Thread.sleep(300);
                     }
                 } catch (Exception ex) {
-                    deleteIfException(FILE_NAME);
+                    deleteIfException(newExport);
                     logger.warn(ex.getMessage());
                     throw new RuntimeException(ex);
                 }
 
-                writeToCSVFile(FILE_NAME, HOST, timer);
+                writeToCSVFile(newExport, HOST, timer);
             }
         }).start();
     }
 
-    private void deleteIfException(String fileName) {
+    private void deleteIfException(ExportTable toDelete) {
         Session session = HibernateUtils.getSession();
         Transaction tx = session.beginTransaction();
         try {
 //          begin transaction
-            exportRepo.deleteByName(session, fileName);
+            exportRepo.deleteByName(session, toDelete.getFileName());
             tx.commit();
+            ExportTableCache.getInstance().removeExportTable(toDelete);
         } catch (Exception e) {
             if (tx != null && tx.isActive()) {
                 tx.rollback();
@@ -137,7 +141,7 @@ public class ScheduleAdhStopsReport {
                                                         String allowableEarly,
                                                         String allowableLate,
                                                         String hostUrl
-    ) {
+    ) throws Exception {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
@@ -146,7 +150,8 @@ public class ScheduleAdhStopsReport {
 
         LocalDate date1 = validateParseToLocalDate(beginDate);
         List<Route> routes = Core.getInstance().getDbConfig().getRoutes();
-        exportRepo.save(new ExportTable(new Date(), 3, 2, FILE_NAME));
+
+        ExportTable newExport = CommandsServiceImpl.instance().save(new ExportTable(new Date(), 3, 2, FILE_NAME));
 
         new Thread(new Runnable() {
             @Override
@@ -167,33 +172,36 @@ public class ScheduleAdhStopsReport {
                         Thread.sleep(300);
                     }
                 } catch (Exception ex) {
-                    deleteIfException(FILE_NAME);
+                    deleteIfException(newExport);
                     logger.warn(ex.getMessage());
                     throw new RuntimeException(ex);
                 }
 
-                writeToCSVFile(FILE_NAME, HOST, timer);
+                writeToCSVFile(newExport, HOST, timer);
             }
         }).start();
     }
 
-    private void writeToCSVFile(String fileName, String host, IntervalTimer timer) {
+    private void writeToCSVFile(ExportTable export, String host, IntervalTimer timer) {
+        String name = export.getFileName();
         Transaction tx = null;
-        try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
+        try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + name, StandardCharsets.UTF_8));
              Session session = HibernateUtils.getSession();
         ) {
             writer.writeAll(fullExport);
 //          begin transaction
             tx = session.beginTransaction();
-            exportRepo.update(session, fileName, (host + fileName).getBytes());
+            exportRepo.update(session, name, (host + name).getBytes());
             tx.commit();
-            logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), fileName, timer.elapsedMsec() / 1000);
+            logger.info("Created CSV of {} rows and written to {} in {} sec", fullExport.size(), name, timer.elapsedMsec() / 1000);
+            ExportTableCache.getInstance().updateExportsCache(export.getExportType(), false);
+            logger.info("Export table cache has been reloaded");
         } catch (Exception ex) {
             if (tx != null && tx.isActive()) {
                 tx.rollback();
             }
-            logger.warn("Creating report to CSV of name '{}' is failed! Cause: {}", fileName, ex.getMessage());
-            deleteIfException(fileName);
+            logger.warn("Creating report to CSV of name '{}' is failed! Cause: {}", name, ex.getMessage());
+            deleteIfException(export);
             logger.warn(ex.getMessage());
         }
     }

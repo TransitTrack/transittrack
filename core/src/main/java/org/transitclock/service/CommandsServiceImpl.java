@@ -10,6 +10,7 @@ import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.TemporalMatch;
 import org.transitclock.core.VehicleState;
 import org.transitclock.core.avl.AvlExecutor;
+import org.transitclock.core.dataCache.ExportTableCache;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
@@ -243,9 +244,16 @@ public class CommandsServiceImpl implements CommandsInterface {
 
     @Override
     public ExportTable save(ExportTable exportTable) throws Exception {
+        try (var session = HibernateUtils.getSession()) {
+            session.setDefaultReadOnly(true);
         var export = exportRepo.save(exportTable);
-        logger.info("Successfully save export with order {} to database. ", export.getFileName());
-        return export;
+        Thread.sleep(2000);
+        var persistedExport = exportRepo.findByName(session, export.getFileName());
+            persistedExport.setExportStatus(2);
+        ExportTableCache.getInstance().addExportTable(persistedExport);
+        logger.info("Successfully save export '{}' to database. ", export.getFileName());
+        return persistedExport;
+        }
     }
 
     @Override
@@ -258,7 +266,10 @@ public class CommandsServiceImpl implements CommandsInterface {
                 tx = session.beginTransaction();
                 var isDeleted = exportRepo.deleteById(session, id);
                 tx.commit();
-                if (isDeleted) return exportsToDelete;
+                if (isDeleted){
+                    ExportTableCache.getInstance().updateExportsCache(exportsToDelete.getExportType(), true);
+                    return exportsToDelete;
+                }
             }
             throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
         } catch (Exception ex) {

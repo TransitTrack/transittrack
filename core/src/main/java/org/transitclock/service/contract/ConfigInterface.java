@@ -208,7 +208,5 @@ public interface ConfigInterface {
 
     ExportTable getExportById(long id) throws RuntimeException;
 
-    List<ExportTable> getExports() throws RuntimeException;
-
     List<ExportTable> getExports(int type) throws RuntimeException;
 }

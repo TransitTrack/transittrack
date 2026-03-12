@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.transitclock.Core;
+import org.transitclock.core.dataCache.ExportTableCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
@@ -168,7 +169,7 @@ public class ConfigServiceImpl implements ConfigInterface {
      */
     @Override
     public Collection<IpcBlock> getBlocks(String blockId) {
-        // For all Blocks if don't set an ID
+        // For all Blocks if is didn't set an ID
         if (StringUtils.isEmpty(blockId)) {
             return Core.getInstance().getDbConfig().getBlocks().stream()
                     .map(IpcBlock::new)
@@ -187,7 +188,7 @@ public class ConfigServiceImpl implements ConfigInterface {
     public IpcTrip getTrip(String tripId) {
         Trip dbTrip = Core.getInstance().getDbConfig().getTrip(tripId);
 
-        // If couldn't find a trip with the specified trip_id then see if a
+        // When couldn't find a trip with the specified trip_id then see if a
         // trip has the trip_short_name specified.
         if (dbTrip == null) {
             dbTrip = Core.getInstance().getDbConfig().getTripUsingTripShortName(tripId);
@@ -423,26 +424,12 @@ public class ConfigServiceImpl implements ConfigInterface {
         }
     }
 
-    @Override
-    public List<ExportTable> getExports() throws RuntimeException {
-        try (Session session = HibernateUtils.getSession()) {
-            session.setDefaultReadOnly(true);
-            var exports = exportRepo.findAll(session);
-            if (exports != null && !exports.isEmpty()) {
-                logger.info("Successfully fetched {} exports", exports.size());
-            return exports;
-            } else throw new IllegalArgumentException("Could not find exports - probably db has not any");
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
-            throw ex;
-        }
-    }
+
     @Override
     public List<ExportTable> getExports(int type) throws RuntimeException {
-        try (Session session = HibernateUtils.getSession()) {
-            session.setDefaultReadOnly(true);
-            var exports = exportRepo.findByType(session,  type);
-            if (exports != null && !exports.isEmpty()) {
+        try {
+            var exports = ExportTableCache.getInstance().getByType(type);
+            if (exports != null) {
                 logger.info("Successfully fetched {} exports by type: {}", exports.size(), type);
                 return exports;
             } else throw new NoSuchElementException("Could not find exports - probably db has not any");

@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.transitclock.config.data.TraccarConfig.mphInsteadOfKmh;
-import static org.transitclock.core.reports.ScheduleAdhStopsReport.*;
+import static org.transitclock.core.reports.ReportsToCsvService.*;
 import static org.transitclock.utils.Time.DAY_IN_MSECS;
 import static org.transitclock.utils.Time.YEAR_IN_MSECS;
 

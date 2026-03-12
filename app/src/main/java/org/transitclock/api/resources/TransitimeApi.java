@@ -1111,7 +1111,7 @@ public class TransitimeApi {
      * @param stopId               optional. If set then only this stop and the remaining ones on the trip pattern
      *                             are marked as being for the UI and can be highlighted. Useful for when want to emphasize
      *                             in the UI only the stops that are of interest to the user.
-     * @param direction            optional. If set then only the shape for specified direction is marked as
+     * @param directionId            optional. If set then only the shape for specified direction is marked as
      *                             being for the UI. Needed for situations where a single stop is used for both directions
      *                             of a route and want to highlight in the UI only the stops and the shapes that the user is
      *                             actually interested in.
@@ -1207,8 +1207,7 @@ public class TransitimeApi {
      * Useful for creating a UI where user needs to select a stop from a list.
      *
      * @param stdParameters
-     * @param routeShortName
-     * @return
+     * @return directionsData
      * @throws WebApplicationException
      */
     @Path("/command/stops")
@@ -2297,15 +2296,10 @@ public class TransitimeApi {
         stdParameters.validate();
         ConfigInterface inter = stdParameters.getConfigInterface();
         ApiExportsData result = null;
-
         try {
-            if (type == 0)
-                result = new ApiExportsData(inter.getExports());
-            else
-                result = new ApiExportsData(inter.getExports(type));
+            result = new ApiExportsData(inter.getExports(type));
             return stdParameters.createResponse(result);
         } catch (Exception e) {
-            if (e instanceof NoSuchElementException) return stdParameters.createResponse(List.of());
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }

@@ -10,9 +10,11 @@ public interface RepositoryInterface<T> {
 
     T findById(Session session, long id);
 
-    List<T> findAll(Session session);
+    T findByName(Session session, String name);
 
     List<T> findByType(Session session, int type);
+
+    List<T> findByTypeNativeQuery(Session session, int type);
 
     void update(Session session, String fileName, byte[] info);
 
