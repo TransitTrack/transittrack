@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
 import org.transitclock.api.data.*;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.api.utils.WebUtils;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -406,6 +408,19 @@ public class CacheApi {
         } catch (Exception e) {
             // If problem getting result then return a Bad Request
             throw WebUtils.badRequestException(e.getMessage());
+        }
+    }
+
+    @Getter
+    private static class DateParam {
+        private LocalDate date;
+
+        public DateParam(String in) throws WebApplicationException {
+            try {
+                date = LocalDate.parse(in, DateTimeFormatter.ISO_DATE);
+            } catch (Exception exception) {
+                throw new WebApplicationException(400);
+            }
         }
     }
 }

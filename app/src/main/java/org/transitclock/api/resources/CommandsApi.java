@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,6 +32,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -324,7 +327,7 @@ public class CommandsApi {
         }
     }
 
-    // WORK IN PROGRESS
+    // WIP
     @Path("/command/cancelTrip/{tripId}")
     @GET // SHOULD BE POST,IT IS AN UPDATE
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -502,7 +505,7 @@ public class CommandsApi {
             Date validFrom = sdf.parse(validFromStr);
             Date validTo = sdf.parse(validToStr);
 
-            result = inter.updateVehicleToBlockConfig(new  VehicleToBlockConfig(id,
+            result = inter.updateVehicleToBlockConfig(new VehicleToBlockConfig(id,
                     vehicleId, blockId, tripId, new Date(), validFrom, validTo));
 
         } catch (JSONException | IOException | ParseException e) {
@@ -681,6 +684,19 @@ public class CommandsApi {
             return stdParameters.createResponse(new ApiCommandAck(true, response));
         } catch (Exception ex) {
             return stdParameters.createResponse(new ApiCommandAck(false, ex.getMessage()));
+        }
+    }
+
+    @Getter
+    private static class DateTimeParam {
+        private LocalDateTime date;
+
+        public DateTimeParam(String in) throws WebApplicationException {
+            try {
+                date = LocalDateTime.parse(in, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception exception) {
+                throw new WebApplicationException(400);
+            }
         }
     }
 }

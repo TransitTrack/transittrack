@@ -139,6 +139,43 @@ public class Reports {
         return json;
     }
 
+    public static String getNumberOfCompletedTripsByDateOrRoute(String agencyId,
+                                                                String routeId,
+                                                                String routeShortName,
+                                                                String beginDate,
+                                                                String endDate) {
+        getValidateDate(beginDate);
+        getValidateDate(endDate);
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT date, route AS route, COUNT(*) AS completed, ARRAY_AGG(DISTINCT trips) AS trip_ids\n");
+        sqlBuilder.append("FROM (   SELECT\n");
+        sqlBuilder.append("             ads.route_short_name AS route,\n");
+        sqlBuilder.append("             date(ads.time) AS date,\n");
+        sqlBuilder.append("             ads.trip_id AS trips\n");
+        sqlBuilder.append("         FROM arrivals_departures ads\n");
+        sqlBuilder.append("                  JOIN stop_paths sps\n");
+        sqlBuilder.append("                       ON sps.stop_id = ads.stop_id\n");
+        sqlBuilder.append("                           AND sps.route_id = ads.route_id\n");
+        sqlBuilder.append("                           AND sps.config_rev = ads.config_rev\n");
+        sqlBuilder.append("                           AND sps.gtfs_stop_seq = ads.gtfs_stop_seq\n");
+//Start-end date set
+        sqlBuilder.append("         WHERE ads.time >= '").append(beginDate).append("' AND ads.time < '").append(endDate).append("'\n");
+//Route ID o shortName - optional
+        if (routeId != null && !routeId.isEmpty()) {
+            sqlBuilder.append("      AND ads.route_id = '").append(routeId).append("'\n");
+        } else if (routeShortName != null && !routeShortName.isEmpty()) {
+            sqlBuilder.append("      AND ads.route_short_name = '").append(routeShortName).append("'\n");
+        }
+        sqlBuilder.append("         GROUP BY date, ads.trip_id, route\n");
+        sqlBuilder.append("         HAVING BOOL_OR(sps.layover_stop)\n");
+        sqlBuilder.append("            AND BOOL_OR(sps.last_stop_in_trip)\n");
+        sqlBuilder.append("     ) t\n");
+        sqlBuilder.append("GROUP BY date, route\n");
+        sqlBuilder.append("ORDER BY date, route;\n");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
+    }
+
     public static String getTripWithTravelTimes(String agencyId, String tripId, String date) {
         // postgresql only, should throw error if it's other database type
         StringBuilder sqlBuilder = new StringBuilder();

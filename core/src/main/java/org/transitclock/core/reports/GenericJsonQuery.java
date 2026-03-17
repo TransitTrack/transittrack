@@ -1,12 +1,16 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.transitclock.domain.GenericQuery;
 
+import java.sql.Array;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -72,6 +76,7 @@ public class GenericJsonQuery extends GenericQuery {
     }
 
     @Override
+    @SneakyThrows(SQLException.class)
     protected void addRow(List<Object> values) {
         if (!firstRow) {
             strBuilder.append(",\n");
@@ -104,6 +109,13 @@ public class GenericJsonQuery extends GenericQuery {
                 else addRowElement(i, (String) o);
             } else if (o instanceof Timestamp) {
                 addRowElement(i, ((Timestamp) o));
+            } else if (o instanceof Date) {
+                addRowElement(i, String.valueOf(o));
+            } else if (o instanceof Array arr) {
+                String[] strArray = Arrays.stream((Object[]) arr.getArray())
+                        .map(String::valueOf)
+                        .toArray(String[]::new);
+                addStringWithoutDQuotation(i, Arrays.toString(strArray));
             }
         }
         strBuilder.append('}');

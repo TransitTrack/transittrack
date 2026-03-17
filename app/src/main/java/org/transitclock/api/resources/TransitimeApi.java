@@ -22,7 +22,10 @@ import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.ApiKey;
-import org.transitclock.service.contract.*;
+import org.transitclock.service.contract.ConfigInterface;
+import org.transitclock.service.contract.PredictionsInterface;
+import org.transitclock.service.contract.ServerStatusInterface;
+import org.transitclock.service.contract.VehiclesInterface;
 import org.transitclock.service.dto.*;
 
 import java.io.InputStream;
@@ -59,6 +62,95 @@ import static org.transitclock.api.resources.CommandsApi.getJsonObject;
         servers = {@Server(url = "/api/v1")})
 @Path("/key/{key}/agency/{agency}")
 public class TransitimeApi {
+
+    /**
+     * Determines Map of UiTypes for vehicles so that the vehicles can be drawn correctly in the UI.
+     * If when getting vehicles no specific route and stop were specified then want to highlight all
+     * vehicles. Therefore for this situation all vehicle IDs will be mapped to UiType.NORMAL.
+     *
+     * <p>But if route and stop were specified then the first vehicle predicted for at the specified
+     * stop should be UiType.NORMAL, the subsequent ones are set to UiType.SECONDARY, and the
+     * remaining vehicles are set to UiType.MINOR.
+     *
+     * @param vehicles
+     * @param stdParameters
+     * @param routesIdOrShortNames
+     * @param stopId
+     * @param numberPredictions
+     * @return
+     * @throws RemoteException
+     */
+    private static Map<String, UiMode> determineUiModesForVehicles(
+            Collection<IpcVehicle> vehicles,
+            StandardParameters stdParameters,
+            List<String> routesIdOrShortNames,
+            String stopId,
+            int numberPredictions)
+            throws RemoteException {
+        // Create map and initialize all vehicles to NORMAL UI mode
+        Map<String, UiMode> modeMap = new HashMap<String, UiMode>();
+
+        if (routesIdOrShortNames.isEmpty() || stopId == null) {
+            // Stop not specified so simply return NORMAL type for all vehicles
+            for (IpcVehicle ipcVehicle : vehicles) {
+                modeMap.put(ipcVehicle.getId(), UiMode.NORMAL);
+            }
+        } else {
+            // Stop specified so get predictions and set UI type accordingly
+            List<String> vehiclesGeneratingPreds =
+                    determineVehiclesGeneratingPreds(stdParameters, routesIdOrShortNames, stopId, numberPredictions);
+            for (IpcVehicle ipcVehicle : vehicles) {
+                UiMode uiType = UiMode.MINOR;
+                if (!vehiclesGeneratingPreds.isEmpty() && ipcVehicle.getId().equals(vehiclesGeneratingPreds.get(0)))
+                    uiType = UiMode.NORMAL;
+                else if (vehiclesGeneratingPreds.contains(ipcVehicle.getId())) uiType = UiMode.SECONDARY;
+
+                modeMap.put(ipcVehicle.getId(), uiType);
+            }
+        }
+
+        // Return results
+        return modeMap;
+    }
+
+    /**
+     * Provides just a list of vehicle IDs of the vehicles generating predictions for the specified
+     * stop. The list of vehicle IDs will be in time order such that the first one will be the next
+     * predicted vehicle etc. If routeShortNames or stopId not specified then will return empty
+     * array.
+     *
+     * @param stdParameters
+     * @param routesIdOrShortNames
+     * @param stopId
+     * @param numberPredictions
+     * @return List of vehicle IDs
+     * @throws RemoteException
+     */
+    private static List<String> determineVehiclesGeneratingPreds(
+            StandardParameters stdParameters, List<String> routesIdOrShortNames, String stopId, int numberPredictions)
+            throws RemoteException {
+        // The array of vehicle IDs to be returned
+        List<String> vehiclesGeneratingPreds = new ArrayList<String>();
+
+        // If stop specified then also get predictions for the stop to
+        // determine which vehicles are generating the predictions.
+        // If vehicle is not one of the ones generating a prediction
+        // then it is labeled as a minor vehicle for the UI.
+        if (!routesIdOrShortNames.isEmpty() && stopId != null) {
+            PredictionsInterface predsInter = stdParameters.getPredictionsInterface();
+            List<IpcPredictionsForRouteStopDest> predictions =
+                    predsInter.get(routesIdOrShortNames.get(0), stopId, numberPredictions);
+
+            // Determine set of which vehicles predictions generated for
+            for (IpcPredictionsForRouteStopDest predsForRouteStop : predictions) {
+                for (IpcPrediction ipcPrediction : predsForRouteStop.getPredictionsForRouteStop()) {
+                    vehiclesGeneratingPreds.add(ipcPrediction.getVehicleId());
+                }
+            }
+        }
+
+        return vehiclesGeneratingPreds;
+    }
 
     /**
      * Handles the "vehicles" command. Returns data for all vehicles or for the vehicles specified
@@ -190,20 +282,20 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getAvlReport(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Vehicle id", required = false) @QueryParam(value = "v") String vehicleId,
+            @Parameter(description = "Vehicle id") @QueryParam(value = "v") String vehicleId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.",required = false) @QueryParam(value = "numDays") int numDays,
+            @Parameter(description = "Num days.") @QueryParam(value = "numDays") int numDays,
             @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime,
-            @Parameter(description = "For Screenshot", required = false) @QueryParam(value = "screenShot") boolean isForScreenShot)
+            @Parameter(description = "For Screenshot") @QueryParam(value = "screenShot") boolean isForScreenShot)
             throws WebApplicationException {
         stdParameters.validate();
         try {
-        if (isForScreenShot) {
-            String response = Reports.getSingleAvlReportsForEachVehicleId(
-                    stdParameters.getAgencyId(), beginDate, beginTime, endTime);
-            return stdParameters.createResponse(response);
-        }
+            if (isForScreenShot) {
+                String response = Reports.getSingleAvlReportsForEachVehicleId(
+                        stdParameters.getAgencyId(), beginDate, beginTime, endTime);
+                return stdParameters.createResponse(response);
+            }
             String response = Reports.getAvlJson(
                     stdParameters.getAgencyId(), vehicleId, beginDate, String.valueOf(numDays), beginTime, endTime);
             return stdParameters.createResponse(response);
@@ -336,6 +428,43 @@ public class TransitimeApi {
         }
     }
 
+    @Path("/reports/completedTrips")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Get numbers of completed trips report",
+            description = "Returns a report of completed trips within a specified date range, optionally filtered by route ID or route short name. "
+                    + "Both start and end dates are required and must be provided in YYYY-MM-DD format. "
+                    + "If routeId or routeName is provided, the results will be limited to the specified route. "
+                    + "The response includes the number of completed trips grouped by the given criteria.",
+            tags = {"report", "route"}
+    )
+    public Response getReportOfCompletedTrips(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
+            @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "Date(YYYY-MM-DD or YYYY-MM-DD).", required = true)
+            @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Specific rout ID.")
+            @QueryParam(value = "routeId") String routeId,
+            @Parameter(description = "Route short name.")
+            @QueryParam(value = "routeName") String routeShortName)
+            throws WebApplicationException {
+        // Make sure request is valid
+        stdParameters.validate();
+
+        try {
+            String response = Reports.getNumberOfCompletedTripsByDateOrRoute(stdParameters.getAgencyId(),
+                    routeId,
+                    routeShortName,
+                    beginDate,
+                    endDate);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
     @Operation(
             summary = "Returns schedule adherence report.",
             description = "Returns schedule adherence report.",
@@ -347,7 +476,7 @@ public class TransitimeApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Route id") @QueryParam(value = "r") String routeId,
             @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
-            @Parameter(description = "Num days.", required = false) @QueryParam(value = "numDays") int numDays,
+            @Parameter(description = "Num days.") @QueryParam(value = "numDays") int numDays,
             @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
             @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime,
             @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
@@ -494,24 +623,24 @@ public class TransitimeApi {
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response avgSpeedPerRoute(
-        @BeanParam StandardParameters stdParameters,
-        @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
-        @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "endDate") String endDate,
-        @Parameter(description = "Route short name") @QueryParam(value = "routeName") String routeName,
-        @Parameter(description = "Route ID") @QueryParam(value = "routeId") String routeId,
-        @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @QueryParam(value = "dir") String directionId,
-        @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
-        @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Route short name") @QueryParam(value = "routeName") String routeName,
+            @Parameter(description = "Route ID") @QueryParam(value = "routeId") String routeId,
+            @Parameter(description = "Direction ID '0' or '1'") @DefaultValue("0") @QueryParam(value = "dir") String directionId,
+            @Parameter(description = "Begin time(HH:MM)") @QueryParam(value = "beginTime") String beginTime,
+            @Parameter(description = "End time(HH:MM)") @QueryParam(value = "endTime") String endTime)
             throws WebApplicationException {
-            stdParameters.validate();
-            try {
-                String response = Reports.getAvgSpeedPerRoute(stdParameters
-                        .getAgencyId(), beginDate, endDate, routeName, routeId, directionId, beginTime, endTime);
-                return stdParameters.createResponse(response);
-            } catch (Exception e) {
-                // If problem getting data then return a Bad Request
-                throw WebUtils.badRequestException(e);
-            }
+        stdParameters.validate();
+        try {
+            String response = Reports.getAvgSpeedPerRoute(stdParameters
+                    .getAgencyId(), beginDate, endDate, routeName, routeId, directionId, beginTime, endTime);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            // If problem getting data then return a Bad Request
+            throw WebUtils.badRequestException(e);
+        }
     }
 
     /**
@@ -572,6 +701,8 @@ public class TransitimeApi {
             throw WebUtils.badRequestException(e);
         }
     }
+
+    ;
 
     /**
      * Handles the "vehiclesDetails" command. Returns detailed data for all vehicles or for the
@@ -704,15 +835,6 @@ public class TransitimeApi {
         }
     }
 
-    // For specifying how vehicles should be drawn in the UI.
-    public enum UiMode {
-        NORMAL,
-        SECONDARY,
-        MINOR
-    }
-
-    ;
-
     /**
      * Gets information including vehicle IDs for all vehicles that have been configured. Useful for
      * creating a vehicle selector.
@@ -745,95 +867,6 @@ public class TransitimeApi {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(e);
         }
-    }
-
-    /**
-     * Determines Map of UiTypes for vehicles so that the vehicles can be drawn correctly in the UI.
-     * If when getting vehicles no specific route and stop were specified then want to highlight all
-     * vehicles. Therefore for this situation all vehicle IDs will be mapped to UiType.NORMAL.
-     *
-     * <p>But if route and stop were specified then the first vehicle predicted for at the specified
-     * stop should be UiType.NORMAL, the subsequent ones are set to UiType.SECONDARY, and the
-     * remaining vehicles are set to UiType.MINOR.
-     *
-     * @param vehicles
-     * @param stdParameters
-     * @param routesIdOrShortNames
-     * @param stopId
-     * @param numberPredictions
-     * @return
-     * @throws RemoteException
-     */
-    private static Map<String, UiMode> determineUiModesForVehicles(
-            Collection<IpcVehicle> vehicles,
-            StandardParameters stdParameters,
-            List<String> routesIdOrShortNames,
-            String stopId,
-            int numberPredictions)
-            throws RemoteException {
-        // Create map and initialize all vehicles to NORMAL UI mode
-        Map<String, UiMode> modeMap = new HashMap<String, UiMode>();
-
-        if (routesIdOrShortNames.isEmpty() || stopId == null) {
-            // Stop not specified so simply return NORMAL type for all vehicles
-            for (IpcVehicle ipcVehicle : vehicles) {
-                modeMap.put(ipcVehicle.getId(), UiMode.NORMAL);
-            }
-        } else {
-            // Stop specified so get predictions and set UI type accordingly
-            List<String> vehiclesGeneratingPreds =
-                    determineVehiclesGeneratingPreds(stdParameters, routesIdOrShortNames, stopId, numberPredictions);
-            for (IpcVehicle ipcVehicle : vehicles) {
-                UiMode uiType = UiMode.MINOR;
-                if (!vehiclesGeneratingPreds.isEmpty() && ipcVehicle.getId().equals(vehiclesGeneratingPreds.get(0)))
-                    uiType = UiMode.NORMAL;
-                else if (vehiclesGeneratingPreds.contains(ipcVehicle.getId())) uiType = UiMode.SECONDARY;
-
-                modeMap.put(ipcVehicle.getId(), uiType);
-            }
-        }
-
-        // Return results
-        return modeMap;
-    }
-
-    /**
-     * Provides just a list of vehicle IDs of the vehicles generating predictions for the specified
-     * stop. The list of vehicle IDs will be in time order such that the first one will be the next
-     * predicted vehicle etc. If routeShortNames or stopId not specified then will return empty
-     * array.
-     *
-     * @param stdParameters
-     * @param routesIdOrShortNames
-     * @param stopId
-     * @param numberPredictions
-     * @return List of vehicle IDs
-     * @throws RemoteException
-     */
-    private static List<String> determineVehiclesGeneratingPreds(
-            StandardParameters stdParameters, List<String> routesIdOrShortNames, String stopId, int numberPredictions)
-            throws RemoteException {
-        // The array of vehicle IDs to be returned
-        List<String> vehiclesGeneratingPreds = new ArrayList<String>();
-
-        // If stop specified then also get predictions for the stop to
-        // determine which vehicles are generating the predictions.
-        // If vehicle is not one of the ones generating a prediction
-        // then it is labeled as a minor vehicle for the UI.
-        if (!routesIdOrShortNames.isEmpty() && stopId != null) {
-            PredictionsInterface predsInter = stdParameters.getPredictionsInterface();
-            List<IpcPredictionsForRouteStopDest> predictions =
-                    predsInter.get(routesIdOrShortNames.get(0), stopId, numberPredictions);
-
-            // Determine set of which vehicles predictions generated for
-            for (IpcPredictionsForRouteStopDest predsForRouteStop : predictions) {
-                for (IpcPrediction ipcPrediction : predsForRouteStop.getPredictionsForRouteStop()) {
-                    vehiclesGeneratingPreds.add(ipcPrediction.getVehicleId());
-                }
-            }
-        }
-
-        return vehiclesGeneratingPreds;
     }
 
     /**
@@ -1111,7 +1144,7 @@ public class TransitimeApi {
      * @param stopId               optional. If set then only this stop and the remaining ones on the trip pattern
      *                             are marked as being for the UI and can be highlighted. Useful for when want to emphasize
      *                             in the UI only the stops that are of interest to the user.
-     * @param directionId            optional. If set then only the shape for specified direction is marked as
+     * @param directionId          optional. If set then only the shape for specified direction is marked as
      *                             being for the UI. Needed for situations where a single stop is used for both directions
      *                             of a route and want to highlight in the UI only the stops and the shapes that the user is
      *                             actually interested in.
@@ -1334,7 +1367,8 @@ public class TransitimeApi {
 
             // If the block doesn't exist then throw exception such that
             // Bad Request with an appropriate message is returned.
-            if (ipcBlocks.isEmpty() && !blockId.isBlank()) throw WebUtils.badRequestException("The blockId=" + blockId + " does not exist.");
+            if (ipcBlocks.isEmpty() && !blockId.isBlank())
+                throw WebUtils.badRequestException("The blockId=" + blockId + " does not exist.");
 
             // Create and return ApiBlock response
             ApiBlocksTerse apiBlocks = new ApiBlocksTerse(ipcBlocks);
@@ -2284,7 +2318,7 @@ public class TransitimeApi {
         return stdParameters.createResponse(new ApiCurrentServerDate(currentTime));
     }
 
-    @Operation(summary = "Returns exports list", description = "Returns list of all exports or by type" , tags = {"export"})
+    @Operation(summary = "Returns exports list", description = "Returns list of all exports or by type", tags = {"export"})
     @Path("/command/exports")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
@@ -2331,17 +2365,16 @@ public class TransitimeApi {
 
     @Path("/command/apiKeys")
     @POST
-    @Produces({ MediaType.APPLICATION_JSON })
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Operation(summary="Show api keys.",description="Show api keys for single user or all users ", tags= {"key"})
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Operation(summary = "Show api keys.", description = "Show api keys for single user or all users ", tags = {"key"})
     public Response getApiKeyOrKeys(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description="Secret and email:", required = true) InputStream requestBody) throws WebApplicationException
-    {
+            @Parameter(description = "Secret and email:", required = true) InputStream requestBody) throws WebApplicationException {
         // Make sure request is valid
         stdParameters.validate();
 
-        List <ApiKey> allApiKeys;
+        List<ApiKey> allApiKeys;
         try {
             JSONObject jsonBody = getJsonObject(requestBody);
             String email = jsonBody.getString("email");
@@ -2364,11 +2397,17 @@ public class TransitimeApi {
 
                 // Create and return ApiKey response.
                 return stdParameters.createResponse(new ApiAppKey(foundKey));
-            }
-            else return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
+            } else return stdParameters.createResponse(new ApiCommandAck(false, "Something went wrong. Try again! "));
         } catch (Exception ex) {
             // If problem getting data then return a Bad Request
             throw WebUtils.badRequestException(ex.getMessage() + ex.getCause());
         }
+    }
+
+    // For specifying how vehicles should be drawn in the UI.
+    public enum UiMode {
+        NORMAL,
+        SECONDARY,
+        MINOR
     }
 }
