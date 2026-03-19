@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class GenericJsonQuery extends GenericQuery {
@@ -112,10 +113,9 @@ public class GenericJsonQuery extends GenericQuery {
             } else if (o instanceof Date) {
                 addRowElement(i, String.valueOf(o));
             } else if (o instanceof Array arr) {
-                String[] strArray = Arrays.stream((Object[]) arr.getArray())
-                        .map(String::valueOf)
-                        .toArray(String[]::new);
-                addStringWithoutDQuotation(i, Arrays.toString(strArray));
+                String strArray = Arrays.stream((String[]) arr.getArray())
+                        .collect(Collectors.joining("\",\"", "[\"", "\"]"));
+                addStringWithoutDQuotation(i, strArray);
             }
         }
         strBuilder.append('}');
