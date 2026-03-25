@@ -131,12 +131,12 @@ public class AvlReport implements Serializable {
 
     // Optional. Set to null if passenger count info is not available
     @Column(name = "passenger_count")
-    private final Integer passengerCount;
+    private Integer passengerCount;
 
     // Optional. How full a bus is as a fraction. 0.0=empty, 1.0=at capacity.
     // This parameter is optional. Set to null if data not available.
     @Column(name = "passenger_fullness", length = 60)
-    private final Float passengerFullness;
+    private Float passengerFullness;
 
     // Optional. For containing additional info for a particular feed.
     // Not declared final because setField1() is used to set values.

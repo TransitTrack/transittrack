@@ -212,10 +212,10 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
                 final float FULLNESS = vehicle.getAvl().getPassengerFullness();
                 if (vehicle.getAvl().getPassengerCount() < 0) return "NO_DATA_AVAILABLE";
                 else if (FULLNESS == 0) return "EMPTY";
-                else if (FULLNESS <= 49 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
-                else if (FULLNESS <= 75 && FULLNESS >= 49.01) return "FEW_SEATS_AVAILABLE";
-                else if (FULLNESS <= 99.99 && FULLNESS >= 75.01) return "STANDING_ROOM_ONLY";
-                else if (FULLNESS >= 100) return "FULL";
+                else if (FULLNESS <= 15 && FULLNESS >= 0.01) return "MANY_SEATS_AVAILABLE";
+                else if (FULLNESS <= 25 && FULLNESS >= 15.01) return "FEW_SEATS_AVAILABLE";
+                else if (FULLNESS <= 84.99 && FULLNESS >= 25.01) return "STANDING_ROOM_ONLY";
+                else if (FULLNESS >= 85) return "FULL";
             } else return "NO_DATA_AVAILABLE";
         }
         return null;

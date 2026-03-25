@@ -169,6 +169,10 @@ public abstract class GtfsRtVehiclePositionsReaderBase {
                     null, // passengerCount
                     Float.NaN); // passengerFullness
 
+            if(vehicle.getVehicle().hasLabel())
+                avlReport.setVehicleName(vehicle.getVehicle().getLabel());
+            else avlReport.setVehicleName(vehicleId);
+
             // Determine vehicle assignment information
             if (vehicle.hasTrip()) {
                 TripDescriptor tripDescriptor = vehicle.getTrip();

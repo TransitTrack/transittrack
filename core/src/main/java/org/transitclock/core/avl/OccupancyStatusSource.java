@@ -17,13 +17,13 @@ import java.util.Map;
 class OccupancyStatusSource {
     private static final String USER_AGENT = "Transitime";
 
-    public static Map<String, BusLoadDto> fetchBusLoads(String urlStr) throws Exception {
+    public static Map<String, BusLoadDto> fetchBusLoads(String urlStr) {
         try {
             logger.debug("Getting URL={}", urlStr);
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Authorization", TraccarConfig.getOccupancyCredentials());
+            connection.setRequestProperty("Authorization", "Basic " + TraccarConfig.getOccupancyCredentials());
             connection.setRequestProperty("User-Agent", USER_AGENT);
 
             int responseCode = connection.getResponseCode();

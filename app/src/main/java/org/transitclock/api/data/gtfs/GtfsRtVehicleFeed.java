@@ -94,13 +94,13 @@ public class GtfsRtVehicleFeed {
             vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
         else if (FULLNESS == 0)
         vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.EMPTY);
-        else if (FULLNESS <= 49 && FULLNESS >= 0.01)
+        else if (FULLNESS <= 15 && FULLNESS >= 0.01)
             vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.MANY_SEATS_AVAILABLE);
-        else if (FULLNESS <= 75 && FULLNESS >= 49.01)
+        else if (FULLNESS <= 25 && FULLNESS >= 15.01)
             vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FEW_SEATS_AVAILABLE);
-        else if (FULLNESS <= 99.99 && FULLNESS >= 75.01)
+        else if (FULLNESS <= 84.99 && FULLNESS >= 25.01)
             vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.STANDING_ROOM_ONLY);
-        else if (FULLNESS >= 100)
+        else if (FULLNESS >= 85)
             vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.FULL);
             } else vehiclePosition.setOccupancyStatus(VehiclePosition.OccupancyStatus.NO_DATA_AVAILABLE);
         }
