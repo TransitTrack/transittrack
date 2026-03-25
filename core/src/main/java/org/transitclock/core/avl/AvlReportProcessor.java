@@ -64,7 +64,7 @@ public class AvlReportProcessor implements Runnable {
                     Calendar rightNow = Calendar.getInstance();
                     boolean isValid = (SystemTime.getMillis() - avlReport.getTime()) > Time.HOUR_IN_MSECS * 0.9F;
                     // If report is old get refresh it in database every hour
-                    if (isValid && rightNow.get(Calendar.MINUTE) == 0 && rightNow.get(Calendar.SECOND) <= 7) {
+                    if (isValid && rightNow.get(Calendar.MINUTE) == 0 && rightNow.get(Calendar.SECOND) <= 16) {
                         refreshAndPersistAvlReport();
                         logger.debug("Refresh AVL report for vehicle id = {} what is older than 30 min.", avlReport.getVehicleId());
                         return;

@@ -100,27 +100,31 @@ public class Reports {
 
     public static String getSingleAvlReportsForEachVehicleId(String agencyId, String date, String beginTime, String endTime) {
 
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT vehicle_id, name, time, heading, assignment_id, lat, lon, speed, time_processed, source \n");
-        sqlBuilder.append("FROM ( SELECT  avl.vehicle_id,\n");
-        sqlBuilder.append("               config.name,\n");
-        sqlBuilder.append("               avl.time,\n");
-        sqlBuilder.append("               avl.assignment_id,\n");
-        sqlBuilder.append("               avl.lat,\n");
-        sqlBuilder.append("               avl.lon,\n");
-        sqlBuilder.append("               avl.speed,\n");
-        sqlBuilder.append("               avl.heading,\n");
-        sqlBuilder.append("               avl.time_processed,\n");
-        sqlBuilder.append("               avl.source,\n");
-        sqlBuilder.append("               ROW_NUMBER() OVER (PARTITION BY avl.vehicle_id ORDER BY avl.time DESC) as row\n");
-        sqlBuilder.append("         FROM avl_reports avl\n");
-        sqlBuilder.append("                  INNER JOIN vehicle_configs config ON\n");
-        sqlBuilder.append("             config.id = avl.vehicle_id\n");
-        sqlBuilder.append("         WHERE ");
+        StringBuilder sqlBuilder = new StringBuilder("WITH rev_intervals AS ( SELECT config_rev, processed_time AS start_time, \n");
+        sqlBuilder.append("LEAD(processed_time) OVER (ORDER BY processed_time) AS end_time FROM config_revisions )\n");
+
+        sqlBuilder.append("SELECT DISTINCT ON (avl.vehicle_id) \n");
+        sqlBuilder.append("     avl.vehicle_id, \n");
+        sqlBuilder.append("     avl.vehicle_name AS name, \n");
+        sqlBuilder.append("     avl.time, \n");
+        sqlBuilder.append("     vs.route_id AS route, \n");
+        sqlBuilder.append("     tr.direction_id AS direction, \n");
+        sqlBuilder.append("     avl.heading, \n");
+        sqlBuilder.append("     avl.assignment_id, \n");
+        sqlBuilder.append("     avl.lat, \n");
+        sqlBuilder.append("     avl.lon, \n");
+        sqlBuilder.append("     avl.speed, \n");
+        sqlBuilder.append("     avl.time_processed, \n");
+        sqlBuilder.append("     avl.source \n");
+
+        sqlBuilder.append("FROM avl_reports avl\n");
+        sqlBuilder.append("    LEFT JOIN vehicle_states vs ON vs.vehicle_id = avl.vehicle_id AND vs.avl_time = avl.time \n");
+        sqlBuilder.append("    LEFT JOIN rev_intervals r ON vs.avl_time >= r.start_time AND (vs.avl_time < r.end_time OR r.end_time IS NULL) \n");
+        sqlBuilder.append("    LEFT JOIN trips tr ON vs.trip_id = tr.trip_id AND tr.config_rev = r.config_rev \n");
+
+        sqlBuilder.append("WHERE ");
         sqlBuilder.append(SqlUtils.timeRangeClause("avl.time", date, beginTime, endTime));
-        sqlBuilder.append("     ) t\n");
-        sqlBuilder.append("WHERE t.row = 1\n");
-        sqlBuilder.append("ORDER BY t.time;\n");
+        sqlBuilder.append("ORDER BY avl.vehicle_id, avl.time DESC;\n");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
