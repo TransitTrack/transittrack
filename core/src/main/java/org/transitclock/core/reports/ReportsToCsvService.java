@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.transitclock.config.data.DbSetupConfig.getDbName;
+
 
 @Slf4j
 public class ReportsToCsvService {
@@ -77,7 +79,7 @@ public class ReportsToCsvService {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
-        final String FILE_NAME = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
+        final String FILE_NAME = String.format("%s_stops_adh_%s_%s.csv", getDbName().toLowerCase(), beginDate, endDate);
         final String HOST = hostUrl;
 
         // Validate date
@@ -145,7 +147,7 @@ public class ReportsToCsvService {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
-        final String FILE_NAME = String.format("daily_stops_adh_for_%s.csv", beginDate);
+        final String FILE_NAME = String.format("%s_daily_stops_adh_for_%s.csv", getDbName().toLowerCase(), beginDate);
         final String HOST = hostUrl;
 
         LocalDate date1 = validateParseToLocalDate(beginDate);
