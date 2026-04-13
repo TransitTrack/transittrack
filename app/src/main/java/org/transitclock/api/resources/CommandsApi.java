@@ -211,8 +211,8 @@ public interface CommandsApi {
             description = "Add vehicles to block",
             tags = {"vehicle", "block"})
     @GetMapping(value = "/command/removeVehicleToBlock/{id}",
-            produces = {MediaType.APPLICATION_JSON_VALUE},
-            consumes = {MediaType.APPLICATION_JSON_VALUE})
+            produces = {MediaType.APPLICATION_JSON_VALUE}
+    )
     ResponseEntity<ApiCommandAck> removeVehicleToBlock(
             StandardParameters stdParameters,
             @Parameter(description = "vehicle to block id to remove.", required = true) @PathVariable("id") long id);

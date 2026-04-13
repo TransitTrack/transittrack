@@ -18,13 +18,13 @@ public class ApiVehicleToBlockConfig {
     protected String vehicleId;
 
     @JsonProperty
-    protected Date validFrom;
+    protected long validFrom;
 
     @JsonProperty
-    protected Date validTo;
+    protected long validTo;
 
     @JsonProperty
-    protected Date assignmentDate;
+    protected long assignmentDate;
 
     @JsonProperty
     protected String tripId;
@@ -38,8 +38,8 @@ public class ApiVehicleToBlockConfig {
         vehicleId = vehicleToBlockConfig.getVehicleId();
         tripId = vehicleToBlockConfig.getTripId();
         blockId = vehicleToBlockConfig.getBlockId();
-        validFrom = vehicleToBlockConfig.getValidFrom();
-        validTo = vehicleToBlockConfig.getValidTo();
-        assignmentDate = vehicleToBlockConfig.getAssignmentDate();
+        validFrom = vehicleToBlockConfig.getValidFrom().getTime();
+        validTo = vehicleToBlockConfig.getValidTo().getTime();
+        assignmentDate = vehicleToBlockConfig.getAssignmentDate().getTime();
     }
 }

@@ -31,8 +31,10 @@ public class WebAgencyCache {
      */
     private static boolean updateCacheIfShould(long rereadIfOlderThanMsecs) {
         // If haven't read in web agencies yet or in a while, do so now
-        if (webAgencyMapCache == null || System.currentTimeMillis() - webAgencyMapCacheReadTime > rereadIfOlderThanMsecs) {
+        if (webAgencyMapCache == null || webAgencyMapCache.isEmpty() || System.currentTimeMillis() - webAgencyMapCacheReadTime > rereadIfOlderThanMsecs) {
             webAgencyMapCache = WebAgencyRepository.getMapFromDb();
+//            Recursion if empty
+            if (webAgencyMapCache.isEmpty()) updateCacheIfShould(1);
             webAgencyMapCacheReadTime = System.currentTimeMillis();
 
             // Read data from db so return true
@@ -56,7 +58,7 @@ public class WebAgencyCache {
      */
     public static synchronized List<WebAgency> getCachedOrderedListOfWebAgencies() {
         // Reread web agencies from db if enough time has elapsed
-        boolean reread = updateCacheIfShould(3 * Time.DAY_IN_MSECS);
+        boolean reread = updateCacheIfShould(Time.DAY_IN_MSECS);
 
         if (reread || webAgencyOrderedList == null) {
             List<WebAgency> webAgencyOrderedListTemp = new ArrayList<>(webAgencyMapCache.values());
