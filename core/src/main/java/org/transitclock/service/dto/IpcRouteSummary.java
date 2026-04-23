@@ -2,8 +2,12 @@
 package org.transitclock.service.dto;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.transitclock.Core;
 import org.transitclock.domain.structs.Extent;
 import org.transitclock.domain.structs.Route;
+import org.transitclock.domain.structs.Trip;
 
 /**
  * Contains configuration information for a single route. For providing info to client. This class
@@ -21,6 +25,7 @@ public class IpcRouteSummary implements Serializable {
     protected final String type;
     protected final String color;
     protected final String textColor;
+    protected final List<String> tripIds;
 
     /**
      * Constructs a new RouteSummary object using a Route object from the database. Used by the
@@ -37,6 +42,14 @@ public class IpcRouteSummary implements Serializable {
         this.type = dbRoute.getType();
         this.color = dbRoute.getColor();
         this.textColor = dbRoute.getTextColor();
+        this.tripIds = Core.getInstance()
+                .getDbConfig()
+                .getTrips()
+                .values()
+                .stream()
+                .filter(trip -> dbRoute.getId().equals(trip.getRouteId()))
+                .map(Trip::getId)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -54,6 +67,7 @@ public class IpcRouteSummary implements Serializable {
         this.type = toCopy.getType();
         this.color = toCopy.getColor();
         this.textColor = toCopy.getTextColor();
+        this.tripIds = toCopy.getTripIds();
     }
 
     /**
@@ -91,6 +105,10 @@ public class IpcRouteSummary implements Serializable {
         return textColor;
     }
 
+    public List<String> getTripIds() {
+        return tripIds;
+    }
+
     @Override
     public String toString() {
         return "IpcRouteSummary ["
@@ -110,6 +128,8 @@ public class IpcRouteSummary implements Serializable {
                 + color
                 + ", textColor="
                 + textColor
+                + ", tripIds="
+                + tripIds
                 + "]";
     }
 }

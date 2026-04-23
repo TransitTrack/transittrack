@@ -4,6 +4,8 @@ package org.transitclock.api.data;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import org.transitclock.service.dto.IpcRouteSummary;
 
+import java.util.List;
+
 /**
  * A short description of a route. For when outputting list of routes for agency.
  *
@@ -26,6 +28,9 @@ public class ApiRoute {
     @XmlAttribute
     private String type;
 
+    @XmlAttribute
+    private List<String> tripIds;
+
     /********************** Member Functions **************************/
 
     /**
@@ -40,5 +45,6 @@ public class ApiRoute {
         this.shortName = route.getShortName();
         this.longName = route.getLongName();
         this.type = route.getType();
+        this.tripIds = route.getTripIds();
     }
 }

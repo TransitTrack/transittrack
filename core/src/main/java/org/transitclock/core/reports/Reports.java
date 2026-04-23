@@ -184,7 +184,7 @@ public class Reports {
     public static String getTripWithTravelTimes(String agencyId, String tripId, String date) {
         // postgresql only, should throw error if it's other database type
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId,\n");
+        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId, avl_reports.passenger_fullness,\n");
         sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
         sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
         sqlBuilder.append("       stops.code                              AS stopCode,\n");
@@ -202,14 +202,10 @@ public class Reports {
         sqlBuilder.append("  LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
         sqlBuilder.append("  OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("	 CASE WHEN ADDeparture.scheduled_time ISNULL");
-        sqlBuilder.append("	 THEN DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
+        sqlBuilder.append("	 THEN DATE('").append(date).append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
         sqlBuilder.append("         ELSE ADDeparture.scheduled_time END AS scheduledTime,\n");
         sqlBuilder.append("    CASE\n");
-        sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("') + \n");
+        sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('").append(date).append("') + \n");
         sqlBuilder.append("                                                         trip_scheduled_times_list.arrival_time *\n");
         sqlBuilder.append("                                                         interval '1 second') -\n");
         sqlBuilder.append("                                    DATE_TRUNC('second', arrivals_departures.time::timestamp) AS VARCHAR),\n");
@@ -238,11 +234,9 @@ public class Reports {
         sqlBuilder.append("WHERE arrivals_departures.trip_id = '");
         sqlBuilder.append(tripId);
         sqlBuilder.append("' AND arrivals_departures.is_arrival = 'True'\n");
-        sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("')\n");
+        sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('").append(date).append("')\n");
         sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_fullness, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
@@ -254,7 +248,7 @@ public class Reports {
     public static String getTripsWithTravelTimes(String agencyId, String date) {
         // postgresql only, should throw error if it's other database type
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId,\n");
+        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId, avl_reports.passenger_fullness,\n");
         sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
         sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
         sqlBuilder.append("       stops.code                              AS stopCode,\n");
@@ -270,20 +264,15 @@ public class Reports {
         sqlBuilder.append("           WHEN avl_reports.passenger_count = -1 THEN NULL\n");
         sqlBuilder.append("           ELSE avl_reports.passenger_count END AS passenger_count,");
         sqlBuilder.append("	 CASE WHEN ADDeparture.scheduled_time ISNULL");
-        sqlBuilder.append("	 THEN DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
+        sqlBuilder.append("	 THEN DATE('").append(date).append("') + trip_scheduled_times_list.arrival_time * interval '1 second'\n");
         sqlBuilder.append("         ELSE ADDeparture.scheduled_time END AS scheduledTime,\n");
         sqlBuilder.append("    LAG( CASE WHEN avl_reports.passenger_count = -1 THEN NULL ELSE avl_reports.passenger_count END) \n");
         sqlBuilder.append("    OVER ( PARTITION BY arrivals_departures.vehicle_id ORDER BY arrivals_departures.time) AS prevPassengerCount,\n");
         sqlBuilder.append("    CASE\n");
-        sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("') + \n");
-        sqlBuilder.append("                                                         trip_scheduled_times_list.arrival_time *\n");
-        sqlBuilder.append("                                                         interval '1 second') -\n");
-        sqlBuilder.append("                                    DATE_TRUNC('second', arrivals_departures.time::timestamp) AS VARCHAR),\n");
-        sqlBuilder.append("                                                                    '^00:', '')\n");
+        sqlBuilder.append("         WHEN ADDeparture.scheduled_time ISNULL THEN regexp_replace(CAST(DATE_TRUNC('second', DATE('").append(date).append("') + \n");
+        sqlBuilder.append("                              trip_scheduled_times_list.arrival_time *\n");
+        sqlBuilder.append("                              interval '1 second') -\n");
+        sqlBuilder.append("         DATE_TRUNC('second', arrivals_departures.time::timestamp) AS VARCHAR), '^00:', '')\n");
         sqlBuilder.append("         ELSE regexp_replace(CAST(DATE_TRUNC('second', ADDeparture.scheduled_time::timestamp) -\n");
         sqlBuilder.append("                                    DATE_TRUNC('second', ADDeparture.time::timestamp) AS VARCHAR), '^00:',\n");
         sqlBuilder.append("                               '') END         AS difference_in_seconds\n");
@@ -306,15 +295,13 @@ public class Reports {
         sqlBuilder.append("                                                arrivals_departures.config_rev AND\n");
         sqlBuilder.append("                                                trip_scheduled_times_list.list_index = arrivals_departures.stop_order\n");
         sqlBuilder.append("WHERE arrivals_departures.is_arrival = 'True'\n");
-        sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('");
-        sqlBuilder.append(date);
-        sqlBuilder.append("')\n");
+        sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('").append(date).append("')\n");
         sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, pp.passenger_fullness, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
-        sqlBuilder.append("ORDER BY stopOrder");
+        sqlBuilder.append("ORDER BY tripId, stopOrder");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
     }

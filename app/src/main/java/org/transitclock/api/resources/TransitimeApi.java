@@ -1884,7 +1884,7 @@ public class TransitimeApi {
     @Operation(
             summary = "Gets the arrivals and departures data of a trips.",
             description = "Gets the arrivals and departures data of a trips.",
-            tags = {"base data", "trips"})
+            tags = {"report", "trip"})
     public Response getTripsWithTravelTimes(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Begin date(YYYY-MM-DD).") @QueryParam(value = "date") String date)
