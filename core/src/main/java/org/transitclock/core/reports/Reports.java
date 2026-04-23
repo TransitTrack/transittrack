@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.transitclock.config.data.TraccarConfig.mphInsteadOfKmh;
-import static org.transitclock.core.reports.ReportsToCsvService.*;
+import static org.transitclock.core.reports.ReportsToCsvService.validateParseToLocalDate;
 import static org.transitclock.utils.Time.DAY_IN_MSECS;
 import static org.transitclock.utils.Time.YEAR_IN_MSECS;
 
@@ -470,9 +470,10 @@ public class Reports {
 
         long numDays = ChronoUnit.DAYS.between(
                 validateParseToLocalDate(beginDate),
-                validateParseToLocalDate(endDate)) +1;
+                validateParseToLocalDate(endDate)) + 1;
 
-        if (numDays > 31) throw new IllegalArgumentException(String.format("%s - %s: more then 31!", beginDate, endDate));
+        if (numDays > 31)
+            throw new IllegalArgumentException(String.format("%s - %s: more then 31!", beginDate, endDate));
 
         StringBuilder sqlBuilder = new StringBuilder("WITH ordered AS (SELECT\n");
         sqlBuilder.append("a.config_rev, a.vehicle_id, a.trip_id, a.route_id, a.route_short_name, a.direction_id, a.gtfs_stop_seq, a.stop_id, a.stop_path_length,\n");
@@ -488,7 +489,7 @@ public class Reports {
             sqlBuilder.append("      AND a.route_short_name = '").append(routeShortName).append("'\n");
         } else throw new SQLException("Route id or route short name not specified");
         sqlBuilder.append("      AND a.direction_id = '").append(!directionId.isEmpty() ? directionId : "0").append("'\n");
-        sqlBuilder.append(SqlUtils.timeRangeClause("a.time", 31,(int) numDays, beginTime, endTime, beginDate));
+        sqlBuilder.append(SqlUtils.timeRangeClause("a.time", 31, (int) numDays, beginTime, endTime, beginDate));
         sqlBuilder.append("),\n");
         sqlBuilder.append("travel_times AS (SELECT \n");
         sqlBuilder.append("             config_rev, route_short_name, direction_id, trip_id, gtfs_stop_seq,\n");
@@ -1036,7 +1037,9 @@ public class Reports {
                                               String beginDate,
                                               String endDate,
                                               String allowableEarly,
-                                              String allowableLate) {
+                                              String allowableLate,
+                                              boolean isTimePoint,
+                                              boolean isOlderGtfsRev) {
         WebAgency agency = WebAgency.getCachedWebAgency(agencyId);
 
         if (allowableEarly == null || allowableEarly.isEmpty()) allowableEarly = "1.0";
@@ -1081,8 +1084,14 @@ public class Reports {
         sqlBuilder.append("\n");
         sqlBuilder.append("    COUNT(*) AS total\n");
         sqlBuilder.append("FROM arrivals_departures ad\n");
+        if (isTimePoint && !isOlderGtfsRev)
+            sqlBuilder.append("JOIN stops st ON ad.stop_id = st.id AND ad.config_rev = st.config_rev \n");
+        if (isTimePoint && isOlderGtfsRev)
+            sqlBuilder.append("JOIN stop_paths st ON ad.stop_id = st.stop_id AND ad.config_rev = st.config_rev \n");
         sqlBuilder.append("WHERE ad.scheduled_time IS NOT NULL\n");
-        sqlBuilder.append("AND DATE(ad.time) BETWEEN DATE('").append(begin).append("') AND DATE('").append(end).append("')\n");
+        if (isTimePoint && !isOlderGtfsRev) sqlBuilder.append(" AND st.time_point_stop IS TRUE\n");
+        if (isTimePoint && isOlderGtfsRev) sqlBuilder.append(" AND st.schedule_adherence_stop IS TRUE\n");
+        sqlBuilder.append(" AND DATE(ad.time) BETWEEN DATE('").append(begin).append("') AND DATE('").append(end).append("')\n");
         sqlBuilder.append("\n");
         if (isForAllRoutes) {
             sqlBuilder.append("GROUP BY GROUPING SETS ((ad.route_short_name), ()) \n");

@@ -28,25 +28,21 @@ import java.util.regex.Pattern;
 public class GtfsData {
 
 
+    @Getter
+    private static GtfsFeedInfo.FeedInfoDto feedInfoDto = null;
+
     private static Pattern routeIdFilterRegExPattern = null;
-
     private static Pattern tripIdFilterRegExPattern = null;
-
-
-
     // Set by constructor. Specifies where to find data files
     private final String gtfsDirectoryName;
     private final String supplementDir;
     private final Session session;
-
     // Various params set by constructor
     private final ActiveRevision revs;
     // For when zip file used. Null otherwise
     private final Date zipFileLastModifiedTime;
     private final int originalTravelTimesRev;
-
     private final String agencyId;
-
     private final double pathOffsetDistance;
     private final double maxStopToPathDistance;
     private final double maxDistanceForEliminatingVertices;
@@ -54,35 +50,29 @@ public class GtfsData {
     private final double maxSpeedKph;
     private final double maxTravelTimeSegmentLength;
     private final boolean trimPathBeforeFirstStopOfTrip;
-
     // So can make the titles more readable
     private final TitleFormatter titleFormatter;
-
-    // Where the data is stored.
-    // From main and supplement routes.txt files. Key is route_id.
-    private Map<String, GtfsRoute> gtfsRoutesMap;
-
-    // List of routes that can be stored in db. The result is not ordered by route_order
-    // since that isn't needed as part of processing GTFS data.
-    private List<Route> routes;
-
     // For keeping track of which routes are just sub-routes of a parent.
     // For these the route will not be configured separately and the
     // route IDs from trips.txt and fare_rules.txt will be set to the
     // parent ID.
     private final Map<String, String> properRouteIdMap = new HashMap<>();
-
+    private final double maxDistanceBetweenStops;
+    private final boolean disableSpecialLoopBackToBeginningCase;
+    // Where the data is stored.
+    // From main and supplement routes.txt files. Key is route_id.
+    private Map<String, GtfsRoute> gtfsRoutesMap;
+    // List of routes that can be stored in db. The result is not ordered by route_order
+    // since that isn't needed as part of processing GTFS data.
+    private List<Route> routes;
     // From main and supplement stops.txt files. Key is stop_id.
     private Map<String, GtfsStop> gtfsStopsMap;
     private Map<String, Stop> stopsMap;
-
     // From trips.txt file. Key is trip_id.
     private Map<String, GtfsTrip> gtfsTripsMap;
-
     // From stop_times.txt file
     private Map<String, List<GtfsStopTime>> gtfsStopTimesForTripMap; // Key is trip_id
     private Collection<Trip> tripsCollection;
-
     // Want to lookup trip patterns and only keep around
     // unique ones. Also, want to have each trip pattern
     // know which trips use it. This means that TripPattern
@@ -93,57 +83,40 @@ public class GtfsData {
     // the trips list when another Trip is found to
     // use that TripPattern.
     private Map<TripPatternKey, TripPattern> tripPatternMap;
-
     // Also need to be able to get trip patterns associated
     // with a route so can be included in Route object.
     // Key is routeId.
     private Map<String, List<TripPattern>> tripPatternsByRouteIdMap;
-
     // So can convert from a Trip to a TripPattern. The key
     // is tripId.
     private Map<String, TripPattern> tripPatternsByTripIdMap;
-
     // So can make sure that each tripPattern gets a unique ID
     // even when really screwy things are done such as use the same
     // shapeId for different trip patterns.
     private Set<String> tripPatternIdSet;
-
     // So can know which service IDs have trips so that can remove
     // calendars for ones that do not.
     private Set<String> serviceIdsWithTrips;
-
     // List of all the blocks, random order
     private List<Block> blocks;
-
     // Keyed on tripPatternId and pathId using getPathMapKey(tripPatternId, pathId)
     private HashMap<String, StopPath> pathsMap;
-
     private List<Calendar> calendars;
-
     private List<CalendarDate> calendarDates;
-
     private Set<String> validServiceIds;
-
     // Data for the other GTFS files
     // Key for frequencyMap is trip_id. Values are a List of Frequency objects
     // since each trip can be listed in frequencies.txt file multiple times in
     // order to define a different headway for different time ranges.
     private Map<String, List<Frequency>> frequencyMap;
-
     private List<Agency> agencies;
-
     private List<FareAttribute> fareAttributes;
-
     private List<FareRule> fareRules;
-
     private List<Transfer> transfers;
-
     // This is the format that dates are in for CSV. Should
     // be accessed only through getDateFormatter() to make
     // sure that it is initialized.
     private SimpleDateFormat dateFormatter;
-    private final double maxDistanceBetweenStops;
-    private final boolean disableSpecialLoopBackToBeginningCase;
 
     public GtfsData(
             Session session,
@@ -214,6 +187,81 @@ public class GtfsData {
 
         // Log which revisions are being used
         logger.info("Will be writing data to revisions {}", revs);
+    }
+
+    /**
+     * Determines if the specified calendar is active in the future. It is active if the end date is
+     * in the future or if it is added in the future via calendar_dates.txt
+     */
+    private static boolean isCalendarActiveInTheFuture(Calendar calendar, List<CalendarDate> calendarDates) {
+        // If calendar end date is for sometime in the future then it is
+        // definitely active.
+        if (calendar.getEndDate().getTime() > System.currentTimeMillis()) return true;
+
+        // End date is not in the future so see if it is being added as an
+        // exception via the calendar_dates.txt file.
+        for (CalendarDate calendarDate : calendarDates) {
+            if (calendar.getServiceId().equals(calendarDate.getServiceId())
+                    && calendarDate.addService()
+                    && calendarDate.getDate().getTime() > System.currentTimeMillis()) {
+                return true;
+            }
+        }
+
+        // The calendar is for in the past and the associated service is not
+        // listed as an "add service" in a calendar date so must not be valid.
+        return false;
+    }
+
+    /**
+     * Returns true if the specified calendar date is in the future and is for adding service.
+     */
+    private static boolean isCalendarDateActiveInTheFuture(CalendarDate calendarDate) {
+        return calendarDate.getDate().getTime() > System.currentTimeMillis() && calendarDate.addService();
+    }
+
+    /**
+     * For use with pathsMap member.
+     */
+    public static String getPathMapKey(String tripPatternId, String pathId) {
+        return tripPatternId + "|" + pathId;
+    }
+
+    /**
+     * Returns true if the tripId isn't supposed to be filtered out, as specified by the
+     * transitclock.gtfs.tripIdRegExPattern property.
+     *
+     * @param tripId
+     * @return True if trip not to be filtered out
+     */
+    public static boolean tripNotFiltered(String tripId) {
+        if (GtfsConfig.tripIdFilterRegEx.getValue() == null) {
+            return true;
+        }
+
+        // Create pattern if haven't done so yet, but only do so once.
+        if (tripIdFilterRegExPattern == null)
+            tripIdFilterRegExPattern = Pattern.compile(GtfsConfig.tripIdFilterRegEx.getValue());
+
+        return tripIdFilterRegExPattern.matcher(tripId.trim()).matches();
+    }
+
+    /**
+     * Returns true if the routeId isn't supposed to be filtered out, as specified by the
+     * transitclock.gtfs.routeIdRegExPattern property.
+     *
+     * @param routeId
+     * @return True if route not to be filtered out
+     */
+    public static boolean routeNotFiltered(String routeId) {
+        if (GtfsConfig.routeIdFilterRegEx.getValue() == null)
+            return true;
+
+        // Create pattern if haven't done so yet, but only do so once.
+        if (routeIdFilterRegExPattern == null)
+            routeIdFilterRegExPattern = Pattern.compile(GtfsConfig.routeIdFilterRegEx.getValue());
+
+        return routeIdFilterRegExPattern.matcher(routeId.trim()).matches();
     }
 
     /**
@@ -530,7 +578,9 @@ public class GtfsData {
         }
     }
 
-    /** Reads data from trips.txt and puts it into gtfsTripsMap. */
+    /**
+     * Reads data from trips.txt and puts it into gtfsTripsMap.
+     */
     private void processTripsData() {
         // For logging how long things take
         IntervalTimer timer = new IntervalTimer();
@@ -1076,7 +1126,7 @@ public class GtfsData {
 
             if (!isTripFrequencyBasedWithoutExactTimes(trip.getId())) {
                 scheduleAdherenceStop = (depTime != null
-                                && (firstStopInTrip || gtfsStopTime.isTimepointStop() || stop.isTimepointStop()))
+                        && (firstStopInTrip || gtfsStopTime.isTimepointStop() || stop.isTimepointStop()))
                         || (arrTime != null && lastStopInTrip);
             }
 
@@ -1106,8 +1156,10 @@ public class GtfsData {
                     gtfsStopTime.getMaxSpeed(),
                     gtfsStopTime.getShapeDistTraveled());
             paths.add(path);
-
             previousStopId = stopId;
+
+            stop.setTimepointStop(gtfsStopTime.isTimepointStop());
+            stopsMap.put(stopId, stop);
         } // End of for each stop_time for trip
 
         // Now that have Paths defined for the trip, if need to,
@@ -1123,7 +1175,7 @@ public class GtfsData {
      *
      * @param tripId
      * @param gtfsStopTimesForTrip needed in case headsign not set in trips.txt GTFS file so that
-     *     can get it from stop_headsign in the stop_times.txt file as a backup.
+     *                             can get it from stop_headsign in the stop_times.txt file as a backup.
      * @return The new trip, or null if there is a problem with this trip and should skip it.
      */
     private Trip createNewTrip(String tripId, List<GtfsStopTime> gtfsStopTimesForTrip) {
@@ -1223,7 +1275,7 @@ public class GtfsData {
      * Takes raw GTFS data and creates Trip and TripPattern objects.
      *
      * @param gtfsStopTimesForTripMap Keyed by tripId. Value is List of GtfsStopTimes for the
-     *     tripId.
+     *                                tripId.
      */
     private void createTripsAndTripPatterns(Map<String, List<GtfsStopTime>> gtfsStopTimesForTripMap) {
         if (stopsMap == null || stopsMap.isEmpty()) {
@@ -1299,8 +1351,8 @@ public class GtfsData {
                 List<Frequency> frequencyListForTripId = frequencyMap.get(tripId);
                 for (Frequency frequency : frequencyListForTripId) {
                     for (int tripStartTime = frequency.getStartTime();
-                            tripStartTime < frequency.getEndTime();
-                            tripStartTime += frequency.getHeadwaySecs()) {
+                         tripStartTime < frequency.getEndTime();
+                         tripStartTime += frequency.getHeadwaySecs()) {
                         Trip frequencyBasedTrip = new Trip(trip, tripStartTime);
                         tripsCollection.add(frequencyBasedTrip);
                     }
@@ -1407,7 +1459,7 @@ public class GtfsData {
                             String modifiedHeadsign = firstTripPatternForHeadsign.getHeadsign()
                                     + " to "
                                     + getStop(firstTripPatternForHeadsign.getLastStopIdForTrip())
-                                            .getName();
+                                    .getName();
                             logger.warn(
                                     "Modifying headsign \"{}\" to \"{}\" since it has a different"
                                             + " last stop {} away which is further away than"
@@ -1429,7 +1481,7 @@ public class GtfsData {
                             String modifiedHeadsign = tripPattern.getHeadsign()
                                     + " to "
                                     + getStop(tripPattern.getLastStopIdForTrip())
-                                            .getName();
+                                    .getName();
                             logger.warn(
                                     "Modifying headsign \"{}\" to \"{}\" since it has a different"
                                             + " last stop {} away which is further away than"
@@ -1519,7 +1571,9 @@ public class GtfsData {
         logger.info("Finished processing blocks. Took {} msec.", timer.elapsedMsec());
     }
 
-    /** Reads frequencies.txt file and puts data into _frequencies list. */
+    /**
+     * Reads frequencies.txt file and puts data into _frequencies list.
+     */
     private void processFrequencies() {
         // Make sure needed data is already read in.
         if (gtfsTripsMap == null || gtfsTripsMap.isEmpty()) {
@@ -1656,7 +1710,9 @@ public class GtfsData {
         logger.info("Finished processing shapes.txt data. Took {} msec.", timer.elapsedMsec());
     }
 
-    /** Reads agency.txt file and puts data into agencies list. */
+    /**
+     * Reads agency.txt file and puts data into agencies list.
+     */
     private void processAgencyData() {
         // Make sure necessary data read in
         if (getRoutes() == null || getRoutes().isEmpty()) {
@@ -1722,37 +1778,8 @@ public class GtfsData {
     }
 
     /**
-     * Determines if the specified calendar is active in the future. It is active if the end date is
-     * in the future or if it is added in the future via calendar_dates.txt
+     * Reads calendar.txt file and puts data into calendars list.
      */
-    private static boolean isCalendarActiveInTheFuture(Calendar calendar, List<CalendarDate> calendarDates) {
-        // If calendar end date is for sometime in the future then it is
-        // definitely active.
-        if (calendar.getEndDate().getTime() > System.currentTimeMillis()) return true;
-
-        // End date is not in the future so see if it is being added as an
-        // exception via the calendar_dates.txt file.
-        for (CalendarDate calendarDate : calendarDates) {
-            if (calendar.getServiceId().equals(calendarDate.getServiceId())
-                    && calendarDate.addService()
-                    && calendarDate.getDate().getTime() > System.currentTimeMillis()) {
-                return true;
-            }
-        }
-
-        // The calendar is for in the past and the associated service is not
-        // listed as an "add service" in a calendar date so must not be valid.
-        return false;
-    }
-
-    /**
-     * Returns true if the specified calendar date is in the future and is for adding service.
-     */
-    private static boolean isCalendarDateActiveInTheFuture(CalendarDate calendarDate) {
-        return calendarDate.getDate().getTime() > System.currentTimeMillis() && calendarDate.addService();
-    }
-
-    /** Reads calendar.txt file and puts data into calendars list. */
     private void processCalendars() {
         // Let user know what is going on
         logger.info("Processing calendar.txt data...");
@@ -1794,7 +1821,9 @@ public class GtfsData {
         logger.info("Finished processing calendar.txt data. ");
     }
 
-    /** Reads calendar_dates.txt file and puts data into calendarDates list. */
+    /**
+     * Reads calendar_dates.txt file and puts data into calendarDates list.
+     */
     private void processCalendarDates() {
         // Let user know what is going on
         logger.info("Processing calendar_dates.txt data...");
@@ -1824,7 +1853,9 @@ public class GtfsData {
         logger.info("Finished processing calendar_dates.txt data. ");
     }
 
-    /** Creates validServiceIds member by going through calendars */
+    /**
+     * Creates validServiceIds member by going through calendars
+     */
     private void processServiceIds() {
         // Make sure needed data is already read in.
         if (calendars == null) {
@@ -1885,7 +1916,9 @@ public class GtfsData {
         validServiceIds.removeIf(serviceId -> !serviceIdsWithTrips.contains(serviceId));
     }
 
-    /** Reads fare_attributes.txt file and puts data into fareAttributes list. */
+    /**
+     * Reads fare_attributes.txt file and puts data into fareAttributes list.
+     */
     private void processFareAttributes() {
         // Let user know what is going on
         logger.info("Processing fare_attributes.txt data...");
@@ -1907,7 +1940,9 @@ public class GtfsData {
         logger.info("Finished processing fare_attributes.txt data. ");
     }
 
-    /** Reads fare_rules.txt file and puts data into fareRules list. */
+    /**
+     * Reads fare_rules.txt file and puts data into fareRules list.
+     */
     private void processFareRules() {
         // Let user know what is going on
         logger.info("Processing fare_rules.txt data...");
@@ -1936,7 +1971,9 @@ public class GtfsData {
         logger.info("Finished processing fare_rules.txt data. ");
     }
 
-    /** Reads transfers.txt file and puts data into transfers list. */
+    /**
+     * Reads transfers.txt file and puts data into transfers list.
+     */
     private void processTransfers() {
         // Let user know what is going on
         logger.info("Processing transfers.txt data...");
@@ -1958,10 +1995,20 @@ public class GtfsData {
         logger.info("Finished processing transfers.txt data. ");
     }
 
+    private void processFeedInfos() {
+        logger.info("Processing feed_info.txt data. ");
+        GtfsFeedInfosReader feedInfosReader = new GtfsFeedInfosReader(gtfsDirectoryName);
+        List<GtfsFeedInfo> gtfsFeedInfos = feedInfosReader.get();
+
+        if (!gtfsFeedInfos.isEmpty()) {
+            feedInfoDto = new GtfsFeedInfo.FeedInfoDto(gtfsFeedInfos.get(0));
+        }
+    }
+
     /**
      * @param routeId
      * @return the GtfsRoute from the trips.txt file for the specified routeId, null if that route
-     *     Id not defined in the file.
+     * Id not defined in the file.
      */
     public GtfsRoute getGtfsRoute(String routeId) {
         return gtfsRoutesMap.get(routeId);
@@ -1970,7 +2017,7 @@ public class GtfsData {
     /**
      * @param tripId
      * @return the GtfsTrip from the trips.txt file for the specified tripId, null if that trip Id
-     *     not defined in the file.
+     * not defined in the file.
      */
     public GtfsTrip getGtfsTrip(String tripId) {
         return gtfsTripsMap.get(tripId);
@@ -2063,13 +2110,6 @@ public class GtfsData {
 
         // Couldn't find the specified trip pattern so return null;
         return null;
-    }
-
-    /**
-     * For use with pathsMap member.
-     */
-    public static String getPathMapKey(String tripPatternId, String pathId) {
-        return tripPatternId + "|" + pathId;
     }
 
     /**
@@ -2241,43 +2281,8 @@ public class GtfsData {
     }
 
     /**
-     * Returns true if the tripId isn't supposed to be filtered out, as specified by the
-     * transitclock.gtfs.tripIdRegExPattern property.
-     *
-     * @param tripId
-     * @return True if trip not to be filtered out
+     * Does all the work. Processes the data and store it in internal structures
      */
-    public static boolean tripNotFiltered(String tripId) {
-        if (GtfsConfig.tripIdFilterRegEx.getValue() == null) {
-            return true;
-        }
-
-        // Create pattern if haven't done so yet, but only do so once.
-        if (tripIdFilterRegExPattern == null)
-            tripIdFilterRegExPattern = Pattern.compile(GtfsConfig.tripIdFilterRegEx.getValue());
-
-        return tripIdFilterRegExPattern.matcher(tripId.trim()).matches();
-    }
-
-    /**
-     * Returns true if the routeId isn't supposed to be filtered out, as specified by the
-     * transitclock.gtfs.routeIdRegExPattern property.
-     *
-     * @param routeId
-     * @return True if route not to be filtered out
-     */
-    public static boolean routeNotFiltered(String routeId) {
-        if (GtfsConfig.routeIdFilterRegEx.getValue() == null)
-            return true;
-
-        // Create pattern if haven't done so yet, but only do so once.
-        if (routeIdFilterRegExPattern == null)
-            routeIdFilterRegExPattern = Pattern.compile(GtfsConfig.routeIdFilterRegEx.getValue());
-
-        return routeIdFilterRegExPattern.matcher(routeId.trim()).matches();
-    }
-
-    /** Does all the work. Processes the data and store it in internal structures */
     public void processData() {
 
         // Let user know what is going on
@@ -2302,6 +2307,7 @@ public class GtfsData {
 
         // Following are simple objects that don't require combining tables
         processFareAttributes();
+        processFeedInfos();
         processFareRules();
         processTransfers();
 

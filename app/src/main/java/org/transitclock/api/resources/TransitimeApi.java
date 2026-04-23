@@ -568,19 +568,22 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response onTimePerformance(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
-            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "endDate") String endDate,
             @Parameter(description = "Partition accuracies: 'day', 'week', 'month'", required = true) @DefaultValue("day")
             @QueryParam(value = "accuracy") String accuracy,
             @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
             String allowableEarly,
             @Parameter(description = "Allowable late in mins(default 3.0)") @QueryParam(value = "allowableLate")
-            String allowableLate)
+            String allowableLate,
+            @Parameter(description = "Only for stops with timepoints") @QueryParam(value = "timePoint") boolean isTimePoint,
+            @Parameter(description = "For old versions without timepoints (apply timepoints from latest stop_times only)") @QueryParam(value = "olderGtfsRev") boolean isOlderGtfsRev
+    )
             throws WebApplicationException {
         stdParameters.validate();
         try {
             String response = Reports.getOnTimePerformance(stdParameters
-                    .getAgencyId(), false, accuracy, beginDate, endDate, allowableEarly, allowableLate);
+                    .getAgencyId(), false, accuracy, beginDate, endDate, allowableEarly, allowableLate, isTimePoint, isOlderGtfsRev);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request
@@ -597,17 +600,20 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response onTimePerformanceAllRoutes(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "beginDate") String beginDate,
-            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)") @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Begin date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(MM-DD-YYYY or YYYY-MM-DD)", required = true) @QueryParam(value = "endDate") String endDate,
             @Parameter(description = "Allowable early in mins(default 1.0)") @QueryParam(value = "allowableEarly")
             String allowableEarly,
             @Parameter(description = "Allowable late in mins(default 3.0)") @QueryParam(value = "allowableLate")
-            String allowableLate)
+            String allowableLate,
+            @Parameter(description = "Only for stops with timepoints") @QueryParam(value = "timePoint") boolean isTimePoint,
+            @Parameter(description = "For old versions without timepoints (apply timepoints from latest stop_times only)") @QueryParam(value = "olderGtfsRev") boolean isOlderGtfsRev
+    )
             throws WebApplicationException {
         stdParameters.validate();
         try {
             String response = Reports.getOnTimePerformance(stdParameters
-                    .getAgencyId(), true, null, beginDate, endDate, allowableEarly, allowableLate);
+                    .getAgencyId(), true, null, beginDate, endDate, allowableEarly, allowableLate, isTimePoint, isOlderGtfsRev);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             // If problem getting data then return a Bad Request

@@ -332,7 +332,7 @@ public class CoreConfig {
     private static final IntegerConfigValue timeForDeterminingDelayedSecs = new IntegerConfigValue(
             "transitclock.core.timeForDeterminingDelayedSecs",
             4 * Time.SEC_PER_MIN,
-            "The interval in msec at which look at vehicle's history " + "to determine if it is delayed.");
+            "The interval in msec at which look at vehicle's history to determine if it is delayed.");
     private static final DoubleConfigValue minDistanceForDelayed = new DoubleConfigValue(
             "transitclock.core.minDistanceForDelayed",
             60.0,

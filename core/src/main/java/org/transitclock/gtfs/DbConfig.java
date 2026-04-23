@@ -142,10 +142,10 @@ public class DbConfig {
      *
      * @return the global session used for lazy loading of data
      */
-    public final Session getGlobalSession() {
+    public final synchronized Session getGlobalSession() {
         if(globalSession == null || !globalSession.isOpen()) {
             logger.warn("Global session is closed therefore create new one");
-            createNewGlobalSession();
+            globalSession = HibernateUtils.getSession(agencyId);
         }
         return globalSession;
     }
