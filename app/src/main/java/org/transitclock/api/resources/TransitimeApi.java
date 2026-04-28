@@ -1883,19 +1883,18 @@ public class TransitimeApi {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     @Operation(
             summary = "Gets the arrivals and departures data of a trips.",
-            description = "Gets the arrivals and departures data of a trips.",
+            description = "Gets the arrivals and departures data of a trips for specify block ID or all blocks for considering day.",
             tags = {"report", "trip"})
     public Response getTripsWithTravelTimes(
             @BeanParam StandardParameters stdParameters,
-            @Parameter(description = "Begin date(YYYY-MM-DD).") @QueryParam(value = "date") String date)
+            @Parameter(description = "Begin date(YYYY-MM-DD).", required = true) @QueryParam(value = "date") String date,
+            @Parameter(description = "Specific block ID") @QueryParam(value = "block") String blockId)
             throws WebApplicationException {
 
         // Make sure request is valid
         stdParameters.validate();
 
-        try {
-
-            String response = Reports.getTripsWithTravelTimes(stdParameters.getAgencyId(), date);
+        try { String response = Reports.getTripsWithTravelTimes(stdParameters.getAgencyId(), date, blockId);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             throw WebUtils.badRequestException(e);
