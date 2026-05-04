@@ -183,8 +183,8 @@ public class Reports {
 
     public static String getTripWithTravelTimes(String agencyId, String tripId, String date) {
         // postgresql only, should throw error if it's other database type
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId, avl_reports.passenger_fullness,\n");
+        StringBuilder sqlBuilder = new StringBuilder("WITH include_prev_passenger AS (SELECT arrivals_departures.trip_id             AS tripId,");
+        sqlBuilder.append("       avl_reports.passenger_fullness,\n");
         sqlBuilder.append("       arrivals_departures.direction_id        AS directionId,\n");
         sqlBuilder.append("       arrivals_departures.stop_id             AS stopId,\n");
         sqlBuilder.append("       stops.code                              AS stopCode,\n");
@@ -307,6 +307,81 @@ public class Reports {
         sqlBuilder.append("ORDER BY block, tripId, stopOrder");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
+    }
+
+    public static String getAvgPaxAndArrivalsDeparturesDelays(String agencyId,
+                                                              String beginDate,
+                                                              String endDate,
+                                                              String tripId,
+                                                              int... daysOfWeek) {
+        getValidateDate(beginDate);
+        getValidateDate(endDate);
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH base AS (\n");
+        sqlBuilder.append("    SELECT ad.trip_id, ad.direction_id, ad.stop_id, ad.stop_order,\n");
+        sqlBuilder.append("           ad.time AS arrival_time, ad.avl_time,\n");
+        sqlBuilder.append("           ad.scheduled_time AS base_scheduled_time,\n");
+        sqlBuilder.append("           CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END AS passenger_count,\n");
+        sqlBuilder.append("           ar.passenger_fullness\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("         LEFT JOIN avl_reports ar ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
+        sqlBuilder.append("    WHERE ad.trip_id = '").append(tripId).append("'\n");
+        sqlBuilder.append("      AND ad.is_arrival = TRUE\n");
+        sqlBuilder.append("      AND ad.time >= DATE('").append(beginDate).append("')\n");
+        sqlBuilder.append("      AND ad.time < DATE('").append(endDate).append("') + INTERVAL '1 day'\n");
+        if (daysOfWeek != null && daysOfWeek.length > 0) {
+            StringBuilder daysBuilder = new StringBuilder();
+            for (int day : daysOfWeek) {
+                if (!daysBuilder.isEmpty()) daysBuilder.append(",");
+                daysBuilder.append(day);
+            }
+            sqlBuilder.append("      AND EXTRACT(DOW FROM ad.time) IN (").append(daysBuilder).append(")\n");
+        }
+        sqlBuilder.append("), departure AS (\n");
+        sqlBuilder.append("    SELECT DISTINCT ON (ad.trip_id, ad.direction_id, ad.stop_id, DATE(ad.avl_time))\n");
+        sqlBuilder.append("           ad.trip_id,\n");
+        sqlBuilder.append("           ad.direction_id,\n");
+        sqlBuilder.append("           ad.stop_id,\n");
+        sqlBuilder.append("           DATE(ad.avl_time) AS d_date,\n");
+        sqlBuilder.append("           ad.time AS departure_time,\n");
+        sqlBuilder.append("           ad.scheduled_time AS departure_scheduled_time\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("    WHERE ad.type = 'DEPARTURE'\n");
+        sqlBuilder.append("      AND ad.trip_id = '").append(tripId).append("'\n");
+        sqlBuilder.append("    ORDER BY ad.trip_id, ad.direction_id, ad.stop_id, DATE(ad.avl_time), ad.time\n");
+        sqlBuilder.append("), joined AS (\n");
+        sqlBuilder.append("    SELECT b.trip_id,\n");
+        sqlBuilder.append("           b.direction_id,\n");
+        sqlBuilder.append("           b.stop_id,\n");
+        sqlBuilder.append("           b.stop_order,\n");
+        sqlBuilder.append("           b.arrival_time,\n");
+        sqlBuilder.append("           d.departure_time,\n");
+        sqlBuilder.append("           b.passenger_fullness,\n");
+        sqlBuilder.append("           b.passenger_count,\n");
+        sqlBuilder.append("           EXTRACT(EPOCH FROM (\n");
+        sqlBuilder.append("               COALESCE(d.departure_scheduled_time, b.base_scheduled_time) - COALESCE(d.departure_time, b.arrival_time)\n");
+        sqlBuilder.append("           )) AS delay_secs\n");
+        sqlBuilder.append("    FROM base b\n");
+        sqlBuilder.append("         LEFT JOIN departure d\n");
+        sqlBuilder.append("              ON d.trip_id = b.trip_id\n");
+        sqlBuilder.append("                  AND d.direction_id = b.direction_id\n");
+        sqlBuilder.append("                  AND d.stop_id = b.stop_id\n");
+        sqlBuilder.append("                  AND d.d_date = DATE(b.avl_time)\n");
+        sqlBuilder.append(")\n");
+        sqlBuilder.append("SELECT trip_id, direction_id, stop_id, stop_order,\n");
+        sqlBuilder.append("       COUNT(trip_id) AS trips_count,\n");
+        sqlBuilder.append("       ROUND(AVG(passenger_fullness)::numeric, 0) AS avg_passenger_fullness,\n");
+        sqlBuilder.append("       ROUND(AVG(passenger_count)::numeric, 0) AS avg_passenger_count,\n");
+        sqlBuilder.append("       CASE WHEN ROUND(AVG(delay_secs)) < 0 THEN '-' ELSE '' END ||\n");
+        sqlBuilder.append("       FLOOR(ABS(ROUND(AVG(delay_secs))) / 60) || ':' ||\n");
+        sqlBuilder.append("       LPAD((ABS(ROUND(AVG(delay_secs))) % 60)::text, 2, '0') AS avg_delay,\n");
+        sqlBuilder.append("       TO_TIMESTAMP(AVG(EXTRACT(HOUR FROM arrival_time) * 3600 + EXTRACT(MINUTE FROM arrival_time) * 60 + EXTRACT(SECOND FROM arrival_time)))::time AS avg_arrival_time,\n");
+        sqlBuilder.append("       TO_TIMESTAMP(AVG(EXTRACT(HOUR FROM departure_time) * 3600 + EXTRACT(MINUTE FROM departure_time) * 60 + EXTRACT(SECOND FROM departure_time)))::time AS avg_departure_time\n");
+        sqlBuilder.append("FROM joined\n");
+        sqlBuilder.append("GROUP BY trip_id, direction_id, stop_id, stop_order\n");
+        sqlBuilder.append("ORDER BY stop_order;");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
 
     public static String getMaxIncreasePaxPerRoute(String agencyId, String routId, String routeShortName, String date) {
@@ -1198,19 +1273,19 @@ public class Reports {
         return sql;
     }
 
-    private static Date getValidateDate(String beginDate) {
-        Date startdate = null;
+    private static Date getValidateDate(String date) {
+        Date validatedDate = null;
         try {
-            if (beginDate.charAt(4) != '-') {
+            if (date.charAt(4) != '-') {
                 DateFormat defaultDateFormat = new SimpleDateFormat("MM-dd-yyyy");
-                startdate = defaultDateFormat.parse(beginDate);
+                validatedDate = defaultDateFormat.parse(date);
             } else {
                 DateFormat altDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                startdate = altDateFormat.parse(beginDate);
+                validatedDate = altDateFormat.parse(date);
             }
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        return startdate;
+        return validatedDate;
     }
 }

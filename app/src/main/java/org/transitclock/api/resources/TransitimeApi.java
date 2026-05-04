@@ -184,12 +184,11 @@ public class TransitimeApi {
             @Parameter(description = "Specifies which vehicles to get data for.", required = false)
             @QueryParam(value = "r")
             List<String> routesIdOrShortNames,
-            @Parameter(
-                    description = "Specifies a stop so can get predictions for routes and"
-                            + " determine which vehicles are the ones generating the"
-                            + " predictions. The other vehicles are labeled as minor so"
-                            + " they can be drawn specially in the UI.",
-                    required = false)
+            @Parameter(description = """
+                            Specifies a stop so can get predictions for routes and determine which\
+                            vehicles are the ones generating the predictions.\
+                            The other vehicles are labeled as minor so they can be drawn specially in the UI.
+                            """)
             @QueryParam(value = "s")
             String stopId,
             @Parameter(description = "Number of predictions to show.", required = false)
@@ -422,6 +421,47 @@ public class TransitimeApi {
 
         try {
             String response = Reports.getMaxIncreasePaxPerRoute(stdParameters.getAgencyId(), routeId, routeShortName, date);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    @Path("/reports/avgPaxAndArrivalsDeparturesAdh")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Gets average passenger and arrivals/departures delays by trip.",
+            description = "Gets average passenger count/fullness and average arrival/departure delay by trip within the date range.",
+            tags = {"report", "trip"})
+    public Response getAvgPaxAndArrivalsDeparturesAdh(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date(YYYY-MM-DD).", required = true)
+            @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(YYYY-MM-DD).", required = true)
+            @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Trip ID.", required = true)
+            @QueryParam(value = "tripId") String tripId,
+            @Parameter(description = "Days of week filter, 0=Sun 1=Mon..6=Sat. Example: d=1&d=2")
+            @QueryParam(value = "d") List<Integer> daysOfWeek)
+            throws WebApplicationException {
+        stdParameters.validate();
+
+        if (StringUtils.isBlank(tripId))
+            throw WebUtils.badRequestException("Must specify tripId");
+
+        int[] daysArray = new int[0];
+        if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
+            for (Integer day : daysOfWeek) {
+                if (day == null || day < 0 || day > 6)
+                    throw WebUtils.badRequestException("daysOfWeek values must be in range 0..6");
+            }
+            daysArray = daysOfWeek.stream().mapToInt(Integer::intValue).toArray();
+        }
+
+        try {
+            String response = Reports.getAvgPaxAndArrivalsDeparturesDelays(
+                    stdParameters.getAgencyId(), beginDate, endDate, tripId, daysArray);
             return stdParameters.createResponse(response);
         } catch (Exception e) {
             throw WebUtils.badRequestException(e);
