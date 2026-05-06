@@ -1,16 +1,14 @@
+x-common-env: &common-env
+  TZ: Europe/Warsaw
+  POSTGRES_PASSWORD: transitclock
+
 services:
   db:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_PASSWORD: transitclock
-      POSTGRES_DB: transitclock
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./database:/var/lib/postgresql/data
-  gtfsrt-validator:
-    image: ghcr.io/mobilitydata/gtfs-realtime-validator:latest
+      <<: *common-env
+      POSTGRES_DB: AGENCY
     ports:
       - "9090:8080"
   transitclock:
@@ -20,9 +18,9 @@ services:
     depends_on:
       - db
     environment:
+      <<: *common-env
       AGENCYID: "AGENCY_ID"
       AGENCYNAME: AGENCY
-      TZ: "Europe/Warsaw"
       GTFS_URL: https://gtfs.pl/download/gtfs.zip
       GTFSRTVEHICLEPOSITIONS: https://host.pl/vehiclePositions.pb
       PGPASSWORD: transitclock
