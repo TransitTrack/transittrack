@@ -3,6 +3,7 @@ package org.transitclock.config;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @ConditionalOnProperty(name = "spring.security.oauth2.resourceserver.jwt.issuer-uri")
 public class Auth2SecurityConfiguration {
 
+    @Value("${transitclock.core.agencyId}")
+    private String agencyId;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -29,12 +33,11 @@ public class Auth2SecurityConfiguration {
                 .cors(cors -> {
                 })
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/gtfs-rt/**").permitAll()
-                        .requestMatchers("/api/v1/**").authenticated()
+                        .requestMatchers("/api/v1/key/f78a2e9a/command/agencies").permitAll()
+                        .requestMatchers("/api/v1/key/f78a2e9a/agency/" +agencyId+ "/command/getExportFile").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(auth -> auth.jwt(Customizer.withDefaults()));
-
         return http.build();
     }
 
@@ -52,19 +55,22 @@ public class Auth2SecurityConfiguration {
         return source;
     }
 
-    //    @Bean
+//    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new JwtAuthenticationConverter();
-        var jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         converter.setPrincipalClaimName("preferred_username");
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            var authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
 
-            var roles = (List<String>) jwt.getClaimAsMap("realm-access").get("roles");
-            return Stream.concat(authorities.stream(), roles.stream()
-                    .filter(role -> role.startsWith("ROLE_"))
-                    .map(SimpleGrantedAuthority::new)
-                    .map(GrantedAuthority.class::cast)).toList();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            var authorities = new JwtGrantedAuthoritiesConverter().convert(jwt);
+            var realmAccess = jwt.getClaimAsMap("realm_access");
+            var roles = realmAccess != null
+                    ? (List<String>) realmAccess.get("roles")
+                    : List.<String>of();
+            return Stream.concat(authorities.stream(),
+                                 roles.stream()
+                                         .filter(role -> role.startsWith("ROLE_"))
+                                         .map(SimpleGrantedAuthority::new)
+                                         .map(GrantedAuthority.class::cast)).toList();
         });
         return converter;
     }

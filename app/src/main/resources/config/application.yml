@@ -1,8 +1,18 @@
+server:
+  port: 8088
+
+springdoc:
+  api-docs:
+    path: "/docs"
+
 spring:
+  output:
+    ansi:
+      enabled: always
   application:
     name: TransitTrack
   datasource:
-    url: jdbc:postgresql://localhost:5432/transitclock
+    url: jdbc:postgresql://localhost:5433/AGENCY
     username: postgres
     password: transitclock
     batch-size: 4_000
@@ -24,18 +34,11 @@ spring:
     locations: classpath:db/migration
   main:
     lazy-initialization: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-
-server:
-  port: 8080
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: https://keycloak.goeuropa.net/realms/tc-3
 
 transitclock:
   factory:
@@ -207,8 +210,9 @@ transitclock:
     secondsBetweenMonitorinPolling: 120
     usableDiskSpaceThreshold: 1073741824
     usableDiskSpaceThresholdGap: 104857600
-#  predAccuracy:
-#    gtfsTripUpdateUrl: http://127.0.0.1:8091/trip-updates
+  pred-accuracy:
+    enabled: true
+#    gtfsTripUpdateUrl:
 #    maxEarlynessComparedToPredictionMsec: 900000
 #    maxLatenessComparedToPredictionMsec: 1500000
 #    maxPredStalenessMinutes: 15
