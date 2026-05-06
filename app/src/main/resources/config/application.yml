@@ -41,11 +41,28 @@ spring:
 #          issuer-uri: https://keycloak.goeuropa.net/realms/tc-3
 
 transitclock:
+  gtfs:
+    url: ${GTFS_URL}
+    dirName: /var/transitclock-3/cache
+    intervalMsec: 86400000
+#    auto-update:
+#      enabled: true
+#      url:
+#      dirName: 'null'
+#      intervalMsec: 14400000
+#    blockIdRegEx: 'null'
+#    capitalize: false
+#    minDistanceBetweenStopsToDisambiguateHeadsigns: 1000.0
+#    outputPathsAndStopsForGraphingRouteIds: 'null'
+#    routeIdFilterRegEx: 'null'
+#    tripIdFilterRegEx: 'null'
+#    tripShortNameRegEx: 'null'
   factory:
     headway-generator: org.transitclock.core.headwaygenerator.LastArrivalsHeadwayGenerator
     prediction-generator: org.transitclock.core.prediction.PredictionGeneratorDefaultImpl
     arrival-departure-generator: org.transitclock.core.avl.ad.ArrivalDepartureGeneratorDefaultImpl
   api:
+    old-version-path: "/key/f78a2e9a"
     gtfsRtCacheSeconds: 15
     includeTripUpdateDelay: false
     predictionMaxFutureSecs: 3600
@@ -61,10 +78,11 @@ transitclock:
     minDistanceFromCurrentReport: 100.0
     minTimeBetweenAutoAssigningSecs: 30
   avl:
-#    authenticationPassword: 'null'
-#    authenticationUser: 'null'
-#    url: 'null'
-    gtfsRealtimeFeedURI: https://api.opentransport.ro/exporter/v1/realtime/stpt/vehicle-positions
+    gtfsRealtimeFeedURI: ${GTFSRTVEHICLEPOSITIONS}
+#    traccarBaseUrl: "https://"
+#    authenticationUser:
+#    authenticationPassword:
+#    occupancyBaseUrl: http://localhost:8081/v1/busloads
     feedTimeoutInMSecs: 30000
     maxSpeed: 100
     numThreads: 1
@@ -82,8 +100,12 @@ transitclock:
     processInRealTime: false
     shouldProcessAvl: true
     unpredictableAssignmentsRegEx: ''
+    speed-in-miles: false
+    name-instead-of-id: true
+  blockLoading:
+    agressive: false
   core:
-    agencyId: 'transitclock' # please change this to your agency id
+    agencyId: ${AGENCYID}
     afterStopDistance: 50.0
     allowableBadAssignments: 4
     allowableEarlyDepartureTimeForLoggingEvent: 60
@@ -152,10 +174,10 @@ transitclock:
     storeDwellTimeStopPathPredictions: false
     storeTravelTimeStopPathPredictions: false
     terminalDistanceForRouteMatching: 100.0
-    timeForDeterminingDelayedSecs: 240
-    timeForDeterminingNoProgress: 480000
-#    timezone: 'null'
-    useArrivalPredictionsForNormalStops: true
+    timeForDeterminingDelayedSecs: 300
+    timeForDeterminingNoProgress: 360000
+    timezone: ${TZ}
+    useArrivalPredictionsForNormalStops: false
     useExactSchedTimeForWaitStops: true
     useHoldingTimeInPrediction: false
     prediction-generator:
@@ -168,23 +190,6 @@ transitclock:
         linear:
           rate: 6.0E-4
           updown: -1
-    agressive-block-loading: false
-  gtfs:
-    url: https://data.opentransport.ro/routing/gtfs/gtfs-stpt.zip
-    dirName: /var/transitclock/cache
-    intervalMsec: 86400000
-#    auto-update:
-#      enabled: true
-#      url:
-#      dirName: 'null'
-#      intervalMsec: 14400000
-#    blockIdRegEx: 'null'
-#    capitalize: false
-#    minDistanceBetweenStopsToDisambiguateHeadsigns: 1000.0
-#    outputPathsAndStopsForGraphingRouteIds: 'null'
-#    routeIdFilterRegEx: 'null'
-#    tripIdFilterRegEx: 'null'
-#    tripShortNameRegEx: 'null'
   holding:
 #    controlStops: 'null'
     maxPredictionsForHoldingTimeCalculation: 3
