@@ -12,9 +12,9 @@ spring:
   application:
     name: TransitTrack
   datasource:
-    url: jdbc:postgresql://localhost:5433/AGENCY
+    url: jdbc:postgresql://${POSTGRES_PORT_5432_TCP_ADDR}:${POSTGRES_PORT_5432_TCP_PORT}/${AGENCYNAME}
     username: postgres
-    password: transitclock
+    password: ${POSTGRES_PASSWORD}
     batch-size: 4_000
     hikari:
       auto-commit: false
@@ -34,11 +34,12 @@ spring:
     locations: classpath:db/migration
   main:
     lazy-initialization: false
+    #If is commented then 0Auth2 disable
 #  security:
 #    oauth2:
 #      resourceserver:
 #        jwt:
-#          issuer-uri: https://keycloak.goeuropa.net/realms/tc-3
+#          issuer-uri: https://keycloak.net/realms/tc-3
 
 transitclock:
   gtfs:
