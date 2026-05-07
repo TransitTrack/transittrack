@@ -10,6 +10,8 @@ import org.transitclock.api.data.ApiPredictionsResponse;
 import org.transitclock.api.utils.PredsByLoc;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.core.dataCache.WebAgencyCache;
+import org.transitclock.domain.repository.AgencyRepository;
+import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.WebAgency;
@@ -48,7 +50,12 @@ public class TransitimeNonAgencyResource extends BaseApiResource implements Tran
         for (WebAgency webAgency : webAgencies) {
             String agencyId = webAgency.getAgencyId();
             List<Agency> agencies = configService.getAgencies();
-
+            if (agencies.isEmpty()) {
+                int configRev = ActiveRevision.get(agencyId).getConfigRev();
+                if (configRev >= 0) {
+                    agencies = AgencyRepository.getAgencies(agencyId, configRev);
+                }
+            }
             for (Agency agency : agencies) {
                 apiAgencyList.add(new ApiAgency(agencyId, agency, isMiles));
             }

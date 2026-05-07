@@ -33,8 +33,6 @@ public class WebAgencyCache {
         // If haven't read in web agencies yet or in a while, do so now
         if (webAgencyMapCache == null || webAgencyMapCache.isEmpty() || System.currentTimeMillis() - webAgencyMapCacheReadTime > rereadIfOlderThanMsecs) {
             webAgencyMapCache = WebAgencyRepository.getMapFromDb();
-//            Recursion if empty
-            if (webAgencyMapCache.isEmpty()) updateCacheIfShould(1);
             webAgencyMapCacheReadTime = System.currentTimeMillis();
 
             // Read data from db so return true
