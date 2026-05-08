@@ -319,11 +319,12 @@ public class Reports {
 
         StringBuilder sqlBuilder = new StringBuilder("WITH base AS (\n");
         sqlBuilder.append("    SELECT ad.trip_id, ad.direction_id, ad.stop_id, ad.stop_order,\n");
-        sqlBuilder.append("           ad.time AS arrival_time, ad.avl_time,\n");
+        sqlBuilder.append("           ad.time AS arrival_time, ad.avl_time, s.name AS stopname,\n");
         sqlBuilder.append("           ad.scheduled_time AS base_scheduled_time,\n");
         sqlBuilder.append("           CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END AS passenger_count,\n");
         sqlBuilder.append("           ar.passenger_fullness\n");
         sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("         LEFT JOIN stops s ON s.id = ad.stop_id AND s.config_rev = ad.config_rev\n");
         sqlBuilder.append("         LEFT JOIN avl_reports ar ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
         sqlBuilder.append("    WHERE ad.trip_id = '").append(tripId).append("'\n");
         sqlBuilder.append("      AND ad.is_arrival = TRUE\n");
@@ -352,15 +353,17 @@ public class Reports {
         sqlBuilder.append("), joined AS (\n");
         sqlBuilder.append("    SELECT b.trip_id,\n");
         sqlBuilder.append("           b.direction_id,\n");
+        sqlBuilder.append("           b.stopname,\n");
         sqlBuilder.append("           b.stop_id,\n");
         sqlBuilder.append("           b.stop_order,\n");
         sqlBuilder.append("           b.arrival_time,\n");
         sqlBuilder.append("           d.departure_time,\n");
         sqlBuilder.append("           b.passenger_fullness,\n");
         sqlBuilder.append("           b.passenger_count,\n");
-        sqlBuilder.append("           EXTRACT(EPOCH FROM (\n");
-        sqlBuilder.append("               COALESCE(d.departure_scheduled_time, b.base_scheduled_time) - COALESCE(d.departure_time, b.arrival_time)\n");
-        sqlBuilder.append("           )) AS delay_secs\n");
+
+        sqlBuilder.append("    COALESCE(d.departure_scheduled_time, b.base_scheduled_time) AS scheduled_time,\n");
+        sqlBuilder.append("    EXTRACT(EPOCH FROM (COALESCE(d.departure_scheduled_time, b.base_scheduled_time) ");
+        sqlBuilder.append("                      - COALESCE(d.departure_time, b.arrival_time))) AS delay_secs\n");
         sqlBuilder.append("    FROM base b\n");
         sqlBuilder.append("         LEFT JOIN departure d\n");
         sqlBuilder.append("              ON d.trip_id = b.trip_id\n");
@@ -368,17 +371,18 @@ public class Reports {
         sqlBuilder.append("                  AND d.stop_id = b.stop_id\n");
         sqlBuilder.append("                  AND d.d_date = DATE(b.avl_time)\n");
         sqlBuilder.append(")\n");
-        sqlBuilder.append("SELECT trip_id, direction_id, stop_id, stop_order,\n");
+        sqlBuilder.append("SELECT trip_id, direction_id, stopname, stop_id, stop_order,\n");
         sqlBuilder.append("       COUNT(trip_id) AS trips_count,\n");
         sqlBuilder.append("       ROUND(AVG(passenger_fullness)::numeric, 0) AS avg_passenger_fullness,\n");
         sqlBuilder.append("       ROUND(AVG(passenger_count)::numeric, 0) AS avg_passenger_count,\n");
         sqlBuilder.append("       CASE WHEN ROUND(AVG(delay_secs)) < 0 THEN '-' ELSE '' END ||\n");
         sqlBuilder.append("       FLOOR(ABS(ROUND(AVG(delay_secs))) / 60) || ':' ||\n");
         sqlBuilder.append("       LPAD((ABS(ROUND(AVG(delay_secs))) % 60)::text, 2, '0') AS avg_delay,\n");
+        sqlBuilder.append("       TO_TIMESTAMP(AVG(EXTRACT(HOUR FROM scheduled_time) * 3600 + EXTRACT(MINUTE FROM scheduled_time) * 60 + EXTRACT(SECOND FROM scheduled_time)))::time AS scheduledtime,\n\n");
         sqlBuilder.append("       TO_TIMESTAMP(AVG(EXTRACT(HOUR FROM arrival_time) * 3600 + EXTRACT(MINUTE FROM arrival_time) * 60 + EXTRACT(SECOND FROM arrival_time)))::time AS avg_arrival_time,\n");
         sqlBuilder.append("       TO_TIMESTAMP(AVG(EXTRACT(HOUR FROM departure_time) * 3600 + EXTRACT(MINUTE FROM departure_time) * 60 + EXTRACT(SECOND FROM departure_time)))::time AS avg_departure_time\n");
         sqlBuilder.append("FROM joined\n");
-        sqlBuilder.append("GROUP BY trip_id, direction_id, stop_id, stop_order\n");
+        sqlBuilder.append("GROUP BY trip_id, direction_id, stopname, stop_id, stop_order\n");
         sqlBuilder.append("ORDER BY stop_order;");
 
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
