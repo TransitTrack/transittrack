@@ -15,18 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class ExportTableCache {
+    private final static ExportTableCache instance = new ExportTableCache();
     private final Map<Integer, List<ExportTable>> exportsMap = new ConcurrentHashMap<>();
     private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
-
     private List<ExportTable> allExportTables = List.of();
-
     private volatile long lastCacheReadTimeFor1 = 0;
     private volatile long lastCacheReadTimeFor2 = 0;
     private volatile long lastCacheReadTimeFor3 = 0;
 
     private ExportTableCache() {
     }
-    private final static ExportTableCache instance = new ExportTableCache();
 
     public static ExportTableCache getInstance() {
         return instance;
@@ -39,9 +37,8 @@ public class ExportTableCache {
     }
 
     private void updateCacheIfNeeded(int type) {
-
         long now = System.currentTimeMillis();
-        if (now - getLastCacheReadTime(type) < Time.DAY_IN_MSECS || exportsMap.get(type) != null) {
+        if (exportsMap.get(type) != null && now - getLastCacheReadTime(type) < Time.HOUR_IN_MSECS) {
             return;
         }
         try (var session = HibernateUtils.getSession()) {
@@ -93,7 +90,7 @@ public class ExportTableCache {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Thread.currentThread().setName("exports-cache-"+Thread.currentThread().getId());
+                Thread.currentThread().setName("exports-cache-" + Thread.currentThread().getId());
 
                 try (var session = HibernateUtils.getSession()) {
                     if (!disableDelay) {
