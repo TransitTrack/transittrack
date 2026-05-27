@@ -122,6 +122,9 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
     private String fullness;
 
     @XmlAttribute
+    private int passengerFullness;
+
+    @XmlAttribute
     private boolean isCanceled;
 
     @XmlAttribute
@@ -203,6 +206,7 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         } else {
             this.holdingTime = null;
         }
+        this.passengerFullness = (int) vehicle.getAvl().getPassengerFullness();
         this.fullness = convertFullness(vehicle);
     }
 

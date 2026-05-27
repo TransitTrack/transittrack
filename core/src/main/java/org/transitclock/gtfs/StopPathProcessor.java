@@ -211,7 +211,8 @@ public class StopPathProcessor {
             int previousShapeIndex,
             double previousDistanceAlongShape,
             List<Location> shapeLocs,
-            double previousDistanceAlongPattern) {
+            double previousDistanceAlongPattern,
+            double shapeDistTraveledToMeters) {
         // Value to be returned
         BestMatch bestMatch = null;
 
@@ -295,8 +296,13 @@ public class StopPathProcessor {
             }
 
             if (stopPath.getShapeDistanceTraveled() != null && bestMatch != null) {
-
-                if (Math.abs(bestMatch.distanceAlongPattern - stopPath.getShapeDistanceTraveled()) < 10) break;
+                // shape_dist_traveled in stop_times.txt is in agency-defined units
+                // (meters / kilometers / miles — GTFS doesn't standardize). Convert
+                // to meters using the factor derived from total shape length so the
+                // comparison against distanceAlongPattern (which is in meters) is
+                // meaningful.
+                double expectedMeters = stopPath.getShapeDistanceTraveled() * shapeDistTraveledToMeters;
+                if (Math.abs(bestMatch.distanceAlongPattern - expectedMeters) < 10) break;
             }
 
             // Keep track of how far along the shapes have examined. If
@@ -312,10 +318,19 @@ public class StopPathProcessor {
             // the distance along the shape is 760m. Therefore need to be
             // pretty generous to correctly find the 43rd Ave & Clement stop.
             distanceAlongShapesExamined += shapeVector.length();
-            if (distanceAlongShapesExamined
-                    > (maxDistanceBetweenStops < 600.0
-                            ? 3.0 * distanceBetweenStopsAsCrowFlies + 600.0
-                            : maxDistanceBetweenStops)) break;
+            double searchLimit = maxDistanceBetweenStops < 600.0
+                    ? 3.0 * distanceBetweenStopsAsCrowFlies + 600.0
+                    : maxDistanceBetweenStops;
+            if (distanceAlongShapesExamined > searchLimit) {
+                // Only stop searching once a sufficiently close match has been found.
+                // Otherwise the stop gets bound to a wrong segment on the shape
+                // (typical on routes with long loops/detours between consecutive
+                // stops), which later renders as a diagonal jump across the map.
+                // Cap the extended search at 2x the normal limit to prevent
+                // pathological scans on broken GTFS data.
+                if (bestMatch != null && bestStopToShapeDistance <= maxStopToPathDistance) break;
+                if (distanceAlongShapesExamined > 2.0 * searchLimit) break;
+            }
         } // End of for each shape (finding best match)
 
         // Now have the best match of the stop to a shape.
@@ -388,6 +403,30 @@ public class StopPathProcessor {
         return bestMatch;
     }
 
+    private double computeShapeDistTraveledToMeters(List<Location> shapeLocs, TripPattern tripPattern) {
+        double totalShapeMeters = 0.0;
+        for (int i = 0; i < shapeLocs.size() - 1; ++i) {
+            totalShapeMeters += new Vector(shapeLocs.get(i), shapeLocs.get(i + 1)).length();
+        }
+
+        Double maxStopDist = null;
+        for (StopPath sp : tripPattern.getStopPaths()) {
+            Double d = sp.getShapeDistanceTraveled();
+            if (d != null && (maxStopDist == null || d > maxStopDist)) maxStopDist = d;
+        }
+
+        if (maxStopDist == null || maxStopDist <= 0.0 || totalShapeMeters <= 0.0) return 1.0;
+
+        double rawFactor = totalShapeMeters / maxStopDist;
+        // Snap to meters (1.0), kilometers (1000.0) or miles (1609.344) when close —
+        // tolerates small shape/stop-times rounding differences without distorting the factor.
+        double[] candidates = {1.0, 1000.0, 1609.344};
+        for (double candidate : candidates) {
+            if (Math.abs(rawFactor - candidate) / candidate < 0.2) return candidate;
+        }
+        return rawFactor;
+    }
+
     /**
      * For the trip pattern, goes through the stops and matches them to the shapes from the
      * shapes.txt file. StopPath segments are created for each stop and the TripPattern is updated
@@ -405,6 +444,8 @@ public class StopPathProcessor {
         int numberOfStopsTooFarAway = 0;
         double previousDistanceAlongPattern = 0.0;
 
+        double shapeDistTraveledToMeters = computeShapeDistTraveledToMeters(shapeLocs, tripPattern);
+
         // For each stop for the trip pattern...
         for (int stopIndex = 0; stopIndex < tripPattern.getStopPaths().size(); ++stopIndex) {
             // Determine which shape the stop matches to
@@ -414,7 +455,8 @@ public class StopPathProcessor {
                     previousShapeIndex,
                     previousDistanceAlongShape,
                     shapeLocs,
-                    previousDistanceAlongPattern);
+                    previousDistanceAlongPattern,
+                    shapeDistTraveledToMeters);
             // Keep track of how many stops too far away from path so can log
             // the number for the entire system
             if (bestMatch.stopToShapeDistance > maxStopToPathDistance) {
