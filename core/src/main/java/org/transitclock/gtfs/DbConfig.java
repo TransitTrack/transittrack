@@ -153,10 +153,12 @@ public class DbConfig {
     /**
      * For when the session dies, which happens when db failed over or rebooted. Idea is to create a
      * new session that can be attached to persistent objects so can lazy load data.
+     *
+     * <p>Only opens a fresh session from the existing SessionFactory. The factory (and its
+     * connection pool) is intentionally NOT closed here.
      */
-    public void createNewGlobalSession() {
+    public synchronized void createNewGlobalSession() {
         logger.info("Creating a new session for agencyId={}", agencyId);
-        HibernateUtils.clearSessionFactory();
         globalSession = HibernateUtils.getSession(agencyId);
     }
 

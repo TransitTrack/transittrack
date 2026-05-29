@@ -216,8 +216,9 @@ public class DbQueue<T> {
 
             session.close();
         } catch (HibernateException e) {
-            // If there was a connection problem then create a whole session
-            // factory so that get new connections.
+            // If there was a connection problem then discard this thread's
+            // broken session so the next getSession() pulls a fresh, validated
+            // connection from the pool.
             Throwable rootCause = ExceptionUtils.getRootCause(e);
 
             if (rootCause instanceof SocketTimeoutException
@@ -225,9 +226,12 @@ public class DbQueue<T> {
                     || (rootCause instanceof SQLException && rootCause.getMessage().contains("statement closed"))) {
                 logger.error("Had a connection problem to the database. Likely "
                         + "means that the db was rebooted or that the "
-                        + "connection to it was lost. Therefore creating a new "
-                        + "SessionFactory so get new connections.");
-                HibernateUtils.clearSessionFactory();
+                        + "connection to it was lost. Therefore discarding this "
+                        + "thread's session so a new connection is obtained.");
+                // Note: do NOT close the whole SessionFactory here. That would
+                // abort in-flight statements of every other thread sharing the
+                // pool. The pool validates/replaces broken connections itself.
+                HibernateUtils.closeCurrentThreadSession();
             } else {
                 // Rollback the transaction since it likely was not committed.
                 // Otherwise can get an error when using Postgres "ERROR:
