@@ -388,6 +388,86 @@ public class Reports {
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
     }
 
+    public static String getDwellTimeByStops(String agencyId,
+                                             String beginDate,
+                                             String endDate,
+                                             String beginTime,
+                                             String endTime,
+                                             String tripId,
+                                             String routeId,
+                                             String stopId,
+                                             int... daysOfWeek) {
+        getValidateDate(beginDate);
+        SqlUtils.throwOnSqlInjection(tripId);
+        SqlUtils.throwOnSqlInjection(routeId);
+
+        // Defaults to a single day when endDate is not provided.
+        int numDays = 1;
+        if (endDate != null && !endDate.isEmpty()) {
+            getValidateDate(endDate);
+            numDays = (int) (ChronoUnit.DAYS.between(
+                    validateParseToLocalDate(beginDate), validateParseToLocalDate(endDate)) + 1);
+            if (numDays < 1) numDays = 1;
+        }
+
+        StringBuilder sqlBuilder = new StringBuilder("WITH visits AS (\n");
+        sqlBuilder.append("    SELECT ad.stop_id,\n");
+        sqlBuilder.append("           ad.config_rev,\n");
+        sqlBuilder.append("           ad.direction_id,\n");
+        sqlBuilder.append("           ad.vehicle_id,\n");
+        sqlBuilder.append("           ad.trip_id AS trip,\n");
+        sqlBuilder.append("           ad.route_id AS route,\n");
+        sqlBuilder.append("           ad.block_id AS block,\n");
+        sqlBuilder.append("           EXTRACT(EPOCH FROM (MAX(ad.time) FILTER (WHERE NOT ad.is_arrival)\n");
+        sqlBuilder.append("                             - MIN(ad.time) FILTER (WHERE ad.is_arrival))) AS dwell_secs\n");
+        sqlBuilder.append("    FROM arrivals_departures ad\n");
+        sqlBuilder.append("    WHERE TRUE\n");
+        sqlBuilder.append(SqlUtils.timeRangeClause("ad.time", 31, numDays, beginTime, endTime, beginDate));
+        sqlBuilder.append("\n");
+        if (daysOfWeek != null && daysOfWeek.length > 0) {
+            StringBuilder daysBuilder = new StringBuilder();
+            for (int day : daysOfWeek) {
+                if (!daysBuilder.isEmpty()) daysBuilder.append(",");
+                daysBuilder.append(day);
+            }
+            sqlBuilder.append("      AND EXTRACT(DOW FROM ad.time) IN (").append(daysBuilder).append(")\n");
+        }
+        if (tripId != null && !tripId.isEmpty()) {
+            sqlBuilder.append("      AND ad.trip_id = '").append(tripId).append("'\n");
+        }
+        if (routeId != null && !routeId.isEmpty()) {
+            sqlBuilder.append("      AND ad.route_id = '").append(routeId).append("'\n");
+        }
+        sqlBuilder.append(SqlUtils.stopClause(stopId, "ad"));
+        sqlBuilder.append("\n");
+        sqlBuilder.append("    GROUP BY ad.stop_id, ad.config_rev, ad.direction_id, ad.gtfs_stop_seq,\n");
+        sqlBuilder.append("             ad.trip_id, ad.route_id, ad.block_id, ad.vehicle_id, DATE(ad.avl_time)\n");
+        sqlBuilder.append(")\n");
+        sqlBuilder.append("SELECT v.stop_id,\n");
+        sqlBuilder.append("       s.code AS stop_code,\n");
+        sqlBuilder.append("       s.name AS stop_name,\n");
+        sqlBuilder.append("       array_agg(DISTINCT v.trip) AS trips,\n");
+        sqlBuilder.append("       array_agg(DISTINCT v.route) AS routes,\n");
+        sqlBuilder.append("       array_agg(DISTINCT v.block) AS blocks,\n");
+        sqlBuilder.append("       v.direction_id AS direction,\n");
+        sqlBuilder.append("       s.lat AS latitude,\n");
+        sqlBuilder.append("       s.lon AS longitude,\n");
+        sqlBuilder.append("       array_agg(ROUND(v.dwell_secs)::int::text) AS dwell_secs,\n");
+        sqlBuilder.append("       COUNT(*) AS dwell_samples,\n");
+        sqlBuilder.append("       ROUND(AVG(v.dwell_secs)::numeric, 1) AS avg_dwell_time_seconds,\n");
+        sqlBuilder.append("       ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY v.dwell_secs)::numeric, 1) AS median_dwell_time_seconds,\n");
+        sqlBuilder.append("       MAX(v.dwell_secs) AS max_dwell_time_seconds,\n");
+        sqlBuilder.append("       MIN(v.dwell_secs) AS min_dwell_time_seconds,\n");
+        sqlBuilder.append("       array_agg(DISTINCT v.vehicle_id) AS vehicle_ids\n");
+        sqlBuilder.append("FROM visits v\n");
+        sqlBuilder.append("         JOIN stops s ON s.id = v.stop_id AND s.config_rev = v.config_rev\n");
+        sqlBuilder.append("WHERE v.dwell_secs IS NOT NULL AND v.dwell_secs >= 0\n");
+        sqlBuilder.append("GROUP BY v.stop_id, s.code, s.name, v.direction_id, s.lat, s.lon\n");
+        sqlBuilder.append("ORDER BY direction, stop_name;");
+
+        return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString());
+    }
+
     public static String getMaxIncreasePaxPerRoute(String agencyId, String routId, String routeShortName, String date) {
         Date beginDate = getValidateDate(date);
 

@@ -468,6 +468,59 @@ public class TransitimeApi {
         }
     }
 
+    @Path("/reports/dwellTimeByStops")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Gets dwell time (time stopped at stop) metrics aggregated per stop.",
+            description = """
+                    Computes the dwell time (departure time minus arrival time) for each stop visit \
+                    over the date range and returns dwell in secs and avg/median/max/min dwell time per stop, the number \
+                    of samples and the list of vehicles. Optionally filtered by time of day, day of week, \
+                    trip, route and stop.""",
+            tags = {"report", "stop"})
+    public Response getDwellTimeByStops(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date(YYYY-MM-DD).", required = true)
+            @QueryParam(value = "beginDate") String beginDate,
+            @Parameter(description = "End date(YYYY-MM-DD), optional. Defaults to beginDate (single day). MAX = 1 month")
+            @QueryParam(value = "endDate") String endDate,
+            @Parameter(description = "Begin time of day (HH:MM), optional.")
+            @QueryParam(value = "beginTime") String beginTime,
+            @Parameter(description = "End time of day (HH:MM), optional.")
+            @QueryParam(value = "endTime") String endTime,
+            @Parameter(description = "Trip ID filter, optional.")
+            @QueryParam(value = "tripId") String tripId,
+            @Parameter(description = "Route ID filter, optional.")
+            @QueryParam(value = "routeId") String routeId,
+            @Parameter(description = "Stop ID filter, optional.")
+            @QueryParam(value = "stopId") String stopId,
+            @Parameter(description = "Days of week filter, 0=Sun 1=Mon..6=Sat. Example: d=1&d=2")
+            @QueryParam(value = "d") List<Integer> daysOfWeek)
+            throws WebApplicationException {
+        stdParameters.validate();
+
+        if (StringUtils.isBlank(beginDate))
+            throw WebUtils.badRequestException("Must specify beginDate");
+
+        int[] daysArray = new int[0];
+        if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
+            for (Integer day : daysOfWeek) {
+                if (day == null || day < 0 || day > 6)
+                    throw WebUtils.badRequestException("daysOfWeek values must be in range 0..6");
+            }
+            daysArray = daysOfWeek.stream().mapToInt(Integer::intValue).toArray();
+        }
+
+        try {
+            String response = Reports.getDwellTimeByStops(
+                    stdParameters.getAgencyId(), beginDate, endDate, beginTime, endTime, tripId, routeId, stopId, daysArray);
+            return stdParameters.createResponse(response);
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
     @Path("/reports/completedTrips")
     @GET
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
