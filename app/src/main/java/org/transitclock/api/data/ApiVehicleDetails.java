@@ -206,7 +206,8 @@ public class ApiVehicleDetails extends ApiVehicleAbstract {
         } else {
             this.holdingTime = null;
         }
-        this.passengerFullness = (int) vehicle.getAvl().getPassengerFullness();
+        float passengerFullnessValue = vehicle.getAvl().getPassengerFullness();
+        this.passengerFullness = Float.isNaN(passengerFullnessValue) ? null : (int) passengerFullnessValue;
         this.fullness = convertFullness(vehicle);
     }
 
