@@ -236,7 +236,7 @@ public class Reports {
         sqlBuilder.append("' AND arrivals_departures.is_arrival = 'True'\n");
         sqlBuilder.append("  AND Date(arrivals_departures.time) = DATE('").append(date).append("')\n");
         sqlBuilder.append("ORDER BY arrivals_departures.time ASC, arrivals_departures.direction_id ASC, arrivals_departures.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, TRUNC(pp.passenger_fullness::numeric, 2) AS passenger_fullness, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, NULLIF(TRUNC(pp.passenger_fullness::numeric, 2), 'NaN') AS passenger_fullness, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
@@ -300,7 +300,7 @@ public class Reports {
         if (blockId != null && !blockId.isBlank())
             sqlBuilder.append("  AND as_ds.block_id = '").append(blockId).append("'\n");
         sqlBuilder.append("ORDER BY as_ds.time ASC, as_ds.direction_id ASC, as_ds.gtfs_stop_seq ASC)");
-        sqlBuilder.append("SELECT pp.block, pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, TRUNC(pp.passenger_fullness::numeric, 2) AS passenger_fullness, pp.passenger_count,\n");
+        sqlBuilder.append("SELECT pp.block, pp.tripId, pp.directionId, pp.stopId, pp.stopCode, pp.stopName, pp.lat, pp.lon, pp.stopOrder, pp.vehicleId, pp.vehicleName, pp.arrivalTime, pp.departureTime, pp.scheduledTime, pp.difference_in_seconds, NULLIF(TRUNC(pp.passenger_fullness::numeric, 2), 'NaN') AS passenger_fullness, pp.passenger_count,\n");
         sqlBuilder.append("       CASE\n");
         sqlBuilder.append("           WHEN passenger_count > prevPassengerCount THEN passenger_count - prevPassengerCount ELSE passenger_count - prevPassengerCount END AS passengerIncrease\n");
         sqlBuilder.append("FROM include_prev_passenger pp\n");
