@@ -322,7 +322,7 @@ public class Reports {
         sqlBuilder.append("           ad.time AS arrival_time, ad.avl_time, s.name AS stopname,\n");
         sqlBuilder.append("           ad.scheduled_time AS base_scheduled_time,\n");
         sqlBuilder.append("           CASE WHEN ar.passenger_count = -1 THEN NULL ELSE ar.passenger_count END AS passenger_count,\n");
-        sqlBuilder.append("           ar.passenger_fullness\n");
+        sqlBuilder.append("           NULLIF(TRUNC(ar.passenger_fullness::numeric, 2), 'NaN')::double precision AS passenger_fullness\n");
         sqlBuilder.append("    FROM arrivals_departures ad\n");
         sqlBuilder.append("         LEFT JOIN stops s ON s.id = ad.stop_id AND s.config_rev = ad.config_rev\n");
         sqlBuilder.append("         LEFT JOIN avl_reports ar ON ad.avl_time = ar.time AND ad.vehicle_id = ar.vehicle_id\n");
@@ -373,7 +373,7 @@ public class Reports {
         sqlBuilder.append(")\n");
         sqlBuilder.append("SELECT trip_id, direction_id, stopname, stop_id, stop_order,\n");
         sqlBuilder.append("       COUNT(trip_id) AS trips_count,\n");
-        sqlBuilder.append("       ROUND(AVG(passenger_fullness)::numeric, 0) AS avg_passenger_fullness,\n");
+        sqlBuilder.append("       NULLIF(ROUND(AVG(passenger_fullness)::numeric, 0), 'NaN') AS avg_passenger_fullness,\n");
         sqlBuilder.append("       ROUND(AVG(passenger_count)::numeric, 0) AS avg_passenger_count,\n");
         sqlBuilder.append("       CASE WHEN ROUND(AVG(delay_secs)) < 0 THEN '-' ELSE '' END ||\n");
         sqlBuilder.append("       FLOOR(ABS(ROUND(AVG(delay_secs))) / 60) || ':' ||\n");

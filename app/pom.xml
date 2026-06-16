@@ -92,6 +92,18 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/build-metadata</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>version.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -157,6 +169,18 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
@@ -171,6 +195,11 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.transitclock.Application</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Version>${revision}</Implementation-Version>
+                                        <Git-Commit>${git.commit.id.abbrev}</Git-Commit>
+                                        <Build-Time>${git.build.time}</Build-Time>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <outputFile>target/transitclock.jar</outputFile>
@@ -180,4 +209,75 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+        Use when .git is unavailable (e.g. Docker build with .dockerignore).
+        Option A – environment variables:
+          GIT_COMMIT=abc1234 BUILD_TIME=2026-06-13T12:00:00Z mvn -pl app -am package
+        Option B – Maven properties:
+          mvn -pl app -am package -Dgit.info.external=true -Dgit.commit.id.abbrev=abc1234 -Dgit.build.time=2026-06-13T12:00:00Z
+    -->
+    <profiles>
+        <profile>
+            <id>external-git-info</id>
+            <activation>
+                <property>
+                    <name>env.GIT_COMMIT</name>
+                </property>
+            </activation>
+            <properties>
+                <git.commit.id.abbrev>${env.GIT_COMMIT}</git.commit.id.abbrev>
+                <git.build.time>${env.BUILD_TIME}</git.build.time>
+            </properties>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                    <resource>
+                        <directory>src/main/build-metadata</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>external-git-info-maven</id>
+            <activation>
+                <property>
+                    <name>git.info.external</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                    <resource>
+                        <directory>src/main/build-metadata</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
