@@ -152,7 +152,7 @@ public class Application {
                             "http://www.transitclock.org",
                             "og.crudden@gmail.com",
                             "123456",
-                            "foo");
+                            "foo", false);
         } catch (IllegalArgumentException ignored) {
 
         }
@@ -363,6 +363,12 @@ public class Application {
         apiServlet.setInitParameter("jersey.config.server.provider.packages", "org.transitclock.api.resources");
         apiServlet.setInitOrder(0);
         servletContextHandler.addServlet(apiServlet, "/api/v1/*");
+
+        ServletHolder versionServlet = new ServletHolder("version", ServletContainer.class);
+        versionServlet.setInitParameter(
+                "jersey.config.server.provider.classnames", "org.transitclock.api.version.VersionApi");
+        versionServlet.setInitOrder(0);
+        servletContextHandler.addServlet(versionServlet, "/version");
 
         server.setHandler(servletContextHandler);
 

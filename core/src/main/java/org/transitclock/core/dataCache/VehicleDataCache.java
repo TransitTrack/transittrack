@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.transitclock.Core;
 import org.transitclock.config.data.AgencyConfig;
 import org.transitclock.core.VehicleState;
@@ -63,7 +61,7 @@ public class VehicleDataCache {
     // in AVL feed then this map is updated and the new VehicleConfig is also
     // written to the database. Using HashMap instead of ConcurrentHashMap
     // since synchronizing puts anyways.
-    private final ConcurrentHashMap<String, VehicleConfig> vehicleConfigsMap = new ConcurrentHashMap<String, VehicleConfig>();
+    private final ConcurrentHashMap<String, VehicleConfig> vehicleConfigsMap = new ConcurrentHashMap<>();
 
     // So can quickly look up vehicle config using tracker ID
     private final Map<String, VehicleConfig> vehicleConfigByTrackerIdMap = new HashMap<String, VehicleConfig>();
@@ -485,8 +483,21 @@ public class VehicleDataCache {
      *
      * @param vehicleId The id of the vehicle to remove from the vehiclesMap
      */
-    public void removeVehicle(String vehicleId) {
-        logger.debug("Removing from VehicleDataCache vehiclesMap vehicleId={}", vehicleId);
+    public String removeVehicle(String vehicleId) {
+        logger.debug("Removing from VehicleDataCache the vehicleId = {}", vehicleId);
+        var vehicle = vehiclesMap.get(vehicleId);
         vehiclesMap.remove(vehicleId);
+        vehicleConfigsMap.remove(vehicleId);
+//        Return latest avl for deleted vehicle
+        return new StringBuilder("Vehicle's name: ")
+                .append(vehicle.getVehicleName())
+                .append(". and ID: ")
+                .append(vehicle.getId()).toString();
+    }
+
+    public void resetVehiclesCache() {
+        logger.debug("Reset vehicles cache");
+        vehiclesMap.clear();
+        vehicleConfigsMap.clear();
     }
 }

@@ -10,6 +10,7 @@ import org.transitclock.core.BlockAssignmentMethod;
 import org.transitclock.core.SpatialMatch;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.VehicleState;
+import org.transitclock.domain.structs.Headway;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
@@ -30,7 +31,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
     private final Double distanceToNextStop;
     private final Double distanceOfNextStopFromTripStart;
     private final Double distanceAlongTrip;
-    private double headway;
+    private Headway headway;
 
     /**
      * The constructor.
@@ -63,8 +64,12 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
             this.distanceOfNextStopFromTripStart = sumOfStopPathLengths;
             this.distanceAlongTrip = sumOfStopPathLengths - this.distanceToNextStop;
             if (vs.getHeadway() != null) {
-                this.headway = vs.getHeadway().getHeadway();
-            } else this.headway = -1;
+                this.headway = vs.getHeadway();
+            } else {
+               var emptyHeadway = new Headway();
+                emptyHeadway.setHeadway(-1L);
+                this.headway = emptyHeadway;
+            }
         } else {
             // Vehicle not assigned to trip so null out parameters
             this.originStopId = null;
@@ -144,7 +149,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
             double predictedLatitude,
             double predictedLongitude,
             boolean isCanceled,
-            double headway) {
+            Headway headway) {
 
         super(
                 blockId,
@@ -197,7 +202,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
         private Double distanceToNextStop;
         private Double distanceOfNextStopFromTripStart;
         private Double distanceAlongTrip;
-        private double headway;
+        private Headway headway;
         private static final short currentSerializationVersion = 0;
 
         private CompleteVehicleSerializationProxy(IpcVehicleComplete v) {
@@ -228,7 +233,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
             stream.writeObject(distanceToNextStop);
             stream.writeObject(distanceOfNextStopFromTripStart);
             stream.writeObject(distanceAlongTrip);
-            stream.writeDouble(headway);
+            stream.writeObject(headway);
         }
 
         /*
@@ -257,7 +262,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
             distanceOfNextStopFromTripStart = (Double) stream.readObject();
             distanceAlongTrip = (Double) stream.readObject();
             isCanceled = stream.readBoolean();
-            headway = stream.readDouble();
+            headway = (Headway) stream.readObject();
         }
 
         /*
@@ -344,7 +349,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
         return distanceAlongTrip;
     }
 
-    public double getHeadway() {
+    public Headway getHeadway() {
         return headway;
     }
 
@@ -408,7 +413,7 @@ public class IpcVehicleComplete extends IpcVehicleGtfsRealtime {
                 + ", originStopId="
                 + originStopId
                 + ", headway="
-                + headway
+                + headway.getHeadway()
                 + ", distanceToNextStop="
                 + Geo.distanceFormat(distanceToNextStop)
                 + ", distanceOfNextStopFromTripStart="

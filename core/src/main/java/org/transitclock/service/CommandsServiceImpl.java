@@ -3,25 +3,36 @@ package org.transitclock.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.transitclock.Core;
 import org.transitclock.core.AvlProcessor;
+import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.TemporalMatch;
 import org.transitclock.core.VehicleState;
 import org.transitclock.core.avl.AvlExecutor;
+import org.transitclock.core.dataCache.ExportTableCache;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStateManager;
+import org.transitclock.domain.ApiKeyManager;
 import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.domain.structs.VehicleEvent;
-import org.transitclock.domain.structs.VehicleToBlockConfig;
+import org.transitclock.domain.structs.*;
+import org.transitclock.domain.webstructs.ApiKey;
+import org.transitclock.repository.ExportTableRepository;
 import org.transitclock.service.contract.CommandsInterface;
+import org.transitclock.repository.contract.RepositoryInterface;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.SystemTime;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.util.*;
+
+import static org.transitclock.config.data.BlockAssignerConfig.isOverrideTimesForVehicleToBlock;
+
 
 @Slf4j
 public class CommandsServiceImpl implements CommandsInterface {
@@ -29,17 +40,21 @@ public class CommandsServiceImpl implements CommandsInterface {
     // Should only be accessed as singleton class
     private static CommandsServiceImpl singleton;
 
+    private final RepositoryInterface<ExportTable> exportRepo = new ExportTableRepository();
+
+    public CommandsServiceImpl() {
+    }
+
     public static CommandsInterface instance() {
         return singleton;
     }
-
 
     /**
      * Starts up the CommandsServer so that RMI calls can be used to control the server. This will
      * automatically cause the object to continue to run and serve requests.
      *
      * @return the singleton CommandsServer object. Usually does not need to used since the server
-     *     will be fully running.
+     * will be fully running.
      */
     public static CommandsServiceImpl start() {
         if (singleton == null) {
@@ -47,9 +62,6 @@ public class CommandsServiceImpl implements CommandsInterface {
         }
 
         return singleton;
-    }
-
-    public CommandsServiceImpl() {
     }
 
     /**
@@ -187,14 +199,175 @@ public class CommandsServiceImpl implements CommandsInterface {
     }
 
     @Override
-    public String removeVehicleToBlock(long id) {
-        Session session = HibernateUtils.getSession();
+    public Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key) {
+        Map<String, Boolean> resultsOfAdding = new HashMap<>();
+
+        ZonedDateTime startOfDay = LocalDate.now().atStartOfDay(ZoneId.systemDefault());
+        long startOfDayInSeconds = startOfDay.toEpochSecond();
+
+        ApiKey currentApiKey = ApiKeyManager.getInstance().getApiKeys().stream()
+                .filter(apiKey -> apiKey.getApplicationName().equals("Sean Og Crudden"))
+                .findAny()
+                .orElse(null);
+        boolean isValid = ApiKeyManager.getInstance().isKeyValid(key);
+
+        if (currentApiKey != null) {
+            if (isValid && !currentApiKey.getApplicationKey().equals(key)) {
+                processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfAdding);
+                logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+                return resultsOfAdding;
+            } else throw new IllegalArgumentException("Key is not valid or is used unsecure key!");
+        } else if (isValid) {
+            processVehicleToBlocks(vehiclesToBlocks, startOfDayInSeconds, resultsOfAdding);
+            logger.info("Successfully created and added assignments for {} vehicles. ", vehiclesToBlocks.size());
+            return resultsOfAdding;
+        } else throw new IllegalArgumentException("Key is not valid!");
+    }
+
+    public VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehiclesToBlocks) {
         try {
-            VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
-            session.close();
+            return VehicleToBlockConfig.updateVehicleToBlockConfig(vehiclesToBlocks);
         } catch (Exception ex) {
-            session.close();
+            logger.warn(ex.getMessage());
+            throw ex;
         }
-        return null;
+    }
+
+    @Override
+    public void removeVehicleToBlock(long id) {
+        try (Session session = HibernateUtils.getSession()) {
+            VehicleToBlockConfig.deleteVehicleToBlockConfig(id, session);
+        } catch (Exception ex) {
+            logger.warn(ex.getMessage());
+        }
+    }
+
+    @Override
+    public ExportTable save(ExportTable exportTable) throws Exception {
+        try (var session = HibernateUtils.getSession()) {
+            session.setDefaultReadOnly(true);
+        var export = exportRepo.save(exportTable);
+        Thread.sleep(2000);
+        var persistedExport = exportRepo.findByName(session, export.getFileName());
+            persistedExport.setExportStatus(2);
+        ExportTableCache.getInstance().addExportTable(persistedExport);
+        logger.info("Successfully save export '{}' to database. ", export.getFileName());
+        return persistedExport;
+        }
+    }
+
+    @Override
+    public ExportTable removeExportById(int id) {
+        Transaction tx = null;
+        try (var session = HibernateUtils.getSession()) {
+            var exportsToDelete = exportRepo.findById(session, id);
+            if (exportsToDelete != null && exportsToDelete.getId() == id) {
+                //begin tx
+                tx = session.beginTransaction();
+                var isDeleted = exportRepo.deleteById(session, id);
+                tx.commit();
+                if (isDeleted){
+                    ExportTableCache.getInstance().updateExportsCache(exportsToDelete.getExportType(), true);
+                    return exportsToDelete;
+                }
+            }
+            throw new IllegalArgumentException("Export with id: '" + id + "' - is not found!");
+        } catch (Exception ex) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw ex;
+        }
+    }
+
+    @Override
+    public String addApiKey(String applicationName, String applicationUrl,
+                            String email, String phone, String description, boolean secret) throws RuntimeException {
+        try {
+            ApiKey key = ApiKeyManager.getInstance()
+                    .generateApiKey(applicationName, applicationUrl, email, phone, description, secret);
+            logger.info("Successfully created and added application key for {} to database. ", key.getApplicationName());
+            return key.getApplicationKey();
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    @Override
+    public String removeApiKey(String apiKey) throws RuntimeException {
+
+        try {
+            String result = ApiKeyManager.getInstance().deleteKey(apiKey);
+            logger.info("Successfully deleted key for {} from database. ", apiKey);
+            return result;
+
+        } catch (Exception exception) {
+            logger.error(exception.getMessage());
+            throw exception;
+        }
+    }
+
+    @Override
+    public String removeVehicleFromCache(String vehicleId) {
+        setVehicleUnpredictable(vehicleId);
+        VehicleDataCache dataCache = VehicleDataCache.getInstance();
+        String avl = dataCache.removeVehicle(vehicleId);
+        logger.info("Removed from vehicle data-cache the unused vehicle with ID: {}", vehicleId);
+        return avl;
+    }
+
+    @Override
+    public void resetVehicleDataCache() {
+        VehicleDataCache dataCache = VehicleDataCache.getInstance();
+        dataCache.resetVehiclesCache();
+        logger.info("Initiate a vehicle cache reset to eliminate any unused vehicles.");
+    }
+
+    private void processVehicleToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, long startOfDayInSeconds, Map<String, Boolean> resultsOfAdding) {
+        for (VehicleToBlockConfig assignment : vehiclesToBlocks) {
+            try {
+                var isSuccessful = addAssignmentToDB(assignment, startOfDayInSeconds);
+                resultsOfAdding.put(assignment.getVehicleId(), isSuccessful);
+            } catch (Exception e) {
+                logger.warn("Something went wrong while creating VehicleToBlockConfig: {} record, cause={}", assignment, e.getMessage());
+                resultsOfAdding.put(assignment.getVehicleId() + " : " + e.getLocalizedMessage() + " Is created", false);
+            }
+        }
+    }
+
+    private boolean addAssignmentToDB(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        if (assignment.getValidTo() == null && assignment.getTripId() != null) {
+            return setEndTimeForAssignment(assignment, startOfDayInSeconds);
+        } else if (isOverrideTimesForVehicleToBlock() && assignment.getBlockId() != null) {
+            return setTimesForAssignmentBlocks(assignment, startOfDayInSeconds);
+        } else return Core.getInstance().getDbLogger().add(assignment);
+    }
+
+    private boolean setEndTimeForAssignment(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        int endTime = Core.getInstance().getDbConfig().getTrip(assignment.getTripId()).getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 2000);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return Core.getInstance().getDbLogger().add(assignment);
+    }
+
+    private boolean setTimesForAssignmentBlocks(VehicleToBlockConfig assignment, long startOfDayInSeconds) {
+        ServiceUtils serviceUtils = Core.getInstance().getServiceUtils();
+        Block wantedBlock;
+        var listServIds = serviceUtils.getServiceIdsForDay(SystemTime.getMillis());
+        wantedBlock = listServIds.stream().map(serviceId -> Core.getInstance().getDbConfig()
+                        .getBlock(serviceId, assignment.getBlockId()))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        int startTime = wantedBlock.getStartTime();
+        long startTimeInSec = startOfDayInSeconds + (startTime - 300);
+        assignment.setValidFrom(new Date(startTimeInSec * 1000));
+
+        int endTime = wantedBlock.getEndTime();
+        long endTimeInSec = startOfDayInSeconds + (endTime + 1200);
+        assignment.setValidTo(new Date(endTimeInSec * 1000));
+        return Core.getInstance().getDbLogger().add(assignment);
     }
 }

@@ -24,16 +24,6 @@ public class PredAccuracyIntervalQuery extends PredictionAccuracyQuery {
     private static final int MIN_DATA_POINTS_PER_PRED_BUCKET = 5;
 
     /**
-     * Creates connection to database for the specified agency
-     *
-     * @param agencyId
-     * @throws SQLException
-     */
-    public PredAccuracyIntervalQuery(String agencyId) throws SQLException {
-        super(agencyId);
-    }
-
-    /**
      * Goes through data array (must already be sorted!) and determines the index of the array that
      * corresponds to the minimum element. For example, if the fraction is specified as 0.70 which
      * means that want to know the minimum value such that 70% of the predictions are between the
@@ -283,13 +273,13 @@ public class PredAccuracyIntervalQuery extends PredictionAccuracyQuery {
         // Actually perform the query
         doQuery(beginDateStr, numDaysStr, beginTimeStr, endTimeStr, routeIds, predSource, predType);
 
+        ChartJsonBuilder builder = new ChartJsonBuilder();
         // If query returned no data then simply return null so that
         // can easily see that there is a problem
         if (map.isEmpty()) {
-            return null;
+            return builder.getJson();
         }
 
-        ChartJsonBuilder builder = new ChartJsonBuilder();
         addCols(builder, intervalsType, intervalPercentage1, intervalPercentage2);
         addRows(builder, intervalsType, intervalPercentage1, intervalPercentage2);
 

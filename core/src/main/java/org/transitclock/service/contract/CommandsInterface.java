@@ -1,11 +1,15 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
+import org.transitclock.domain.structs.ExportTable;
+import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.service.dto.IpcAvl;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Defines the RMI interface for sending commands or data to the server (as opposed to for
@@ -54,9 +58,69 @@ public interface CommandsInterface {
      */
     String addVehicleToBlock(String vehicleId, String blockId, String tripId, Date assignmentDate, Date validFrom, Date validTo);
 
+     /*
+     * Add vehicle to Block to assignment
+     * Returns map of vehicle Ids with states
+     */
+    Map<String, Boolean> addVehiclesToBlocks(List<VehicleToBlockConfig> vehiclesToBlocks, String key);
+
+    /*
+     * Edit VehicleToBlockConfig obj.
+     * Returns VehicleToBlockConfig on success
+     */
+    VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig);
+
     /*
      * Add remove vehicle to block.
      * Returns null on success
      */
-    String removeVehicleToBlock(long id);
+    void removeVehicleToBlock(long id);
+
+
+    /*
+     * Remove Export by ID from db
+     */
+    ExportTable removeExportById(int id);
+
+
+    /**
+     * Add application key to db.
+     * Returns key on success or throw exception.
+     *
+     * @param applicationName name of user
+     * @param applicationUrl url of organization
+     * @param description
+     * @param email
+     * @param phone
+     */
+    String addApiKey(String applicationName, String applicationUrl,
+                            String email, String phone, String description, boolean secret) throws Exception;
+
+    /**
+     * Delete application key.
+     * Returns key on success.
+     *
+     * @param apiKey
+     */
+    String removeApiKey(String apiKey) throws Exception;
+
+    /**
+     * Delete vehicleId.
+     *
+     * @param vehicleId
+     */
+    String removeVehicleFromCache(String vehicleId);
+
+    /**
+     * Delete all vehicles from cache.
+     */
+    void resetVehicleDataCache();
+
+    /**
+     * Save exportTable .
+     * Returns ExportTable on success.
+     *
+     * @param exportTable
+     */
+    ExportTable save(ExportTable exportTable) throws Exception;
 }

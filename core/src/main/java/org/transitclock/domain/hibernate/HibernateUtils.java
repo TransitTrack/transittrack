@@ -66,11 +66,11 @@ public class HibernateUtils {
         // can be overwritten in a standard way. If that property not set then
         // uses values from DbSetupConfig if set. If they are not set then the
         // values will be obtained from the hibernate.cfg.xml config file.
-        String dbUrl = config.getProperty(AvailableSettings.URL);
+        String dbUrl = config.getProperty(AvailableSettings.JAKARTA_JDBC_URL);
         if (readOnly) {
             dbUrl = config.getProperty("hibernate.ro.connection.url");
             // override the configured url so its picked up by the driver
-            config.setProperty(AvailableSettings.URL, dbUrl);
+            config.setProperty(AvailableSettings.JAKARTA_JDBC_URL, dbUrl);
             logger.trace("using read only connection url {}", dbUrl);
         }
         if (dbUrl == null || dbUrl.isEmpty()) {
@@ -86,18 +86,18 @@ public class HibernateUtils {
 
                 dbUrl += "?connectTimeout=" + timeout + "&socketTimeout=" + timeout;
             }
-            config.setProperty(AvailableSettings.URL, dbUrl);
+            config.setProperty(AvailableSettings.JAKARTA_JDBC_URL, dbUrl);
         }
 
         String dbUserName = DbSetupConfig.getDbUserName();
         if (dbUserName != null) {
-            config.setProperty(AvailableSettings.USER, dbUserName);
+            config.setProperty(AvailableSettings.JAKARTA_JDBC_USER, dbUserName);
         } else {
-            dbUserName = config.getProperty(AvailableSettings.USER);
+            dbUserName = config.getProperty(AvailableSettings.JAKARTA_JDBC_USER);
         }
 
         if (DbSetupConfig.getDbPassword() != null) {
-            config.setProperty(AvailableSettings.PASS, DbSetupConfig.getDbPassword());
+            config.setProperty(AvailableSettings.JAKARTA_JDBC_PASSWORD, DbSetupConfig.getDbPassword());
         }
 
         // Log info, but don't log password. This can just be debug logging
@@ -174,6 +174,22 @@ public class HibernateUtils {
         sessionFactoryCache.clear();
     }
 
+    public static void closeCurrentThreadSession() {
+        Thread thread = Thread.currentThread();
+        ThreadLocal<Session> sessionThreadLocal = threadSessions.remove(thread);
+        if (sessionThreadLocal != null) {
+            Session session = sessionThreadLocal.get();
+            if (session != null && session.isOpen()) {
+                try {
+                    session.close();
+                } catch (HibernateException e) {
+                    logger.warn("Error closing session for thread {}", thread.getName(), e);
+                }
+            }
+            sessionThreadLocal.remove();
+        }
+    }
+
     /**
      * Returns session for the specified agencyId.
      *
@@ -184,7 +200,6 @@ public class HibernateUtils {
      * @param agencyId Used as the database name if the property transitclock.core.dbName is not set
      * @return The Session. Make sure you close it when done because system only gets limited number
      *     of open sessions.
-     * @throws HibernateException
      */
     public static Session getSession(String agencyId) throws HibernateException {
         return getSession(agencyId, false);

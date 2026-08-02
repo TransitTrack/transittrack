@@ -4,8 +4,6 @@ package org.transitclock.domain.structs;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import java.util.List;
-
 import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
@@ -13,6 +11,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.domain.hibernate.HibernateUtils;
+
+import java.util.List;
 
 /**
  * For testing ability to read and write to and from the db. Doesn't actually store any useful
@@ -50,8 +50,8 @@ public class DbTest {
                 logger.error("Could not get database session for agencyId={}", agencyId);
                 return null;
             }
-            return (List<DbTest>) session
-                    .createQuery("FROM DbTest")
+            return session
+                    .createQuery("FROM DbTest", DbTest.class)
                     .list();
         } catch (HibernateException e) {
             logger.error("Could not get DbTest object. {}. {}", e.getCause().getMessage(), e.getMessage());
@@ -84,7 +84,7 @@ public class DbTest {
             // Put db access into a transaction because modifying data
             tx = session.beginTransaction();
 
-            session.save(dbTest);
+            session.persist(dbTest);
 
             // Make sure that everything actually written out to db
             tx.commit();
@@ -121,8 +121,7 @@ public class DbTest {
         try {
             // Put db access into a transaction because modifying data
             Transaction tx = session.beginTransaction();
-
-            int numUpdates = session.createQuery(hql).executeUpdate();
+            int numUpdates = session.createQuery(hql, Long.class).executeUpdate();
 
             // Make sure that everything actually written out to db
             tx.commit();

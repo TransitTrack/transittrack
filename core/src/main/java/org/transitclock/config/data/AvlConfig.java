@@ -3,6 +3,8 @@ package org.transitclock.config.data;
 
 import org.transitclock.config.*;
 
+import java.util.regex.Pattern;
+
 /**
  * Handles the AVL configuration data.
  *
@@ -266,4 +268,23 @@ public class AvlConfig {
                     + "large systems with lots of vehicles then should use "
                     + "multiple threads, such as 3-15 so that more of the cores "
                     + "are used.");
+
+    // For determining a vehicle ID from the GTFS_RT feed if the
+    // vehiclePositions proto-buf has multiples agencies
+    // Default of null means simply use vehicle_id without any modification.
+    static StringConfigValue filterVehicleIdRegEx = new StringConfigValue(
+            "transitclock.avl.filterVehicleIdRegEx",
+            null,
+            "For determining a vehicle ID from the GTFS_RT feed if the\n" +
+                    "  vehiclePositions proto-buf has multiples agencies   \n" +
+                    "  Default of null means simply use vehicle_id without any modification. For example, to get ID what starts from \n"
+                    + "a \"1\" would use something like \"^1\"");
+
+
+    public static Pattern vehicleIdForFeedRegExPattern() {
+        if (filterVehicleIdRegEx.getValue() == null)
+            return null;
+        Pattern pattern = Pattern.compile(filterVehicleIdRegEx.getValue());
+        return pattern;
+    }
 }

@@ -11,6 +11,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import static org.transitclock.config.data.TraccarConfig.OCCUPANCY_SOURCE_URL;
+import static org.transitclock.core.avl.OccupancyStatusSource.fetchBusLoads;
 
 /**
  * For reading in feed of GTFS-realtime AVL data. Is used for both realtime feeds and for when
@@ -33,18 +37,32 @@ public class GtfsRealtimeModule extends PollUrlAvlModule {
      */
     @Override
     protected void getAndProcessData() {
+        Map<String, OccupancyStatusSource.BusLoadDto> occupancies = null;
+        if (!OCCUPANCY_SOURCE_URL.getValue().isBlank()) occupancies = fetchBusLoads(OCCUPANCY_SOURCE_URL.getValue());
+
         String[] urls = GtfsConfig.GTFS_REALTIME_URI.getValue().split(",");
 
         for (String urlStr : urls) {
             try {
                 logger.info("Reading {}", urlStr);
                 List<AvlReport> avlReports = GtfsRtVehiclePositionsReader.getAvlReports(urlStr);
-                avlReports.forEach(this::processAvlReport);
+                for (AvlReport avlReport : avlReports) {
+                    var id = avlReport.getVehicleId();
+                    if (occupancies != null && occupancies.get(id) != null)
+                        getOccupancy(avlReport, occupancies, id);
+                    //process...............
+                    processAvlReport(avlReport);
+                }
                 logger.info("Processed {} reports for feed {}", avlReports.size(), urlStr);
             } catch (Exception e) {
                 logger.error("Issues processing feed {}", urlStr, e);
             }
         }
+    }
+
+    private static void getOccupancy(AvlReport avlReport, Map<String, OccupancyStatusSource.BusLoadDto> occupancies, String id) {
+        avlReport.setPassengerCount(occupancies.get(id).getCurrentCount());
+        avlReport.setPassengerFullness(occupancies.get(id).getCurrentFullness());
     }
 
     @Override

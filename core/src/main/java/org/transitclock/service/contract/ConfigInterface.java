@@ -2,15 +2,11 @@
 package org.transitclock.service.contract;
 
 import org.transitclock.domain.structs.Agency;
-import org.transitclock.service.dto.IpcBlock;
-import org.transitclock.service.dto.IpcCalendar;
-import org.transitclock.service.dto.IpcDirectionsForRoute;
-import org.transitclock.service.dto.IpcRoute;
-import org.transitclock.service.dto.IpcRouteSummary;
-import org.transitclock.service.dto.IpcSchedule;
-import org.transitclock.service.dto.IpcTrip;
-import org.transitclock.service.dto.IpcTripPattern;
+import org.transitclock.domain.structs.ExportTable;
+import org.transitclock.domain.webstructs.ApiKey;
+import org.transitclock.service.dto.*;
 
+import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -182,4 +178,35 @@ public interface ConfigInterface {
      * @return Map of service IDs with belong block IDs
      */
     Map<String, List<String>> getServiceIdsWithBlockIds();
+
+
+    /**
+     * Obtains list of routes which contained stops with following stop ID
+     *
+     * @param stopId
+     * @return list of IpcRoute
+     */
+    List<IpcRoute> getRoutesByStopId(String stopId);
+
+    /**
+     * Returns list of api keys, unsorted or throw exception
+     *
+     * @return ArrayList <ApiKey>
+     * @throws RemoteException
+     * @throws RuntimeException
+     */
+    List <ApiKey> getAllApiKeys() throws RemoteException, RuntimeException;
+
+    /**
+     * Returns ApiKey object for specified single key or throw exception
+     *
+     * @return ApiKey
+     * @throws RemoteException
+     * @throws RuntimeException
+     */
+    ApiKey getApiKey(String email) throws RemoteException, RuntimeException;
+
+    ExportTable getExportById(long id) throws RuntimeException;
+
+    List<ExportTable> getExports(int type) throws RuntimeException;
 }

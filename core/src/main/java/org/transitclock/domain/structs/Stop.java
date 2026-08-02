@@ -45,7 +45,7 @@ public class Stop implements Serializable {
 
     // If should generate special ScheduleAdherence data for this stop
     @Column(name = "time_point_stop")
-    private final boolean timepointStop;
+    private boolean timepointStop;
 
     // Indicates that vehicle can leave route path before departing this stop
     // since the driver is taking a break.

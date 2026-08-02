@@ -1,10 +1,8 @@
 /* (C)2023 */
 package org.transitclock.service.dto;
 
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.*;
+
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.AvlReport.AssignmentType;
 import org.transitclock.utils.Geo;
@@ -29,6 +27,7 @@ public class IpcAvl implements Serializable {
     private final String driverId;
     private final String licensePlate;
     private final int passengerCount;
+    private final float passengerFullness;
 
     /**
      * @param vehicleId
@@ -56,7 +55,8 @@ public class IpcAvl implements Serializable {
             AssignmentType assignmentType,
             String driverId,
             String licensePlate,
-            int passengerCount) {
+            int passengerCount
+            ) {
         this.vehicleId = vehicleId;
         this.time = time;
         this.latitude = latitude;
@@ -69,24 +69,26 @@ public class IpcAvl implements Serializable {
         this.driverId = driverId;
         this.licensePlate = licensePlate;
         this.passengerCount = passengerCount;
+        passengerFullness = Float.NaN;
     }
 
     /**
-     * @param lastAvlReport
+     * @param report
      */
-    public IpcAvl(AvlReport a) {
-        this.vehicleId = a.getVehicleId();
-        this.time = a.getTime();
-        this.latitude = (float) a.getLat();
-        this.longitude = (float) a.getLon();
-        this.speed = a.getSpeed();
-        this.heading = a.getHeading();
-        this.source = a.getSource();
-        this.assignmentId = a.getAssignmentId();
-        this.assignmentType = a.getAssignmentType();
-        this.driverId = a.getDriverId();
-        this.licensePlate = a.getLicensePlate();
-        this.passengerCount = a.getPassengerCount();
+    public IpcAvl(AvlReport report) {
+        this.vehicleId = report.getVehicleId();
+        this.time = report.getTime();
+        this.latitude = (float) report.getLat();
+        this.longitude = (float) report.getLon();
+        this.speed = report.getSpeed();
+        this.heading = report.getHeading();
+        this.source = report.getSource();
+        this.assignmentId = report.getAssignmentId();
+        this.assignmentType = report.getAssignmentType();
+        this.driverId = report.getDriverId();
+        this.licensePlate = report.getLicensePlate();
+        this.passengerCount = report.getPassengerCount();
+        this.passengerFullness = report.getPassengerFullness();
     }
 
     /*
@@ -135,7 +137,7 @@ public class IpcAvl implements Serializable {
          * custom way that includes a version ID so that clients
          * and servers can have two different versions of code.
          */
-        private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        private void writeObject(ObjectOutputStream stream) throws IOException {
             stream.writeShort(serializationVersion);
             stream.writeObject(vehicleId);
             stream.writeLong(time);
@@ -177,7 +179,7 @@ public class IpcAvl implements Serializable {
         /*
          * Custom method of deserializing a SerializationProy object.
          */
-        private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
             short readVersion = stream.readShort();
             if (serializationVersion != readVersion) {
                 throw new IOException("Serialization error when reading "
@@ -273,6 +275,10 @@ public class IpcAvl implements Serializable {
         return passengerCount;
     }
 
+    public float getPassengerFullness() {
+        return passengerCount;
+    }
+
     @Override
     public String toString() {
         return "IpcAvl [vehicleId="
@@ -299,6 +305,8 @@ public class IpcAvl implements Serializable {
                 + licensePlate
                 + ", passengerCount="
                 + passengerCount
+                + ", passengerFullness="
+                + passengerFullness
                 + "]";
     }
 }

@@ -85,7 +85,7 @@ public class GtfsConfig {
 
 
 
-    public static final StringConfigValue gtfsTripUpdateUrl = new StringConfigValue(
+    public static final StringConfigValue GTFS_TRIP_UPDATE_URL = new StringConfigValue(
             "transitclock.predAccuracy.gtfsTripUpdateUrl",
             "http://127.0.0.1:8091/trip-updates",
             "URL to access gtfs-rt trip updates.");
@@ -94,7 +94,7 @@ public class GtfsConfig {
      * @return the gtfstripupdateurl
      */
     public static StringConfigValue getGtfstripupdateurl() {
-        return gtfsTripUpdateUrl;
+        return GTFS_TRIP_UPDATE_URL;
     }
 
 

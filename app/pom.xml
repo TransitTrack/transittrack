@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -69,7 +72,7 @@
         <dependency>
             <groupId>org.eclipse.jetty.ee10</groupId>
             <artifactId>jetty-ee10-glassfish-jstl</artifactId>
-            <version>12.0.5</version>
+            <version>12.1.6</version>
             <type>pom</type>
         </dependency>
 
@@ -78,7 +81,7 @@
         <dependency>
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.2</version>
         </dependency>
 
         <dependency>
@@ -89,6 +92,18 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/build-metadata</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>version.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -125,11 +140,11 @@
                         </platforms>
                     </from>
                     <to>
-                        <image>${env.CONTAINER_REPO}</image>
-                        <auth>
-                            <username>${env.CONTAINER_REGISTRY_USER}</username>
-                            <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>
-                        </auth>
+                        <image>transitclock-server:latest</image>
+<!--                        <auth>-->
+<!--                            <username>${env.CONTAINER_REGISTRY_USER}</username>-->
+<!--                            <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>-->
+<!--                        </auth>-->
                     </to>
                     <extraDirectories>
                         <permissions>
@@ -154,6 +169,18 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
@@ -168,6 +195,11 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.transitclock.Application</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Version>${revision}</Implementation-Version>
+                                        <Git-Commit>${git.commit.id.abbrev}</Git-Commit>
+                                        <Build-Time>${git.build.time}</Build-Time>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <outputFile>target/transitclock.jar</outputFile>
@@ -177,4 +209,75 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+        Use when .git is unavailable (e.g. Docker build with .dockerignore).
+        Option A – environment variables:
+          GIT_COMMIT=abc1234 BUILD_TIME=2026-06-13T12:00:00Z mvn -pl app -am package
+        Option B – Maven properties:
+          mvn -pl app -am package -Dgit.info.external=true -Dgit.commit.id.abbrev=abc1234 -Dgit.build.time=2026-06-13T12:00:00Z
+    -->
+    <profiles>
+        <profile>
+            <id>external-git-info</id>
+            <activation>
+                <property>
+                    <name>env.GIT_COMMIT</name>
+                </property>
+            </activation>
+            <properties>
+                <git.commit.id.abbrev>${env.GIT_COMMIT}</git.commit.id.abbrev>
+                <git.build.time>${env.BUILD_TIME}</git.build.time>
+            </properties>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                    <resource>
+                        <directory>src/main/build-metadata</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>external-git-info-maven</id>
+            <activation>
+                <property>
+                    <name>git.info.external</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                    <resource>
+                        <directory>src/main/build-metadata</directory>
+                        <filtering>true</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.git-commit-id</groupId>
+                        <artifactId>git-commit-id-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

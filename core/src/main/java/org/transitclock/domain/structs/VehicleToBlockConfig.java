@@ -8,6 +8,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.DynamicUpdate;
 import org.transitclock.Core;
+import org.transitclock.core.VehicleState;
+import org.transitclock.core.dataCache.VehicleStateManager;
+import org.transitclock.service.CommandsServiceImpl;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -30,7 +33,6 @@ public class VehicleToBlockConfig implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Id
     @Column(name = "vehicle_id", length = 60)
     private final String vehicleId;
 
@@ -61,6 +63,18 @@ public class VehicleToBlockConfig implements Serializable {
         this.validFrom = validFrom;
         this.validTo = validTo;
     }
+
+    public VehicleToBlockConfig(long id,
+            String vehicleId, String blockId, String tripId, Date assignmentDate, Date validFrom, Date validTo) {
+        this.vehicleId = vehicleId;
+        this.id = id;
+        this.blockId = blockId;
+        this.tripId = tripId;
+        this.assignmentDate = assignmentDate;
+        this.validFrom = validFrom;
+        this.validTo = validTo;
+    }
+
 
     /**
      * @param vehicleId vehicle ID * @param blockId block ID * @param tripId trip ID * @param
@@ -110,20 +124,25 @@ public class VehicleToBlockConfig implements Serializable {
      * @param vehicleToBlockConfig, session
      * @throws HibernateException
      */
-    public static void updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig, Session session)
+    public static VehicleToBlockConfig updateVehicleToBlockConfig(VehicleToBlockConfig vehicleToBlockConfig)
             throws HibernateException {
-        session.merge(vehicleToBlockConfig);
+        Core.getInstance().getDbLogger().add(vehicleToBlockConfig);
+        return vehicleToBlockConfig;
     }
 
     public static void deleteVehicleToBlockConfig(long id, Session session) throws HibernateException {
+        String vehicleId = session
+                .createQuery("FROM VehicleToBlockConfig WHERE id = :id", VehicleToBlockConfig.class)
+                .setParameter("id", id).getSingleResult().getVehicleId();
+
         Transaction transaction = session.beginTransaction();
         try {
-            session
-                    .createMutationQuery("delete from VehicleToBlockConfig where id = :id")
+            session.createMutationQuery("DELETE FROM VehicleToBlockConfig WHERE id = :id")
                     .setParameter("id", id)
                     .executeUpdate();
-
             transaction.commit();
+            //Reset vehicle
+            CommandsServiceImpl.instance().setVehicleUnpredictable(vehicleId);
         } catch (Throwable t) {
             transaction.rollback();
             throw t;
@@ -132,7 +151,7 @@ public class VehicleToBlockConfig implements Serializable {
 
     public static List<VehicleToBlockConfig> getActualVehicleToBlockConfigs(Session session) throws HibernateException {
         return session
-                .createQuery("FROM VehicleToBlockConfig WHERE validTo > now() ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
+                .createQuery("FROM VehicleToBlockConfig WHERE validTo > CURRENT_TIMESTAMP ORDER BY assignmentDate DESC", VehicleToBlockConfig.class)
                 .list();
     }
 

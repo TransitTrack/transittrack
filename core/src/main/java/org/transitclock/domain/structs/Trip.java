@@ -23,6 +23,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.classic.Lifecycle;
 import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.transitclock.Core;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.gtfs.TitleFormatter;
@@ -90,7 +91,7 @@ public class Trip implements Lifecycle, Serializable {
     // So can determine all the stops and stopPaths associated with trip
     // Note that needs to be FetchType.EAGER because otherwise get a Javassist HibernateException.
     @ManyToOne(fetch = FetchType.EAGER)
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     private TripPattern tripPattern;
 
     // Use FetchType.EAGER so that all travel times are efficiently read in
@@ -100,7 +101,7 @@ public class Trip implements Lifecycle, Serializable {
     //
     // We are sharing travel times so need a ManyToOne mapping
     @ManyToOne(fetch = FetchType.EAGER)
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     private TravelTimesForTrip travelTimes;
 
     // Contains schedule time for each stop as obtained from GTFS
@@ -709,16 +710,34 @@ public class Trip implements Lifecycle, Serializable {
      */
     @Nullable
     public ScheduleTime getScheduleTime(int stopPathIndex) {
-        if (scheduledTimesList instanceof PersistentList<?> persistentListTimes) {
-            // TODO this is an anti-pattern
-            // instead find a way to manage sessions more consistently
-            var session = persistentListTimes.getSession();
-            if (session == null) {
-                Session globalLazyLoadSession = Core.getInstance().getDbConfig().getGlobalSession();
-                globalLazyLoadSession.merge(this);
+        try {
+            if (scheduledTimesList instanceof PersistentList<?> persistentListTimes) {
+                // TODO this is an anti-pattern
+                // instead find a way to manage sessions more consistently
+                var session = persistentListTimes.getSession();
+                if (session == null) {
+                    Session globalLazyLoadSession = Core.getInstance().getDbConfig().getGlobalSession();
+                    globalLazyLoadSession.merge(this);
+                }
+            }
+
+            return scheduledTimesList.get(stopPathIndex);
+        } catch (Exception e) {
+        //If transaction has stuck so try to rollback
+        SharedSessionContractImplementor session = null;
+        if (scheduledTimesList instanceof PersistentList<?> persistentListTrips) {
+            session = persistentListTrips.getSession();
+        }
+        if (session != null && session.getTransaction().isActive()) {
+            try {
+                session.getTransaction().rollback();
+                logger.warn("Rolled back transaction after JDBCException");
+            } catch (Exception ex) {
+                logger.error("Failed to rollback after JDBCException", ex);
             }
         }
-        return scheduledTimesList.get(stopPathIndex);
+            return null;
+        }
     }
 
     /**

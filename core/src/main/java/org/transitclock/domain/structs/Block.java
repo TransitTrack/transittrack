@@ -15,6 +15,7 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.hibernate.collection.spi.PersistentList;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
 import org.transitclock.Core;
 import org.transitclock.config.data.CoreConfig;
@@ -103,7 +104,7 @@ public class Block implements Serializable {
         @JoinColumn(name = "trips_start_time", referencedColumnName = "start_time")
     })
     @OrderColumn(name = "list_index")
-    @Cascade({CascadeType.SAVE_UPDATE})
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE})
     private final List<Trip> trips;
 
     // Sometimes will get vehicle assignment by routeId. This means that need
@@ -805,7 +806,7 @@ public class Block implements Serializable {
                     logger.info("CREATING NEW SESSION");
                     dbConfig.createNewGlobalSession();
                     Session globalLazyLoadSession = dbConfig.getGlobalSession();
-                    globalLazyLoadSession.update(this);
+                    globalLazyLoadSession.merge(this);
 
                     // Now that have attached a new session lazy load the trips
                     // data
@@ -814,10 +815,24 @@ public class Block implements Serializable {
                     // Not a socket timeout. Therefore don't know handle
                     // to handle so just log and throw the exception
                     logger.error(
-                            "In Block.getTrips() got JDBCException. " + "SQL=\"{}\" msg={}",
+                            "In Block.getTrips() got JDBCException. " + "SQL=\"{}\"; msg={}; ",
                             e.getSQL(),
-                            e.getSQLException().getMessage(),
+                            e.getSQLException() != null ? e.getSQLException().getMessage() : e.getMessage(),
                             e);
+
+                    //If transaction has stuck so try to rollback
+                    SharedSessionContractImplementor session = null;
+                    if (trips instanceof PersistentList<?> persistentListTrips) {
+                        session = persistentListTrips.getSession();
+                    }
+                    if (session != null && session.getTransaction().isActive()) {
+                        try {
+                            session.getTransaction().rollback();
+                            logger.warn("Rolled back transaction after JDBCException");
+                        } catch (Exception ex) {
+                            logger.error("Failed to rollback after JDBCException", ex);
+                        }
+                    }
                     throw e;
                 }
 

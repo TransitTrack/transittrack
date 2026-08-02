@@ -7,6 +7,8 @@ import org.transitclock.utils.Time;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * SQL utilities for creating SQL statements using parameters passed in to a page. Intended to make
@@ -72,11 +74,11 @@ public class SqlUtils {
      * Since "AND" is included in clause if it is not empty string this clause can't be put right
      * after the WHERE clause
      *
-     * @param r route no
+     * @param r              route no
      * @param tableAliasName for when joins are used such that a table has an alias such as "FROM
-     *     arrivalsdepartures ad, routes r"
+     *                       arrivalsdepartures ad, routes r"
      * @return SQL clause such as "AND ad.routeshortname = r.shortname AND ad.scheduledtime IS NOT
-     *     NULL AND (ad.routeshortname IN ('21','5') OR ad.routeid IN ('21','5') )"
+     * NULL AND (ad.routeshortname IN ('21','5') OR ad.routeid IN ('21','5') )"
      */
     public static String routeClause(String r, String tableAliasName) {
         if (r == null || r.isEmpty())
@@ -92,16 +94,26 @@ public class SqlUtils {
         return " AND " + tableAlias + "route_short_name IN " + routeIdentifiers;
     }
 
+    public static String stopClause(String id, String tableAliasName) {
+        if (id == null || id.isEmpty())
+            return "";
+
+        String tableAlias = "";
+        if (tableAliasName != null && !tableAliasName.isEmpty()) tableAlias = tableAliasName + ".";
+
+        return " AND " + tableAlias + "stop_id = '" + id + "'";
+    }
+
     /**
      * Creates a SQL clause for specifying a time range. Looks at the request parameters
      * "beginDate", "numDays", "beginTime", and "endTime"
      *
-     * @param request Http request containing parameters for the query
+     * @param request        Http request containing parameters for the query
      * @param timeColumnName name of time column for that for query
-     * @param maxNumDays maximum number of days for query. Request parameter numDays is limited to
-     *     this value in order to make sure that query doesn't try to process too much data.
+     * @param maxNumDays     maximum number of days for query. Request parameter numDays is limited to
+     *                       this value in order to make sure that query doesn't try to process too much data.
      * @return SQL string such as "AND ad.time BETWEEN '10/30/2015' AND TIMESTAMP '10/30/2015' +
-     *     INTERVAL '1 day' AND time::time BETWEEN '12:00' AND '24:00'"
+     * INTERVAL '1 day' AND time::time BETWEEN '12:00' AND '24:00'"
      */
     public static String timeRangeClause(HttpServletRequest request, String timeColumnName, int maxNumDays) {
         String beginTime = request.getParameter("beginTime");
@@ -165,13 +177,8 @@ public class SqlUtils {
                 numDays = maxNumDays;
             }
 
-            SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-            SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-            try {
-                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-            } catch (ParseException e) {
-                logger.error("Exception occurred while processing time-range clause.", e);
-            }
+            beginDate = dateValidator(beginDate);
+
             return " AND %s BETWEEN '%s'  AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                     .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
         }
@@ -181,15 +188,13 @@ public class SqlUtils {
      * Creates a SQL clause for specifying a time range. Looks at the request parameters
      * "beginDate", "numDays", "beginTime", and "endTime"
      *
-     * @param request Http request containing parameters for the query
      * @param timeColumnName name of time column for that for query
-     * @param maxNumDays maximum number of days for query. Request parameter numDays is limited to
-     *     this value in order to make sure that query doesn't try to process too much data.
+     * @param maxNumDays     maximum number of days for query. Request parameter numDays is limited to
+     *                       this value in order to make sure that query doesn't try to process too much data.
      * @return SQL string such as "AND ad.time BETWEEN '10/30/2015' AND TIMESTAMP '10/30/2015' +
-     *     INTERVAL '1 day' AND time::time BETWEEN '12:00' AND '24:00'"
+     * INTERVAL '1 day' AND time::time BETWEEN '12:00' AND '24:00'"
      */
     public static String timeRangeClause(
-            String agencyId,
             String timeColumnName,
             int maxNumDays,
             int numDays,
@@ -215,16 +220,65 @@ public class SqlUtils {
             numDays = maxNumDays;
         }
 
-        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
-        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            beginDate = requiredFormat.format(currentFormat.parse(beginDate));
-        } catch (ParseException e) {
-            logger.error("Exception happened while processing time-range clause", e);
-        }
+        beginDate = dateValidator(beginDate);
+
         return " AND %s BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '%d day' %s "
                 .formatted(timeColumnName, beginDate, beginDate, numDays, timeSql);
     }
+
+    /**
+     * Creates a SQL clause for specifying a time range. Looks at the request parameters
+     * "beginDate", "beginTime", and "endTime"
+     */
+    public static String timeRangeClause(
+            String timeColumnName,
+            String beginDate,
+            String beginTime,
+            String endTime
+    ) {
+        throwOnSqlInjection(beginTime);
+        throwOnSqlInjection(endTime);
+
+        // If beginTime or endTime set but not both then use default values
+        if (beginTime == null || beginTime.isEmpty()) {
+            beginTime = "08:30";
+        }
+        if (endTime == null || endTime.isEmpty()) {
+            endTime = "9:30";
+        }
+        String timeSql = "%s::time BETWEEN '%s' AND '%s' ".formatted(timeColumnName, beginTime, endTime);
+
+        throwOnSqlInjection(beginDate);
+
+        beginDate = dateValidator(beginDate);
+
+        //"avl_reports.time::date = '2024-08-30' AND avl_reports.time::time BETWEEN '15:30' AND '18:30'"
+        return "%s::date = '%s' AND %s".formatted(timeColumnName, beginDate, timeSql);
+    }
+
+    public static String timeRangeClause(
+            LocalDate beginDate,
+            LocalDate endDate
+    ) {
+        //"AND ad.time BETWEEN '2024-08-30' AND TIMESTAMP '2024-08-30' + INTERVAL '1 day' "
+        return "AND ad.time BETWEEN '%s' AND TIMESTAMP '%s' + INTERVAL '1 day' ".formatted(beginDate, endDate);
+    }
+
+    private static String dateValidator(String beginDate) {
+        SimpleDateFormat currentFormat = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat requiredFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            if (beginDate.charAt(4) != '-') {
+                beginDate = requiredFormat.format(currentFormat.parse(beginDate));
+            } else {
+                requiredFormat.parse(beginDate);
+            }
+        } catch (ParseException e) {
+            logger.error("Exception happened while processing time-range clause", e);
+        }
+        return beginDate;
+    }
+
 
     /**
      * Converts minutes string to seconds.

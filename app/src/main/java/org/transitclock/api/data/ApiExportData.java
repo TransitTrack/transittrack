@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -32,6 +33,9 @@ public class ApiExportData {
     @XmlAttribute
     private String fileName;
 
+    @XmlAttribute()
+    private String file;
+
     public ApiExportData() {}
 
     public ApiExportData(ExportTable exportTable) {
@@ -41,15 +45,8 @@ public class ApiExportData {
         this.fileName = exportTable.getFileName();
         this.dataDate = exportTable.getDataDate();
         this.exportDate = exportTable.getExportDate();
-    }
-
-    public ApiExportData(
-            Long id, Date dataDate, Date exportDate, Integer exportType, Integer exportStatus, String fileName) {
-        this.id = id;
-        this.exportType = exportType;
-        this.fileName = fileName;
-        this.dataDate = dataDate;
-        this.exportDate = exportDate;
-        this.exportStatus = exportStatus;
+        this.file = exportTable.getExportType() >= 2
+                && exportTable.getFile() != null
+                ? new String(exportTable.getFile(), StandardCharsets.UTF_8) : "";
     }
 }

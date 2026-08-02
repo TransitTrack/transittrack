@@ -391,10 +391,10 @@ public class VehiclesServiceImpl implements VehiclesInterface {
     public List<IpcVehicleToBlockConfig> getActualVehicleToBlockConfigs() {
         List<IpcVehicleToBlockConfig> result = new ArrayList<>();
         try (Session session = HibernateUtils.getSession()) {
-            for (VehicleToBlockConfig vehicleToBlockConfig : VehicleToBlockConfig
-                    .getActualVehicleToBlockConfigs(session)) {
-                result.add(new IpcVehicleToBlockConfig(vehicleToBlockConfig));
-            }
+            return VehicleToBlockConfig.getActualVehicleToBlockConfigs(session)
+                    .stream()
+                    .map(IpcVehicleToBlockConfig::new)
+                    .collect(Collectors.toList());
         } catch (Exception ex) {
             logger.error("Something happened while fetching the data: ", ex);
         }
@@ -404,7 +404,7 @@ public class VehiclesServiceImpl implements VehiclesInterface {
     @Override
     public List<IpcVehicleToBlockConfig> getVehicleToBlockConfigByBlockId(String blockId) {
         try (Session session = HibernateUtils.getSession()) {
-            if (StringUtils.isEmpty(blockId)) {
+            if (!StringUtils.isEmpty(blockId)) {
                 return VehicleToBlockConfig.getVehicleToBlockConfigsByBlockId(session, blockId)
                         .stream()
                         .map(IpcVehicleToBlockConfig::new)

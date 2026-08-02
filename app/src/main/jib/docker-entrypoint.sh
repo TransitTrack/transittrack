@@ -8,7 +8,14 @@ find /app/config/ -type f -exec sed -i s#"POSTGRES_PORT_5432_TCP_ADDR"#"$POSTGRE
 find /app/config/ -type f -exec sed -i s#"POSTGRES_PORT_5432_TCP_PORT"#"$POSTGRES_PORT_5432_TCP_PORT"#g {} \;
 find /app/config/ -type f -exec sed -i s#"PGPASSWORD"#"$PGPASSWORD"#g {} \;
 find /app/config/ -type f -exec sed -i s#"AGENCYNAME"#"$AGENCYNAME"#g {} \;
+find /app/config/ -type f -exec sed -i s#"GTFSURL"#"$GTFSURL"#g {} \;
 find /app/config/ -type f -exec sed -i s#"GTFSRTVEHICLEPOSITIONS"#"$GTFSRTVEHICLEPOSITIONS"#g {} \;
+find /app/config/ -type f -exec sed -i s#"AGENCYID"#"$AGENCYID"#g {} \;
+find /app/config/ -type f -exec sed -i s#"MINLONGITUDE"#"$MINLONGITUDE"#g {} \;
+find /app/config/ -type f -exec sed -i s#"MAXLONGITUDE"#"$MAXLONGITUDE"#g {} \;
+find /app/config/ -type f -exec sed -i s#"MINLATITUDE"#"$MINLATITUDE"#g {} \;
+find /app/config/ -type f -exec sed -i s#"MAXLATITUDE"#"$MAXLATITUDE"#g {} \;
+find /app/config/ -type f -exec sed -i s#"REFRESHINTERVAL"#"$REFRESHINTERVAL"#g {} \;
 
 export JAVA_OPTS="$JAVA_OPTS -Dtransitclock.apikey=f78a2e9a -Dtransitclock.configFiles=/app/config/transitclock.properties -Dtransitclock.core.agencyId=$AGENCYID"
 

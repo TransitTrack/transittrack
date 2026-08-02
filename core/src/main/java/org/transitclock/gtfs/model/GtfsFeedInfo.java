@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.gtfs.model;
 
-import java.text.ParseException;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.csv.CSVRecord;
@@ -30,7 +29,7 @@ public class GtfsFeedInfo extends CsvBase {
      * @param supplemental
      * @param fileName for logging errors
      */
-    public GtfsFeedInfo(CSVRecord record, boolean supplemental, String fileName) throws ParseException {
+    public GtfsFeedInfo(CSVRecord record, boolean supplemental, String fileName) {
         super(record, supplemental, fileName);
 
         feedPublisherName = getRequiredValue(record, "feed_publisher_name");
@@ -39,5 +38,24 @@ public class GtfsFeedInfo extends CsvBase {
         feedStartDate = getOptionalValue(record, "feed_start_date");
         feedEndDate = getOptionalValue(record, "feed_end_date");
         feedVersion = getOptionalValue(record, "feed_version");
+    }
+
+    @Getter
+    public static class FeedInfoDto {
+        private final String feedPublisherName;
+        private final String feedPublisherUrl;
+        private final String feedLang;
+        private final String feedStartDate;
+        private final String feedEndDate;
+        private final String feedVersion;
+
+        public FeedInfoDto(GtfsFeedInfo feedInfo) {
+            this.feedPublisherName = feedInfo.feedPublisherName;
+            this.feedPublisherUrl = feedInfo.feedPublisherUrl;
+            this.feedLang = feedInfo.feedLang;
+            this.feedStartDate = feedInfo.feedStartDate;
+            this.feedEndDate = feedInfo.feedEndDate;
+            this.feedVersion = feedInfo.feedVersion;
+        }
     }
 }

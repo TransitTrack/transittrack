@@ -30,5 +30,21 @@ public class HoldingConfig {
     public static StringListConfigValue controlStopList = new StringListConfigValue(
             "transitclock.holding.controlStops", null, "This is a list of stops to generate holding times for.");
 
+    public static final IntegerConfigValue headwayExpectedMaxLimitInSecs = new IntegerConfigValue(
+            "transitclock.api.headwayExpectedMaxLimitInSecs",
+            5 * 60,
+            "Number of seconds to accept that vehicle is gapped");
 
+    public static int getHeadwayExpectedMaxLimitInSecs() {
+        return headwayExpectedMaxLimitInSecs.getValue();
+    }
+
+    public static final IntegerConfigValue headwayExpectedMinLimitInSecs = new IntegerConfigValue(
+            "transitclock.api.headwayExpectedMinLimitInSecs",
+            5 * 60,
+            "Number of seconds to accept that vehicle is bunched");
+
+    public static int getHeadwayExpectedMinLimitInSecs() {
+        return headwayExpectedMinLimitInSecs.getValue();
+    }
 }

@@ -429,7 +429,11 @@ public class VehicleState {
      */
     public boolean isLayover() {
         TemporalMatch temporalMatch = getMatch();
-        if (temporalMatch == null) return false;
+        if (temporalMatch == null && this.getPreviousMatch() != null
+                && this.getAvlReport().getAssignmentType() == AssignmentType.BLOCK_ID
+                && (this.getPreviousMatch().isLayover() || this.getPreviousMatch().getStopPath().isLastStopInTrip())
+        ) return true;
+        else if (temporalMatch == null ) return false;
         else return temporalMatch.isLayover();
     }
 

@@ -19,10 +19,6 @@ import org.transitclock.utils.csv.CsvBase;
 public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
 
     private final String tripId;
-    // arrivalTimeSecs is in seconds into day. Can be null
-    private Integer arrivalTimeSecs;
-    // departureTimeSecs is in seconds into day. Can be null
-    private Integer departureTimeSecs;
     private final String stopId;
     private final Integer stopSequence;
     private final String stopHeadsign;
@@ -32,18 +28,19 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
     // For when a special GtfsStopTime is created using special constructor.
     // Currently not configured in GTFS file
     private final Boolean isWaitStop;
-
     // Can be null
     private final Double shapeDistTraveled;
-
     // For deleting a stop time via a supplemental stop_times.txt file
     private final Boolean delete;
 
     private final Double maxDistance;
-
     /* This is the max speed for using in calculating how far the spatial matcher
      * is to look along the route when the vehicle is at this point. */
     private final Double maxSpeed;
+    // arrivalTimeSecs is in seconds into day. Can be null
+    private Integer arrivalTimeSecs;
+    // departureTimeSecs is in seconds into day. Can be null
+    private Integer departureTimeSecs;
 
     /**
      * For creating a GtfsStopTime object from scratch
@@ -52,9 +49,8 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
      * @param arrivalTimeStr
      * @param departureTimeStr
      * @param stopId
-     * @param stopSequence Index of stop in trip
+     * @param stopSequence     Index of stop in trip
      * @param timepointStop
-     * @param shapeDistTraveled
      */
     public GtfsStopTime(
             String tripId,
@@ -92,7 +88,7 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
      *
      * @param record
      * @param supplemental
-     * @param fileName for logging errors
+     * @param fileName     for logging errors
      */
     public GtfsStopTime(CSVRecord record, boolean supplemental, String fileName) throws NumberFormatException {
         super(record, supplemental, fileName);
@@ -139,10 +135,10 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
      * newArrivalTime and newDepartureTime if they are not null. If they are null then will use the
      * arrivalTimeSecs and departureTimeSecs from originalValues.
      *
-     * @param originalValues The original values from the stop_times.txt file
-     * @param newArrivalTime The new arrival time. If null passed in then the original time is used.
+     * @param originalValues   The original values from the stop_times.txt file
+     * @param newArrivalTime   The new arrival time. If null passed in then the original time is used.
      * @param newDepartureTime The new departure time. If null passed in then the original time is
-     *     used.
+     *                         used.
      */
     protected GtfsStopTime(GtfsStopTime originalValues, Integer newArrivalTime, Integer newDepartureTime) {
         super(originalValues);
@@ -180,7 +176,7 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
      * For when need to create a GtfsStopTime that is a wait stop. Uses the values from
      * originalValues but uses the new arrival time and sets isWaitStop to true.
      *
-     * @param originalValues The original values from the stop_times.txt file
+     * @param originalValues     The original values from the stop_times.txt file
      * @param newArrivalTimeSecs The new arrival time.
      */
     public GtfsStopTime(GtfsStopTime originalValues, Integer newArrivalTimeSecs) {
@@ -249,6 +245,7 @@ public class GtfsStopTime extends CsvBase implements Comparable<GtfsStopTime> {
     public boolean isTimepointStop() {
         return timepointStop != null && timepointStop;
     }
+
     /**
      * So can use Collections.sort() to sort an Array of GtfsStopTime objects by stop sequence.
      *

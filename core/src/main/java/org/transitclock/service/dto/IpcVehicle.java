@@ -80,8 +80,9 @@ public class IpcVehicle implements Serializable {
         this.avl = new IpcAvl(vs.getAvlReport());
         this.heading = vs.getHeading();
         this.routeId = vs.getRouteId();
-        this.routeShortName = vs.getRouteShortName();
-        this.routeName = vs.getRouteName();
+        this.routeShortName = getRouteShortName(vs);
+        this.routeName = getRouteName(vs);
+
         Trip trip = vs.getTrip();
         if (trip != null) {
             this.blockId = vs.getBlock().getId();
@@ -124,10 +125,27 @@ public class IpcVehicle implements Serializable {
             if (vs.getTripCounter() != null && vs.getTripStartTime(vs.getTripCounter()) != null) {
                 this.freqStartTime = vs.getTripStartTime(vs.getTripCounter());
             }
+            // if vehicle has avl feed assignment check the previous
+        } else if (vs.getPreviousMatch() != null
+                && this.avl.getAssignmentType() == AssignmentType.BLOCK_ID
+                && (vs.getPreviousMatch().isLayover() || vs.getPreviousMatch().getStopPath().isLastStopInTrip())
+        ) {
+            this.blockId = vs.getAvlReport().getAssignmentId();
+            this.tripId = null;
+            this.tripPatternId = null;
+            this.directionId = null;
+            this.headsign = null;
+            this.isLayover = true;
 
+            this.layoverDepartureTime = 0;
+            this.nextStopId = null;
+            this.nextStopName = null;
+            this.vehicleType = null;
         } else {
+            this.blockId = this.avl.getAssignmentType() == AssignmentType.BLOCK_ID
+                    ? vs.getAvlReport().getAssignmentId()
+                    : null;
             // Vehicle not assigned to trip so null out parameters
-            this.blockId = null;
             this.tripId = null;
             this.tripPatternId = null;
             this.directionId = null;
@@ -163,6 +181,26 @@ public class IpcVehicle implements Serializable {
             this.predictedLatitude = 0.0;
             this.predictedLongitude = 0.0;
         }
+    }
+
+    private String getRouteName(VehicleState vs) {
+        return vs.getRouteName() == null
+                ? this.avl.getAssignmentType() == AssignmentType.BLOCK_ID
+                ? vs.getPreviousMatch() != null
+                ? vs.getPreviousMatch().getRoute().getName()
+                : null
+                : null
+                : vs.getRouteName();
+    }
+
+    private String getRouteShortName(VehicleState vs) {
+        return vs.getRouteShortName() == null
+                ? this.avl.getAssignmentType() == AssignmentType.BLOCK_ID
+                ? vs.getPreviousMatch() != null
+                ? vs.getPreviousMatch().getRoute().getShortName()
+                : null
+                : null
+                : vs.getRouteShortName();
     }
 
     /**

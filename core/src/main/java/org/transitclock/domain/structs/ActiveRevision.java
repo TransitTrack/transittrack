@@ -95,7 +95,7 @@ public class ActiveRevision {
      */
     public void setConfigRev(Session session, int configRev) {
         this.configRev = configRev;
-        session.saveOrUpdate(this);
+        session.persist(this);
     }
 
     /**
@@ -105,7 +105,7 @@ public class ActiveRevision {
      */
     public void setTravelTimesRev(Session session, int travelTimeRev) {
         this.travelTimesRev = travelTimeRev;
-        session.saveOrUpdate(this);
+        session.persist(this);
     }
 
     /**

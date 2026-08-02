@@ -3,40 +3,25 @@ package org.transitclock.api.resources;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import lombok.Getter;
+import org.transitclock.api.data.*;
+import org.transitclock.api.utils.StandardParameters;
+import org.transitclock.api.utils.WebUtils;
+import org.transitclock.service.contract.CacheQueryInterface;
+import org.transitclock.service.contract.HoldingTimeInterface;
+import org.transitclock.service.contract.PredictionAnalysisInterface;
+import org.transitclock.service.dto.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.transitclock.api.data.ApiArrivalDepartures;
-import org.transitclock.api.data.ApiCacheDetails;
-import org.transitclock.api.data.ApiHistoricalAverage;
-import org.transitclock.api.data.ApiHistoricalAverageCacheKeys;
-import org.transitclock.api.data.ApiHoldingTime;
-import org.transitclock.api.data.ApiHoldingTimeCacheKeys;
-import org.transitclock.api.data.ApiKalmanErrorCacheKeys;
-import org.transitclock.api.data.ApiPredictionsForStopPath;
-import org.transitclock.api.utils.StandardParameters;
-import org.transitclock.api.utils.WebUtils;
-import org.transitclock.service.dto.IpcArrivalDeparture;
-import org.transitclock.service.dto.IpcHistoricalAverage;
-import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
-import org.transitclock.service.dto.IpcHoldingTime;
-import org.transitclock.service.dto.IpcHoldingTimeCacheKey;
-import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
-import org.transitclock.service.dto.IpcPredictionForStopPath;
-import org.transitclock.service.contract.CacheQueryInterface;
-import org.transitclock.service.contract.HoldingTimeInterface;
-import org.transitclock.service.contract.PredictionAnalysisInterface;
 
 /**
  * Contains the API commands for the Transitime API for getting info on data that is cached.
@@ -165,7 +150,7 @@ public class CacheApi {
      * Returns info about a cache.
      *
      * @param stdParameters
-     * @param cachename this is the name of the cache to get the size of.
+     * @param cachename     this is the name of the cache to get the size of.
      * @return
      * @throws WebApplicationException
      */
@@ -180,7 +165,7 @@ public class CacheApi {
     public Response getCacheInfo(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Name of the cache", required = true) @QueryParam(value = "cachename")
-                    String cachename)
+            String cachename)
             throws WebApplicationException {
         try {
 
@@ -238,14 +223,14 @@ public class CacheApi {
     public Response getTripArrivalDepartureCacheData(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "if specified, returns the list for that tripId.", required = false)
-                    @QueryParam(value = "tripId")
-                    String tripid,
+            @QueryParam(value = "tripId")
+            String tripid,
             @Parameter(description = "if specified, returns the list for that date.", required = false)
-                    @QueryParam(value = "date")
-                    DateParam date,
+            @QueryParam(value = "date")
+            DateParam date,
             @Parameter(description = "if specified, returns the list for that starttime.", required = false)
-                    @QueryParam(value = "starttime")
-                    Integer starttime)
+            @QueryParam(value = "starttime")
+            Integer starttime)
             throws WebApplicationException {
         try {
 
@@ -280,7 +265,7 @@ public class CacheApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Trip Id", required = true) @QueryParam(value = "tripId") String tripId,
             @Parameter(description = "Stop path index", required = true) @QueryParam(value = "stopPathIndex")
-                    Integer stopPathIndex) {
+            Integer stopPathIndex) {
         try {
 
             CacheQueryInterface cachequeryInterface = stdParameters.getCacheQueryInterface();
@@ -308,7 +293,7 @@ public class CacheApi {
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Trip Id", required = true) @QueryParam(value = "tripId") String tripId,
             @Parameter(description = "Stop path index", required = true) @QueryParam(value = "stopPathIndex")
-                    Integer stopPathIndex) {
+            Integer stopPathIndex) {
         try {
 
             CacheQueryInterface cachequeryInterface = stdParameters.getCacheQueryInterface();
@@ -336,13 +321,13 @@ public class CacheApi {
     public Response getStopPathPredictions(
             @BeanParam StandardParameters stdParameters,
             @Parameter(description = "Algorith used for calculating the perdiction", required = false)
-                    @QueryParam(value = "algorithm")
-                    String algorithm,
+            @QueryParam(value = "algorithm")
+            String algorithm,
             @Parameter(description = "Trip Id", required = true) @QueryParam(value = "tripId") String tripId,
             @Parameter(description = "Stop path index", required = true) @QueryParam(value = "stopPathIndex")
-                    Integer stopPathIndex,
+            Integer stopPathIndex,
             @Parameter(description = "Specified the date.", required = true) @QueryParam(value = "date")
-                    DateParam date) {
+            DateParam date) {
         try {
             LocalTime midnight = LocalTime.MIDNIGHT;
             Date end_date = null;
@@ -395,6 +380,47 @@ public class CacheApi {
         } catch (Exception e) {
             // If problem getting result then return a Bad Request
             throw WebUtils.badRequestException(e.getMessage());
+        }
+    }
+
+    @Path("/command/deleteVehicleFromCache")
+    @DELETE
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Deletes a specific vehicle from the cache by its ID or resets the entire vehicle cache.",
+            description = "For handles deletion of vehicle data from the cache. " +
+                    "If the forAll query parameter is set to true, the method resets (clears and reseeds) the entire vehicle cache. " +
+                    "If forAll is false, a vehicleId must be provided to remove a specific vehicle from the cache.",
+            tags = {"cache", "vehicle"})
+    public Response deleteVehicleFromCache(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "For resetting all cache vehicles") @QueryParam(value = "forAll") boolean isForAll,
+            @Parameter(description = "Vehicle id") @QueryParam(value = "vehicleId") String vehicleId) {
+        try {
+            var inter = stdParameters.getCommandsInterface();
+            if (isForAll) {
+                inter.resetVehicleDataCache();
+                return stdParameters.createResponse("Vehicle's cache has been successfully reseed.");
+            } else if (!vehicleId.isBlank()) {
+                String avl = inter.removeVehicleFromCache(vehicleId);
+                return stdParameters.createResponse("Successfully deleted vehicle: " + avl);
+            } else throw WebUtils.badRequestException("Isn't set any parameter.");
+        } catch (Exception e) {
+            // If problem getting result then return a Bad Request
+            throw WebUtils.badRequestException(e.getMessage());
+        }
+    }
+
+    @Getter
+    private static class DateParam {
+        private LocalDate date;
+
+        public DateParam(String in) throws WebApplicationException {
+            try {
+                date = LocalDate.parse(in, DateTimeFormatter.ISO_DATE);
+            } catch (Exception exception) {
+                throw new WebApplicationException(400);
+            }
         }
     }
 }

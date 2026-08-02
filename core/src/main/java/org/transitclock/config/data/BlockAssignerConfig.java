@@ -20,10 +20,6 @@ public class BlockAssignerConfig {
                     + "true then system ignores assignments from AVL feed so "
                     + "vehicles need to be automatically assigned instead");
 
-    public static boolean ignoreAvlAssignments() {
-        return ignoreAvlAssignments.getValue();
-    }
-
     public static final DoubleConfigValue minDistanceFromCurrentReport = new DoubleConfigValue(
             "transitclock.autoBlockAssigner.minDistanceFromCurrentReport",
             100.0,
@@ -37,12 +33,10 @@ public class BlockAssignerConfig {
             "transitclock.autoBlockAssigner.allowableEarlySeconds",
             3 * Time.SEC_PER_MIN,
             "How early a vehicle can be in seconds and still be automatically assigned to a block");
-
     public static final IntegerConfigValue allowableLateSeconds = new IntegerConfigValue(
             "transitclock.autoBlockAssigner.allowableLateSeconds",
             5 * Time.SEC_PER_MIN,
             "How late a vehicle can be in seconds and still be automatically assigned to a block");
-
     public static final IntegerConfigValue minTimeBetweenAutoAssigningSecs = new IntegerConfigValue(
             "transitclock.autoBlockAssigner.minTimeBetweenAutoAssigningSecs",
             30,
@@ -52,4 +46,26 @@ public class BlockAssignerConfig {
                     + "frequently. Especially important for agencies with high "
                     + "reporting rates. So this param allows one to limit how "
                     + "frequently auto assigner called for vehicle");
+    public static final BooleanConfigValue isManualAssignmentEnabled = new BooleanConfigValue(
+            "transitclock.blockAssigner.manualAssignmentEnabled",
+            false,
+            "Set to true to enable the manual assignment behavior where" +
+                    "the system tries to assign vehicle to a block regarding 'vehicle_to_block_configs' table.");
+
+    public static final BooleanConfigValue isOverrideTimesForVehicleToBlock = new BooleanConfigValue(
+            "transitclock.blockAssigner.overrideTimesForVehicleToBlock",
+            false,
+            "Set to true to enable the overriding times for VehicleToBlock objects from remote API");
+
+    public static boolean ignoreAvlAssignments() {
+        return ignoreAvlAssignments.getValue();
+    }
+
+    public static boolean isManualAssignmentEnabled() {
+        return isManualAssignmentEnabled.getValue();
+    }
+
+    public static boolean isOverrideTimesForVehicleToBlock() {
+        return isOverrideTimesForVehicleToBlock.getValue();
+    }
 }
