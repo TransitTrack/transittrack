@@ -9,11 +9,11 @@ pluginManagement {
         id("io.spring.dependency-management") version "1.1.7"
 
         id("com.google.cloud.tools.jib") version jibPluginVersion
-        id("com.palantir.git-version") version "3.1.0"
+        id("com.palantir.git-version") version "5.0.0"
         id("com.gorylenko.gradle-git-properties") version gitPropertiesPluginVersion
 
         id("com.google.protobuf") version protobufPluginVersion
-        id("com.diffplug.spotless") version "7.2.1"
+        id("com.diffplug.spotless") version "8.9.0"
         id("com.github.andygoossens.gradle-modernizer-plugin") version "1.15.0"
     }
     repositories {
@@ -25,6 +25,6 @@ pluginManagement {
 
 rootProject.name = "transitclock"
 
-include(":libs:util", ":libs:core")
-include(":libs:extensions:api", ":libs:extensions:traccar")
+include(":libs:api", ":libs:util", ":libs:core")
+include(":libs:extensions:traccar")
 include(":app")

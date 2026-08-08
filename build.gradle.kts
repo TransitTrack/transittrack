@@ -1,12 +1,12 @@
+import com.diffplug.spotless.LineEnding
+
 val springVersion: String by project
 val lombokVersion: String by project
 val queryDslVersion: String by project
 
 plugins {
     id("java")
-    id("jacoco")
     id("io.spring.dependency-management")
-
     id("com.diffplug.spotless")
     id("com.github.andygoossens.gradle-modernizer-plugin")
 }
@@ -14,6 +14,7 @@ plugins {
 subprojects {
     apply(plugin = "jacoco")
     apply(plugin = "java-library")
+    apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "com.github.andygoossens.gradle-modernizer-plugin")
 
@@ -36,6 +37,19 @@ subprojects {
     }
 
     java { toolchain { languageVersion.set(JavaLanguageVersion.of(25)) } }
+
+    spotless {
+        encoding("UTF-8")
+        lineEndings = LineEnding.UNIX
+
+        java {
+            target("src/**/*.java")
+            importOrder("jakarta", "javax", "java", "", "org.transitclock", "", "")
+            removeUnusedImports()
+            expandWildcardImports()
+            trimTrailingWhitespace()
+        }
+    }
 
     tasks.test {
         useJUnitPlatform()

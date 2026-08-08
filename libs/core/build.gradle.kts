@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":libs:extensions:api"))
+    implementation(project(":libs:api"))
     implementation(project(":libs:util"))
     runtimeOnly("org.postgresql:postgresql")
     api("com.beust:jcommander:1.82")
