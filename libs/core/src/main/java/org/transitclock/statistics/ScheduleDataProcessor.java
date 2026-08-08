@@ -2,7 +2,6 @@
 package org.transitclock.statistics;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -264,7 +263,7 @@ public class ScheduleDataProcessor {
             // the stop sequences for the trips are in order. This means that
             // when the stop_times are written out they will be in a different
             // order than originally.
-            Collections.sort(gtfsStopTimesList, new Comparator<GtfsStopTime>() {
+            gtfsStopTimesList.sort(new Comparator<GtfsStopTime>() {
                 @Override
                 public int compare(GtfsStopTime arg0, GtfsStopTime arg1) {
                     int tripCompare = arg0.getTripId().compareTo(arg1.getTripId());

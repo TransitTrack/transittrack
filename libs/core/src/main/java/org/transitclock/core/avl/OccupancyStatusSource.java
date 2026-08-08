@@ -9,6 +9,7 @@ import org.apache.http.HttpException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ class OccupancyStatusSource {
     public static Map<String, BusLoadDto> fetchBusLoads(String urlStr) {
         try {
             logger.debug("Getting URL={}", urlStr);
-            URL url = new URL(urlStr);
+            URL url = URI.create(urlStr).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Accept", "application/json");
 

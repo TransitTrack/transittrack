@@ -1,6 +1,7 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.accuracy;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
@@ -54,7 +55,7 @@ public class GTFSRealtimePredictionAccuracyModule extends DefaultPredictionAccur
         logger.info("Getting predictions from API using URL={}", gtfsProperties.getGtfsTripUpdateUrl());
 
         try {
-            url = new URL(gtfsProperties.getGtfsTripUpdateUrl());
+            url = URI.create(gtfsProperties.getGtfsTripUpdateUrl()).toURL();
 
             FeedMessage feed = FeedMessage.parseFrom(url.openStream());
             logger.info("Prediction read successfully from URL={}", gtfsProperties.getGtfsTripUpdateUrl());

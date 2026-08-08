@@ -7,7 +7,7 @@ import org.transitclock.statistics.Statistics;
 
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -156,7 +156,7 @@ public class PredAccuracyIntervalQuery extends PredictionAccuracyQuery {
 
                 // Sort the prediction accuracy data so that can call
                 // getMin() and getMax() using necessary sort list.
-                if (listForPredBucket != null) Collections.sort(listForPredBucket);
+                if (listForPredBucket != null) listForPredBucket.sort(Comparator.naturalOrder());
 
                 // Log some info for debugging
                 logger.info(

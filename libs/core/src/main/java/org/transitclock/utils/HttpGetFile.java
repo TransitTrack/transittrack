@@ -2,11 +2,14 @@
 package org.transitclock.utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,7 +105,7 @@ public class HttpGetFile {
         IntervalTimer timer = new IntervalTimer();
 
         logger.debug("Getting URL={}", urlStr);
-        URL url = new URL(urlStr);
+        URL url = URI.create(urlStr).toURL();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("User-Agency", USER_AGENT);
 
@@ -125,7 +128,7 @@ public class HttpGetFile {
                 remoteFileLastModified);
 
         // Open file for where results are to be written
-        File file = new File(fullFileNameForResult);
+        File file = Path.of(fullFileNameForResult).toFile();
 
         // If file could not be read in or is not newer that lastModified time
         // of the existing file on the server then don't need to continue
@@ -165,7 +168,7 @@ public class HttpGetFile {
         InputStream in = connection.getInputStream();
 
         // Open the stream
-        FileOutputStream fos = new FileOutputStream(file);
+        OutputStream fos = Files.newOutputStream(file.toPath());
 
         IntervalTimer loopTimer = new IntervalTimer();
         long lengthSinceLoggingMsg = 0;

@@ -222,7 +222,7 @@ public class TripPattern implements Serializable, Lifecycle {
         for (StopPath stopPath : stopPaths) {
             sb.append(stopPath.getStopId());
         }
-        String hexOfStopsHash = String.format("%x", sb.toString().hashCode());
+        String hexOfStopsHash = "%x".formatted(sb.toString().hashCode());
         tripPatternId += hexOfStopsHash;
 
         // Make sure not too long for the database column. Include possibility

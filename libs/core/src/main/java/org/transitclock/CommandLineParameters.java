@@ -9,6 +9,7 @@ import org.transitclock.utils.Time;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,7 +88,7 @@ public class CommandLineParameters {
 
 
     @Parameter(names = {"--cache"}, validateWith = ReadWriteDirectory.class, description = "")
-    public File cacheDirectory = new File(DEFAULT_CACHE_PATH);
+    public File cacheDirectory = Path.of(DEFAULT_CACHE_PATH).toFile();
 
     /* Options for the server sub-task. */
     @Parameter(names = {"--serve"}, description = "Run an OTP API server.")
@@ -104,7 +105,7 @@ public class CommandLineParameters {
      * files. This directory may contain other files like the graph, input data and report files.
      */
     @Parameter(validateWith = ReadableDirectory.class, description = "/inputs/directory")
-    public List<File> baseDirectory = Lists.newArrayList(new File(System.getProperty("user.dir") + "/config"));
+    public List<File> baseDirectory = Lists.newArrayList(Path.of(System.getProperty("user.dir"), "config").toFile());
 
     public static CommandLineParameters createCliForTest(File baseDir) {
         CommandLineParameters params = new CommandLineParameters();
@@ -136,7 +137,7 @@ public class CommandLineParameters {
     public File getRelativeDirectory(String path) {
         String baseDir = getBaseDirectory().getAbsolutePath();
         String subDir = baseDir + (baseDir.endsWith("/") ? "" : File.separator) + path;
-        File directory = new File(subDir);
+        File directory = Path.of(subDir).toFile();
 
         if (!directory.exists()) {
             directory.mkdirs();
@@ -172,7 +173,7 @@ public class CommandLineParameters {
             }
         }
         if (portUnavailable) {
-            String msg = String.format(": port %d is not available. %s.", port, reason);
+            String msg = ": port %d is not available. %s.".formatted(port, reason);
             throw new ParameterException(msg);
         }
     }
@@ -234,13 +235,13 @@ public class CommandLineParameters {
 
         @Override
         public void validate(String name, String value) throws ParameterException {
-            File file = new File(value);
+            File file = Path.of(value).toFile();
             if (!file.isDirectory()) {
-                String msg = String.format("%s: '%s' is not a directory.", name, value);
+                String msg = "%s: '%s' is not a directory.".formatted(name, value);
                 throw new ParameterException(msg);
             }
             if (!file.canRead()) {
-                String msg = String.format("%s: directory '%s' is not readable.", name, value);
+                String msg = "%s: directory '%s' is not readable.".formatted(name, value);
                 throw new ParameterException(msg);
             }
         }
@@ -251,9 +252,9 @@ public class CommandLineParameters {
         @Override
         public void validate(String name, String value) throws ParameterException {
             new ReadableDirectory().validate(name, value);
-            File file = new File(value);
+            File file = Path.of(value).toFile();
             if (!file.canWrite()) {
-                String msg = String.format("%s: directory '%s' is not writable.", name, value);
+                String msg = "%s: directory '%s' is not writable.".formatted(name, value);
                 throw new ParameterException(msg);
             }
         }
@@ -265,7 +266,7 @@ public class CommandLineParameters {
         public void validate(String name, String value) throws ParameterException {
             int i = Integer.parseInt(value);
             if (i <= 0) {
-                String msg = String.format("%s must be a positive integer.", name);
+                String msg = "%s must be a positive integer.".formatted(name);
                 throw new ParameterException(msg);
             }
         }

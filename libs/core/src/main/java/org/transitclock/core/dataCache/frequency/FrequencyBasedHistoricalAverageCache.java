@@ -2,7 +2,6 @@
 package org.transitclock.core.dataCache.frequency;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -311,7 +310,7 @@ public class FrequencyBasedHistoricalAverageCache {
     }
 
     private static <T> Iterable<T> emptyIfNull(Iterable<T> iterable) {
-        return iterable == null ? Collections.emptyList() : iterable;
+        return iterable == null ? List.of() : iterable;
     }
 
     private class StopPathKey {

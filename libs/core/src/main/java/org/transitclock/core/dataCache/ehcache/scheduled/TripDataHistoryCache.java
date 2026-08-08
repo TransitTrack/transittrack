@@ -17,7 +17,6 @@ import org.transitclock.gtfs.GtfsFilter;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -147,7 +146,7 @@ public class TripDataHistoryCache implements TripDataHistoryCacheInterface {
     }
 
     private static <T> Iterable<T> emptyIfNull(Iterable<T> iterable) {
-        return iterable == null ? Collections.emptyList() : iterable;
+        return iterable == null ? List.of() : iterable;
     }
 
     @Override

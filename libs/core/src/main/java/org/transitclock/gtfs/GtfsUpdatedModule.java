@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -52,14 +51,14 @@ public class GtfsUpdatedModule implements Module {
         // lastModified time of file e.g. yyyy-MM-dd. Putting year first
         // and then month means that the directories will be listed
         // chronologically when listed using unix ls command.
-        File file = new File(fullFileName);
+        File file = Path.of(fullFileName).toFile();
         Date lastModified = new Date(file.lastModified());
         DateFormat readableDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String dirName = readableDateFormat.format(lastModified);
 
         // Copy the file to the sibling directory with the name that is the
         // last modified date (e.g. 03-28-2015)
-        Path source = Paths.get(fullFileName);
+        Path source = Path.of(fullFileName);
         Path target = source.getParent().getParent().resolve(dirName).resolve(source.getFileName());
 
         logger.info("Archiving file {} to {}", source, target);
@@ -67,7 +66,7 @@ public class GtfsUpdatedModule implements Module {
         try {
             // Create the directory where file is to go
             String fullDirName = target.getParent().toString();
-            new File(fullDirName).mkdir();
+            Path.of(fullDirName).toFile().mkdir();
 
             // Copy the file to the directory
             Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
@@ -88,7 +87,7 @@ public class GtfsUpdatedModule implements Module {
         // since it can be large. Therefore determine age of previously
         // downloaded file and use If-Modified-Since to only actually
         // get the file if it is newer on the web server
-        File file = new File(httpGetFile.getFullFileName());
+        File file = Path.of(httpGetFile.getFullFileName()).toFile();
         boolean fileAlreadyExists = file.exists();
 
         if (fileAlreadyExists) {

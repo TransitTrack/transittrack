@@ -20,6 +20,7 @@ subprojects {
     dependencies {
         annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
         compileOnly("org.projectlombok:lombok:${lombokVersion}")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     dependencyManagement {
@@ -34,7 +35,7 @@ subprojects {
         }
     }
 
-    java { toolchain { languageVersion.set(JavaLanguageVersion.of(23)) } }
+    java { toolchain { languageVersion.set(JavaLanguageVersion.of(25)) } }
 
     tasks.test {
         useJUnitPlatform()
@@ -44,6 +45,7 @@ subprojects {
             showStackTraces = true
         }
     }
+
     tasks.register("cleanResources") {
         delete("${layout.buildDirectory}/resources")
     }
@@ -51,14 +53,6 @@ subprojects {
     tasks.compileJava {
         dependsOn("cleanResources")
     }
-
-
-//    tasks.withType<KotlinCompile> {
-//        kotlinOptions {
-//            freeCompilerArgs += "-Xjsr305=strict"
-//            jvmTarget = "21"
-//        }
-//    }
 }
 allprojects {
     group = "org.transitclock"
@@ -76,11 +70,7 @@ allprojects {
     modernizer {
         failOnViolations = true
         includeTestClasses = true
+        ignorePackages = setOf("com.google.transit.realtime")
     }
 
-}
-
-
-tasks.wrapper {
-    gradleVersion = "8.14.4"
 }

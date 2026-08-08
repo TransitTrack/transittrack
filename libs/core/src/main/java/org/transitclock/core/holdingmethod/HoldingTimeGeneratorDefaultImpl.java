@@ -2,7 +2,7 @@
 package org.transitclock.core.holdingmethod;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -739,7 +739,7 @@ public class HoldingTimeGeneratorDefaultImpl implements HoldingTimeGenerator {
                 predictions.add(prediction);
             }
         }
-        Collections.sort(predictions, new PredictionTimeComparator());
+        predictions.sort(new PredictionTimeComparator());
 
         int found = -1;
         IpcPrediction closestPrediction = null;
@@ -785,7 +785,7 @@ public class HoldingTimeGeneratorDefaultImpl implements HoldingTimeGenerator {
                     predictions.add(prediction);
             }
         }
-        Collections.sort(predictions, new PredictionTimeComparator());
+        predictions.sort(new PredictionTimeComparator());
         /* TODO get the first two of the same type */
         return predictions;
     }
@@ -820,7 +820,7 @@ public class HoldingTimeGeneratorDefaultImpl implements HoldingTimeGenerator {
                 list.add(prediction.getPredictionTime());
             }
         }
-        Collections.sort(list);
+        list.sort(Comparator.naturalOrder());
         return list;
     }
 

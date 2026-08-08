@@ -2,9 +2,11 @@
 package org.transitclock.utils;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -24,10 +26,10 @@ public class Gzip {
      */
     public static void uncompress(String gzipFileName) {
         try {
-            FileInputStream fis = new FileInputStream(gzipFileName);
+            InputStream fis = Files.newInputStream(Path.of(gzipFileName));
             GZIPInputStream gis = new GZIPInputStream(fis);
             String outputFileName = gzipFileName.substring(0, gzipFileName.lastIndexOf(".gz"));
-            FileOutputStream fos = new FileOutputStream(outputFileName);
+            OutputStream fos = Files.newOutputStream(Path.of(outputFileName));
             byte[] buffer = new byte[1024];
             int len;
             while ((len = gis.read(buffer)) != -1) {
@@ -38,7 +40,7 @@ public class Gzip {
             gis.close();
 
             // Delete the old .gz file
-            File compressedFile = new File(gzipFileName);
+            File compressedFile = Path.of(gzipFileName).toFile();
             compressedFile.delete();
         } catch (IOException e) {
             logger.error("Exception when decompressing gzip file \"{}\"", gzipFileName, e);
@@ -54,9 +56,9 @@ public class Gzip {
      */
     public static String compress(String fileName) {
         try {
-            FileInputStream fis = new FileInputStream(fileName);
+            InputStream fis = Files.newInputStream(Path.of(fileName));
             String outputFileName = fileName + ".gz";
-            FileOutputStream fos = new FileOutputStream(outputFileName);
+            OutputStream fos = Files.newOutputStream(Path.of(outputFileName));
             GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
             byte[] buffer = new byte[1024];
             int len;
@@ -69,7 +71,7 @@ public class Gzip {
             fis.close();
 
             // Delete the old file
-            File uncompressedFile = new File(fileName);
+            File uncompressedFile = Path.of(fileName).toFile();
             uncompressedFile.delete();
 
             return outputFileName;

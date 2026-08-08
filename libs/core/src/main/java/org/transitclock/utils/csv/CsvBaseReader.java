@@ -2,12 +2,13 @@
 package org.transitclock.utils.csv;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +101,7 @@ public abstract class CsvBaseReader<T> {
             // true character.
 
             Reader in =
-                    new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8));
+                    new BufferedReader(new InputStreamReader(Files.newInputStream(Path.of(fileName)), StandardCharsets.UTF_8));
 
             // Deal with the possible BOM character at the beginning of the file
             in.mark(1);
@@ -199,7 +200,7 @@ public abstract class CsvBaseReader<T> {
                     numberRecords,
                     fileName,
                     timer.elapsedMsec());
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
             if (required) {
                 logger.error("Required CSV file {} not found.", fileName);
             } else {

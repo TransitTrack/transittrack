@@ -3,11 +3,14 @@ package org.transitclock.utils.csv;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import org.transitclock.utils.StringUtils;
 
@@ -42,17 +45,19 @@ public abstract class CsvWriterBase {
             // Actually create the directory if necessary
             if (lastSlashPos > 0) {
                 String dirName = fileName.substring(0, lastSlashPos);
-                File dir = new File(dirName);
+                File dir = Path.of(dirName).toFile();
                 dir.mkdirs();
             }
 
             // Determine if file exists
-            boolean fileAlreadyExists = (new File(fileName)).exists();
+            boolean fileAlreadyExists = Files.exists(Path.of(fileName));
 
             // Create the writer. Need to use UTF-8 since sometimes will be
             // writing Chinese or other characters for route names and such.
-            writer = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(fileName, append), StandardCharsets.UTF_8));
+            OutputStream out = append
+                    ? Files.newOutputStream(Path.of(fileName), StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+                    : Files.newOutputStream(Path.of(fileName));
+            writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
 
             // Write the header if it is a new file or not appending
             if (!fileAlreadyExists || !append) writeHeader();

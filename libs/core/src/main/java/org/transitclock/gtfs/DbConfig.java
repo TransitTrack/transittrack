@@ -6,6 +6,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -879,7 +880,7 @@ public class DbConfig {
         blocksByServiceMap.forEach((key, element) -> {
             List<String> ids = new ArrayList<>();
             element.forEach((innerKey, block) -> ids.add(block.getId()));
-            Collections.sort(ids);
+            ids.sort(Comparator.naturalOrder());
             serviceIdsWithBlocks.put(key, ids);
         });
         return serviceIdsWithBlocks;

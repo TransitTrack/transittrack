@@ -106,7 +106,7 @@ public class DbQueue<T> {
                             + " and type "
                             + shortType
                             + ". It is now at "
-                            + String.format("%.1f", level * 100)
+                            + "%.1f".formatted(level * 100)
                             + "% capacity with "
                             + queue.size()
                             + " elements already in the queue."
@@ -154,7 +154,7 @@ public class DbQueue<T> {
         double level = queueLevel();
         int levelIndexIncludingMargin = indexOfLevel(level + 0.10);
         if (levelIndexIncludingMargin < indexOfLevelWhenMessageLogged) {
-            logger.error("DataDbLogger queue emptying out somewhat  for projectId={} and type {}. It is now at {}% capacity with {} elements already in the queue. The maximum capacity was {}%.", projectId, shortType, String.format("%.1f", level * 100), queue.size(), String.format("%.1f", maxQueueLevel * 100));
+            logger.error("DataDbLogger queue emptying out somewhat  for projectId={} and type {}. It is now at {}% capacity with {} elements already in the queue. The maximum capacity was {}%.", projectId, shortType, "%.1f".formatted(level * 100), queue.size(), "%.1f".formatted(maxQueueLevel * 100));
             indexOfLevelWhenMessageLogged = levelIndexIncludingMargin;
 
             // Reset the maxQueueLevel so can determine what next peak is

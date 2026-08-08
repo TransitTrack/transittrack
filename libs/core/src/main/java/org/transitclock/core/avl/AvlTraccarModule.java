@@ -18,6 +18,7 @@ package org.transitclock.core.avl;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -153,7 +154,7 @@ public class AvlTraccarModule extends PollUrlAvlModule {
         logger.info("Getting data from feed using url={}", source);
 
         // Create the connection
-        URL url = new URL(source + uri);
+        URL url = URI.create(source + uri).toURL();
         URLConnection con = url.openConnection();
         configureConnectionLifetime(con);
         configureConnectionAuthentication(con);

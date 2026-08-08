@@ -304,6 +304,6 @@ public abstract class AbstractPredictionGenerator implements PredictionGenerator
     }
 
     protected static <T> Iterable<T> emptyIfNull(Iterable<T> iterable) {
-        return iterable == null ? Collections.emptyList() : iterable;
+        return iterable == null ? List.of() : iterable;
     }
 }

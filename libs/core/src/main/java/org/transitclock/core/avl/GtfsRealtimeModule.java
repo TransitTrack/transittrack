@@ -2,6 +2,7 @@
 package org.transitclock.core.avl;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
@@ -53,7 +54,7 @@ public class GtfsRealtimeModule extends PollUrlAvlModule {
         logger.info("Getting data from feed using url={}", source);
 
         // Create the connection
-        URL url = new URL(source);
+        URL url = URI.create(source).toURL();
         URLConnection con = url.openConnection();
 
         configureConnectionLifetime(con);

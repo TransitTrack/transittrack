@@ -3,9 +3,11 @@ package org.transitclock.utils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -37,7 +39,7 @@ public class Zip {
 
         try {
             // Determine directory where to put the unzipped files
-            String parentDirName = new File(zipFileName).getParent();
+            String parentDirName = Path.of(zipFileName).toFile().getParent();
             String directoryName = parentDirName;
             if (subDirectory != null) {
                 if (subDirectory.startsWith(File.separator)) directoryName = subDirectory;
@@ -47,17 +49,17 @@ public class Zip {
             logger.info("Unzipping file {} into directory {}", zipFileName, directoryName);
 
             // Extract the files
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFileName));
+            ZipInputStream zis = new ZipInputStream(Files.newInputStream(Path.of(zipFileName)));
             ZipEntry ze = zis.getNextEntry();
             while (ze != null) {
                 String entryName = ze.getName();
                 logger.info("Extracting file {}", entryName);
-                File f = new File(directoryName + "/" + entryName);
+                File f = Path.of(directoryName + "/" + entryName).toFile();
 
                 // Make sure necessary directory exists
                 f.getParentFile().mkdirs();
 
-                FileOutputStream fos = new FileOutputStream(f);
+                OutputStream fos = Files.newOutputStream(f.toPath());
                 int len;
                 byte[] buffer = new byte[BUFFER_SIZE];
                 while ((len = zis.read(buffer)) > 0) {
@@ -103,7 +105,7 @@ public class Zip {
 
         try {
             // Create the output file
-            out = new ZipOutputStream(new FileOutputStream(fullZipFileName));
+            out = new ZipOutputStream(Files.newOutputStream(Path.of(fullZipFileName)));
 
             byte[] buffer = new byte[BUFFER_SIZE];
 
@@ -124,7 +126,7 @@ public class Zip {
                 logger.info("Writing file {} to zip file {}", fullInputFileName, fullZipFileName);
 
                 // Open up the file
-                FileInputStream in = new FileInputStream(fullInputFileName);
+                InputStream in = Files.newInputStream(Path.of(fullInputFileName));
                 BufferedInputStream bufIn = new BufferedInputStream(in);
 
                 // Add entry for input file to the zip file
@@ -168,7 +170,7 @@ public class Zip {
     private static void addFileOrDir(
             String inputDirectory, String fileOrDirName, List<String> fileNames, String outputFileName) {
         String fullFileOrDirName = inputDirectory + "/" + fileOrDirName;
-        File file = new File(fullFileOrDirName);
+        File file = Path.of(fullFileOrDirName).toFile();
         if (file.isDirectory()) {
             // It is a directory so handle recursively
             String[] fileNamesForDir = file.list();

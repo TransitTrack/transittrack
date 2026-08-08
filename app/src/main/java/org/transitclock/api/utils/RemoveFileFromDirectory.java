@@ -5,13 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 @Slf4j
 public class RemoveFileFromDirectory {
 
     public static void removeFile(String path, String fileName) {
-        var file = Paths.get(path + fileName);
+        var file = Path.of(path, fileName);
         try {
             Files.delete(file);
             logger.info("File {} deleted successfully" , file);

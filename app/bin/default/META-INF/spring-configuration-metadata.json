@@ -1,0 +1,1169 @@
+{
+  "groups": [
+    {
+      "name": "transitclock.api",
+      "type": "org.transitclock.properties.ApiProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.ApiProperties apiProperties() "
+    },
+    {
+      "name": "transitclock.arrival-departures",
+      "type": "org.transitclock.properties.ArrivalsDeparturesProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.ArrivalsDeparturesProperties arrivalsDepartures() "
+    },
+    {
+      "name": "transitclock.auto-block-assigner",
+      "type": "org.transitclock.properties.AutoBlockAssignerProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.AutoBlockAssignerProperties autoBlockAssignerProperties() "
+    },
+    {
+      "name": "transitclock.avl",
+      "type": "org.transitclock.properties.AvlProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.AvlProperties avlProperties() "
+    },
+    {
+      "name": "transitclock.core",
+      "type": "org.transitclock.properties.CoreProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties coreProperties() "
+    },
+    {
+      "name": "transitclock.core.cache",
+      "type": "org.transitclock.properties.CoreProperties$Cache",
+      "sourceType": "org.transitclock.properties.CoreProperties",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.Cache getCache() "
+    },
+    {
+      "name": "transitclock.core.frequency",
+      "type": "org.transitclock.properties.CoreProperties$Frequency",
+      "sourceType": "org.transitclock.properties.CoreProperties",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.Frequency getFrequency() "
+    },
+    {
+      "name": "transitclock.core.prediction-generator",
+      "type": "org.transitclock.properties.CoreProperties$PredictionGenerator",
+      "sourceType": "org.transitclock.properties.CoreProperties",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.PredictionGenerator getPredictionGenerator() "
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias",
+      "type": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.PredictionGenerator.Bias getBias() "
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.exponential",
+      "type": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Exponential",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Exponential getExponential() "
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.linear",
+      "type": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Linear",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias",
+      "sourceMethod": "public org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Linear getLinear() "
+    },
+    {
+      "name": "transitclock.gtfs",
+      "type": "org.transitclock.properties.GtfsProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.GtfsProperties gtfsProperties() "
+    },
+    {
+      "name": "transitclock.gtfs.auto-update",
+      "type": "org.transitclock.properties.GtfsProperties$AutoUpdate",
+      "sourceType": "org.transitclock.properties.GtfsProperties",
+      "sourceMethod": "public org.transitclock.properties.GtfsProperties.AutoUpdate getAutoUpdate() "
+    },
+    {
+      "name": "transitclock.holding",
+      "type": "org.transitclock.properties.HoldingProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.HoldingProperties holdingProperties() "
+    },
+    {
+      "name": "transitclock.monitoring",
+      "type": "org.transitclock.properties.MonitoringProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.MonitoringProperties monitoringProperties() "
+    },
+    {
+      "name": "transitclock.pred-accuracy",
+      "type": "org.transitclock.properties.PredictionAccuracyProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.PredictionAccuracyProperties predictionAccuracyProperties() "
+    },
+    {
+      "name": "transitclock.prediction",
+      "type": "org.transitclock.properties.PredictionProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties predictionProperties() "
+    },
+    {
+      "name": "transitclock.prediction.data",
+      "type": "org.transitclock.properties.PredictionProperties$PredictionData",
+      "sourceType": "org.transitclock.properties.PredictionProperties",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.PredictionData getData() "
+    },
+    {
+      "name": "transitclock.prediction.data.average",
+      "type": "org.transitclock.properties.PredictionProperties$PredictionData$Average",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.PredictionData.Average getAverage() "
+    },
+    {
+      "name": "transitclock.prediction.data.kalman",
+      "type": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.PredictionData.Kalman getKalman() "
+    },
+    {
+      "name": "transitclock.prediction.dwell",
+      "type": "org.transitclock.properties.PredictionProperties$Dwell",
+      "sourceType": "org.transitclock.properties.PredictionProperties",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.Dwell getDwell() "
+    },
+    {
+      "name": "transitclock.prediction.dwell.average",
+      "type": "org.transitclock.properties.PredictionProperties$Dwell$Average",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Dwell",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.Dwell.Average getAverage() "
+    },
+    {
+      "name": "transitclock.prediction.rls",
+      "type": "org.transitclock.properties.PredictionProperties$Rls",
+      "sourceType": "org.transitclock.properties.PredictionProperties",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.Rls getRls() "
+    },
+    {
+      "name": "transitclock.prediction.travel",
+      "type": "org.transitclock.properties.PredictionProperties$Travel",
+      "sourceType": "org.transitclock.properties.PredictionProperties",
+      "sourceMethod": "public org.transitclock.properties.PredictionProperties.Travel getTravel() "
+    },
+    {
+      "name": "transitclock.service",
+      "type": "org.transitclock.properties.ServiceProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.ServiceProperties serviceProperties() "
+    },
+    {
+      "name": "transitclock.timeout",
+      "type": "org.transitclock.properties.TimeoutProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.TimeoutProperties timeoutProperties() "
+    },
+    {
+      "name": "transitclock.traveltimes",
+      "type": "org.transitclock.properties.TravelTimesProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.TravelTimesProperties travelTimesProperties() "
+    },
+    {
+      "name": "transitclock.tripdatacache",
+      "type": "org.transitclock.properties.TripDataCacheProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.TripDataCacheProperties tripDataCacheProperties() "
+    },
+    {
+      "name": "transitclock.updates",
+      "type": "org.transitclock.properties.UpdatesProperties",
+      "sourceType": "org.transitclock.config.ApplicationConfiguration",
+      "sourceMethod": "public org.transitclock.properties.UpdatesProperties updatesProperties() "
+    }
+  ],
+  "properties": [
+    {
+      "name": "transitclock.api.gtfs-rt-cache-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ApiProperties"
+    },
+    {
+      "name": "transitclock.api.include-trip-update-delay",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.ApiProperties"
+    },
+    {
+      "name": "transitclock.api.prediction-max-future-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ApiProperties"
+    },
+    {
+      "name": "transitclock.arrival-departures.allowable-difference-between-avl-time-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ArrivalsDeparturesProperties"
+    },
+    {
+      "name": "transitclock.arrival-departures.max-stops-between-matches",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ArrivalsDeparturesProperties"
+    },
+    {
+      "name": "transitclock.arrival-departures.max-stops-when-no-previous-match",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ArrivalsDeparturesProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.allowable-early-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.allowable-late-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.auto-assigner-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.ignore-avl-assignments",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.min-distance-from-current-report",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.min-time-between-auto-assigning-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.auto-block-assigner.override-times-for-vehicle-to-block",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AutoBlockAssignerProperties"
+    },
+    {
+      "name": "transitclock.avl.alternative-max-speed",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.authentication-password",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.authentication-user",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.feed-polling-rate-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.feed-timeout-in-m-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.gtfs-realtime-feed-u-r-i",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.max-latitude",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.max-longitude",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.max-speed",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.max-stop-paths-ahead",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.min-latitude",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.min-longitude",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.min-speed-for-valid-heading",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.min-time-between-avl-reports-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.name-instead-of-id",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.num-threads",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.occupancy-base-url",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.process-in-real-time",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.queue-size",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.should-process-avl",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.speed-in-miles",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.traccar-base-url",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.unpredictable-assignments-reg-ex",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.avl.urls",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "org.transitclock.properties.AvlProperties"
+    },
+    {
+      "name": "transitclock.core.after-stop-distance",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.agency-id",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.agressive-block-loading",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-bad-assignments",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-early-departure-time-for-logging-event",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-early-for-layover-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-early-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-early-seconds-for-initial-matching",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-early-time-for-early-departure-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-late-at-terminal-for-logging-event",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-late-departure-time-for-logging-event",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-late-seconds",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-late-seconds-for-initial-matching",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.allowable-number-of-bad-matches",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.avl-history-max-size",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.before-stop-distance",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.blockactive-for-time-after-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.blockactive-for-time-before-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.cache-reload-end-time-str",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.cache-reload-start-time-str",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.cache.days-populate-historical-cache",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Cache"
+    },
+    {
+      "name": "transitclock.core.deadheading-short-versus-long-distance",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.default-break-time-sec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.distance-between-avls-for-initial-matching-without-heading",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.distance-from-end-of-block-for-initial-matching",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.distance-from-last-stop-for-end-matching",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.distance-from-layover-for-early-departure",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.early-to-late-ratio",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.email-messages-when-assignment-grab-improper",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.event-history-max-size",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.exclusive-block-assignments",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.frequency.cache-increments-for-frequency-service",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Frequency"
+    },
+    {
+      "name": "transitclock.core.frequency.max-dwell-time-filter-value",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Frequency"
+    },
+    {
+      "name": "transitclock.core.frequency.max-travel-time-filter-value",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Frequency"
+    },
+    {
+      "name": "transitclock.core.frequency.min-dwell-time-filter-value",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Frequency"
+    },
+    {
+      "name": "transitclock.core.frequency.min-travel-time-filter-value",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$Frequency"
+    },
+    {
+      "name": "transitclock.core.generate-holding-time-when-prediction-within",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.ignore-inactive-blocks",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.layover-distance",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.long-distance-deadheading-speed",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.match-history-max-size",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-distance-for-assignment-grab",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-distance-from-segment",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-distance-from-segment-for-auto-assigning",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-dwell-time",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-heading-offset-from-segment",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-late-cutoff-preds-for-next-trips-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-match-distance-from-a-v-l-record",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-prediction-time-for-db-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.max-predictions-time-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.min-distance-for-delayed",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.min-distance-for-no-progress",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.only-need-arrival-departures",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.pause-if-db-queue-filling",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.exponential.a",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Exponential"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.exponential.b",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Exponential"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.exponential.c",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Exponential"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.exponential.updown",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Exponential"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.linear.rate",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Linear"
+    },
+    {
+      "name": "transitclock.core.prediction-generator.bias.linear.updown",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties$PredictionGenerator$Bias$Linear"
+    },
+    {
+      "name": "transitclock.core.short-distance-deadheading-speed",
+      "type": "java.lang.Float",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.spatial-match-to-layovers-allowed-for-auto-assignment",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.store-data-in-database",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.store-dwell-time-stop-path-predictions",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.store-travel-time-stop-path-predictions",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.terminal-distance-for-route-matching",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.time-for-determining-delayed-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.time-for-determining-no-progress",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.timezone",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.use-arrival-predictions-for-normal-stops",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.use-exact-sched-time-for-wait-stops",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.core.use-holding-time-in-prediction",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.CoreProperties"
+    },
+    {
+      "name": "transitclock.gtfs.auto-update.dir-name",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties$AutoUpdate"
+    },
+    {
+      "name": "transitclock.gtfs.auto-update.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.GtfsProperties$AutoUpdate"
+    },
+    {
+      "name": "transitclock.gtfs.auto-update.interval-msec",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.GtfsProperties$AutoUpdate"
+    },
+    {
+      "name": "transitclock.gtfs.auto-update.url",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties$AutoUpdate"
+    },
+    {
+      "name": "transitclock.gtfs.block-id-reg-ex",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.capitalize",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.gtfs-trip-update-url",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.min-distance-between-stops-to-disambiguate-headsigns",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.output-paths-and-stops-for-graphing-route-ids",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.route-id-filter-reg-ex",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.stop-code-base-value",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.trip-id-filter-reg-ex",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.gtfs.trip-short-name-reg-ex",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.GtfsProperties"
+    },
+    {
+      "name": "transitclock.holding.control-stops",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.headway-expected-max-limit-in-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.headway-expected-min-limit-in-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.max-predictions-for-holding-time-calculation",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.planned-headway-msec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.regenerateondeparture",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.store-holding-times",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.usearrivalevents",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.holding.usearrivalpredictions",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.HoldingProperties"
+    },
+    {
+      "name": "transitclock.monitoring.allowable-no-avl-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.available-free-physical-memory-threshold",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.available-free-physical-memory-threshold-gap",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.avl-feed-email-recipients",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.cpu-threshold",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.cpu-threshold-gap",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.email-recipients",
+      "type": "java.lang.String",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.max-queue-fraction",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.max-queue-fraction-gap",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.min-predictable-blocks",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.min-predictable-blocks-gap",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.minimum-predictable-vehicles",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.retry-timeout-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.seconds-between-monitorin-polling",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.usable-disk-space-threshold",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.monitoring.usable-disk-space-threshold-gap",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.MonitoringProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.max-earlyness-compared-to-prediction-msec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.max-lateness-compared-to-prediction-msec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.max-pred-staleness-minutes",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.max-pred-time-minutes",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.max-random-stop-selections-per-trip",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.polling-rate-msec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.pred-accuracy.stops-per-trip",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionAccuracyProperties"
+    },
+    {
+      "name": "transitclock.prediction.after-start-time-minutes",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.before-start-time-minutes",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.cancel-trip-on-timeout",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.closestvehiclestopsahead",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.data.average.mindays",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Average"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.initialerrorvalue",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.maxdays",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.maxdaystosearch",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.mindays",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.percentage-prediction-method-differencene",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.threshold-for-difference-event-log",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.useaverage",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.data.kalman.usekalmanforpartialstoppaths",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionProperties$PredictionData$Kalman"
+    },
+    {
+      "name": "transitclock.prediction.dwell.average.fractionlimit",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Dwell$Average"
+    },
+    {
+      "name": "transitclock.prediction.dwell.average.samplesize",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Dwell$Average"
+    },
+    {
+      "name": "transitclock.prediction.dwell.min-dwell-time-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Dwell"
+    },
+    {
+      "name": "transitclock.prediction.polling-rate-msec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.process-immediately-at-startup",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.return-arrival-prediction-for-end-of-trip",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.PredictionProperties"
+    },
+    {
+      "name": "transitclock.prediction.rls.lambda",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.max-dwell-time-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.max-headway-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.max-scehedule-adherence",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.min-dwell-time-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.min-headway-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.rls.min-scehedule-adherence",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Rls"
+    },
+    {
+      "name": "transitclock.prediction.travel.max-travel-time-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Travel"
+    },
+    {
+      "name": "transitclock.prediction.travel.min-travel-time-allowed-in-model",
+      "type": "java.lang.Long",
+      "sourceType": "org.transitclock.properties.PredictionProperties$Travel"
+    },
+    {
+      "name": "transitclock.service.minutes-into-morning-to-include-previous-service-ids",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.ServiceProperties"
+    },
+    {
+      "name": "transitclock.timeout.allowable-no-avl-after-sched-depart-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.TimeoutProperties"
+    },
+    {
+      "name": "transitclock.timeout.allowable-no-avl-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.TimeoutProperties"
+    },
+    {
+      "name": "transitclock.timeout.polling-rate-secs",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.TimeoutProperties"
+    },
+    {
+      "name": "transitclock.timeout.remove-timed-out-vehicles-from-vehicle-data-cache",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.TimeoutProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.fraction-limit-for-stop-times",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.fraction-limit-for-travel-times",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.max-segment-speed-mps",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.max-travel-time-segment-length",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.min-segment-speed-mps",
+      "type": "java.lang.Double",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.traveltimes.reset-early-terminal-departures",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.TravelTimesProperties"
+    },
+    {
+      "name": "transitclock.tripdatacache.trip-data-cache-max-age-sec",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.TripDataCacheProperties"
+    },
+    {
+      "name": "transitclock.updates.page-db-reads",
+      "type": "java.lang.Boolean",
+      "sourceType": "org.transitclock.properties.UpdatesProperties"
+    },
+    {
+      "name": "transitclock.updates.page-size",
+      "type": "java.lang.Integer",
+      "sourceType": "org.transitclock.properties.UpdatesProperties"
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}

@@ -1,7 +1,8 @@
 package org.transitclock.core.reports;
 
-import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,7 +60,7 @@ public class ScheduleAdhStopsCSVReport {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
-        final String FILE_NAME = String.format("stops_adh_%s_%s.csv", beginDate, endDate);
+        final String FILE_NAME = "stops_adh_%s_%s.csv".formatted(beginDate, endDate);
         final String HOST = hostUrl;
 
         // Validate date
@@ -113,7 +114,7 @@ public class ScheduleAdhStopsCSVReport {
         fullExport.add(new String[]{"category", "time", "stop_name", "route", "trip", "block", "vehicle", "schedule", "difference"});
         IntervalTimer timer = new IntervalTimer();
 
-        final String FILE_NAME = String.format("daily_stops_adh_for_%s.csv", beginDate);
+        final String FILE_NAME = "daily_stops_adh_for_%s.csv".formatted(beginDate);
         final String HOST = hostUrl;
 
         LocalDate date1 = validateParseToLocalDate(beginDate);
@@ -161,7 +162,7 @@ public class ScheduleAdhStopsCSVReport {
     }
 
     private void writeToCSVFile(String fileName, String host, IntervalTimer timer) {
-        try (CSVWriter writer = new CSVWriter(new FileWriter("/tmp/csv/" + fileName, StandardCharsets.UTF_8));
+        try (CSVWriter writer = new CSVWriter(Files.newBufferedWriter(Path.of("/tmp/csv", fileName), StandardCharsets.UTF_8));
              Session session = HibernateUtils.getSession();
         ) {
             writer.writeAll(fullExport);

@@ -3,7 +3,7 @@ package org.transitclock.gtfs;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +75,7 @@ public class StopPathProcessor {
         // This way can step through the shape points in the proper order.
         for (String shapeIdKey : gtfsShapesMap.keySet()) {
             List<GtfsShape> shapesList = gtfsShapesMap.get(shapeIdKey);
-            Collections.sort(shapesList);
+            shapesList.sort(Comparator.naturalOrder());
         }
 
         this.stopsMap = stopsMap;

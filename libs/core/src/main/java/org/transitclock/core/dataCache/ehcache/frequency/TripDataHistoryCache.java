@@ -189,7 +189,7 @@ public class TripDataHistoryCache implements TripDataHistoryCacheInterface {
     }
 
     private static <T> Iterable<T> emptyIfNull(Iterable<T> iterable) {
-        return iterable == null ? Collections.emptyList() : iterable;
+        return iterable == null ? List.of() : iterable;
     }
 
     @Override

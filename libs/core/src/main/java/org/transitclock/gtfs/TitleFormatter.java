@@ -2,9 +2,10 @@
 package org.transitclock.gtfs;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -114,8 +115,8 @@ public class TitleFormatter {
         if (regexReplaceListFileName != null) {
             logger.info("Reading file {} for regex/replace pairs for titles", regexReplaceListFileName);
 
-            FileInputStream fis = new FileInputStream(regexReplaceListFileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(Files.newInputStream(Path.of(regexReplaceListFileName))));
             String line;
             int lineNumber = 0;
             while ((line = reader.readLine()) != null) {

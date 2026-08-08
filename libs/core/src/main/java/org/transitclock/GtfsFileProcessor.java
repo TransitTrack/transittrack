@@ -16,7 +16,7 @@ import org.transitclock.utils.Zip;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -121,7 +121,7 @@ public class GtfsFileProcessor {
 
         if (gtfsZipFileName != null) {
             gtfsDirectoryName = Zip.unzip(gtfsZipFileName, unzipSubdirectory);
-            zipFileLastModifiedTime = new Date(new File(gtfsZipFileName).lastModified());
+            zipFileLastModifiedTime = new Date(Path.of(gtfsZipFileName).toFile().lastModified());
         }
     }
 
@@ -135,12 +135,12 @@ public class GtfsFileProcessor {
             return;
         }
 
-        File f = new File(gtfsDirectoryName);
+        File f = Path.of(gtfsDirectoryName).toFile();
         Arrays.stream(Objects.requireNonNull(f.list()))
                 .forEach(fileName -> {
                     try {
                         if (fileName.endsWith(".txt")) {
-                            Files.delete(Paths.get(gtfsDirectoryName, fileName));
+                            Files.delete(Path.of(gtfsDirectoryName, fileName));
                         }
                     } catch (Exception e) {
                         logger.error("Exception when cleaning up GTFS files", e);

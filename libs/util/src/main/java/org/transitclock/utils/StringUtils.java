@@ -4,7 +4,6 @@ package org.transitclock.utils;
 import lombok.NonNull;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -203,7 +202,7 @@ public class StringUtils {
      * @param ids to be sorted
      */
     public static void sortIds(List<String> ids) {
-        Collections.sort(ids);
+        ids.sort(Comparator.naturalOrder());
     }
 
 
