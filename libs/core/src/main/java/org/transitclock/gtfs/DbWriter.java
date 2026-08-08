@@ -19,7 +19,16 @@ import org.transitclock.domain.repository.TransferRepository;
 import org.transitclock.domain.repository.TravelTimesForTripRepository;
 import org.transitclock.domain.repository.TripPatternRepository;
 import org.transitclock.domain.repository.TripRepository;
-import org.transitclock.domain.structs.*;
+import org.transitclock.domain.structs.Agency;
+import org.transitclock.domain.structs.Block;
+import org.transitclock.domain.structs.Calendar;
+import org.transitclock.domain.structs.CalendarDate;
+import org.transitclock.domain.structs.FareAttribute;
+import org.transitclock.domain.structs.FareRule;
+import org.transitclock.domain.structs.Frequency;
+import org.transitclock.domain.structs.Route;
+import org.transitclock.domain.structs.Stop;
+import org.transitclock.domain.structs.Transfer;
 import org.transitclock.utils.IntervalTimer;
 
 /**

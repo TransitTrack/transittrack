@@ -4,6 +4,9 @@ package org.transitclock.monitoring;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.core.dataCache.VehicleDataCache;
@@ -11,9 +14,6 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.MonitoringProperties;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * For monitoring whether the core system is working properly. For calling all the specific

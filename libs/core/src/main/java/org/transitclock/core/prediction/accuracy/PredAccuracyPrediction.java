@@ -1,9 +1,8 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.accuracy;
 
-import lombok.Value;
-
 import java.util.Date;
+
 
 /**
  * For prediction accuracy analysis. For keeping a prediction in memory so that it can be compared

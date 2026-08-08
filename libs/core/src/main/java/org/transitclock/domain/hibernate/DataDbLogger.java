@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.domain.hibernate;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Match;

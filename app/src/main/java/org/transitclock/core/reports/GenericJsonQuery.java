@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.GenericQuery;
 
 @Slf4j

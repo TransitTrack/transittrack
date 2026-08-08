@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
+import lombok.Data;
+
 import org.transitclock.api.resources.TransitimeApi.UiMode;
 import org.transitclock.service.dto.IpcVehicle;
-
-import lombok.Data;
 
 /**
  * Contains the data for a single vehicle.

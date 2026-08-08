@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
@@ -15,8 +17,6 @@ import org.transitclock.domain.structs.Headway;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden

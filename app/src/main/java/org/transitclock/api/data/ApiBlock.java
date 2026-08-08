@@ -1,16 +1,13 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.transitclock.service.dto.IpcBlock;
-import org.transitclock.service.dto.IpcRouteSummary;
-import org.transitclock.service.dto.IpcTrip;
-import org.transitclock.utils.Time;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcBlock;
+import org.transitclock.utils.Time;
 
 /**
  * Describes a block

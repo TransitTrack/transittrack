@@ -1,5 +1,7 @@
 package org.transitclock.domain.repository;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -7,8 +9,6 @@ import org.hibernate.Session;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.gtfs.GtfsData;
 import org.transitclock.gtfs.model.GtfsRoute;
-
-import java.util.List;
 
 @Slf4j
 public class TripPatternRepository extends BaseRepository<TripPattern> {

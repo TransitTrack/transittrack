@@ -10,10 +10,16 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+
 import org.transitclock.domain.repository.TravelTimesForTripRepository;
-import org.transitclock.domain.structs.*;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.HowSet;
+import org.transitclock.domain.structs.ScheduleTime;
+import org.transitclock.domain.structs.StopPath;
+import org.transitclock.domain.structs.TravelTimesForStopPath;
+import org.transitclock.domain.structs.TravelTimesForTrip;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.gtfs.model.GtfsStopTime;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.IntervalTimer;

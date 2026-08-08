@@ -5,10 +5,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcVehicleConfig;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcVehicleConfig;
 
 /**
  * For when have collection of ApiVehicleConfig

@@ -1,7 +1,15 @@
 package org.transitclock.config;
 
 import jakarta.annotation.PostConstruct;
+
 import java.util.TimeZone;
+
+import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.domain.hibernate.DataDbLogger;
@@ -13,13 +21,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.ServiceProperties;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.flywaydb.core.Flyway;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration

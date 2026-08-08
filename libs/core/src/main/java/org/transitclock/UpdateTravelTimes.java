@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
 import org.transitclock.core.travelTimes.TravelTimeInfoMap;
 import org.transitclock.core.travelTimes.TravelTimeInfoWithHowSet;
 import org.transitclock.core.travelTimes.TravelTimesProcessor;
@@ -22,10 +26,6 @@ import org.transitclock.properties.TravelTimesProperties;
 import org.transitclock.properties.UpdatesProperties;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 /**
  * Uses AVL based data of arrival/departure times and matches from the database to update the

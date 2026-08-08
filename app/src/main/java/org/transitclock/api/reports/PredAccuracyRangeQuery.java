@@ -1,15 +1,16 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
-import org.transitclock.utils.StringUtils;
-
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
+import org.transitclock.utils.StringUtils;
 
 /**
  * For generating the JSON data for a Google chart for showing percent of predictions that lie

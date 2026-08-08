@@ -1,13 +1,13 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcTrip;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import org.transitclock.service.dto.IpcTrip;
 
 /**
  * Specifies how trip data along with travel times is formatted for the API.

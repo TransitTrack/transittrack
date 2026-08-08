@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcRouteSummary;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcRouteSummary;
 
 /**
  * A short description of a route. For when outputting list of routes for agency.

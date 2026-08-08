@@ -4,10 +4,10 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcActiveBlock;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcActiveBlock;
 
 /**
  * A route for when outputting active blocks

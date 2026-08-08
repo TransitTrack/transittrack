@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcSchedTimes;
-import org.transitclock.utils.Time;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcSchedTimes;
+import org.transitclock.utils.Time;
 
 /**
  * Represents a schedule time for a stop. Contains both arrival and departure time and is intended

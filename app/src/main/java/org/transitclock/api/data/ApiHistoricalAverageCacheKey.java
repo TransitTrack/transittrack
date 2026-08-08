@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
 
 /**
  * Describes an historical average key which is used to refer to data elements in the cache

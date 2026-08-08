@@ -1,12 +1,12 @@
 package org.transitclock.utils;
 
+import static org.transitclock.utils.Time.SEC_PER_HOUR;
+import static org.transitclock.utils.Time.parse;
+
 import java.text.ParseException;
 import java.util.Date;
 
 import org.junit.jupiter.api.Test;
-
-import static org.transitclock.utils.Time.SEC_PER_HOUR;
-import static org.transitclock.utils.Time.parse;
 
 class TimeTest {
     @Test

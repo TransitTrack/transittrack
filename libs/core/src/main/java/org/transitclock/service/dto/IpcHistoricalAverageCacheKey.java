@@ -2,6 +2,7 @@
 package org.transitclock.service.dto;
 
 import java.io.Serializable;
+
 import org.transitclock.core.dataCache.StopPathCacheKey;
 
 public class IpcHistoricalAverageCacheKey implements Serializable {

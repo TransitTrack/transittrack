@@ -3,6 +3,7 @@ package org.transitclock.core;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 

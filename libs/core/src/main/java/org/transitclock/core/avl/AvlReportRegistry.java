@@ -1,11 +1,12 @@
 package org.transitclock.core.avl;
 
-import org.springframework.stereotype.Component;
-import org.transitclock.domain.structs.AvlReport;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.stereotype.Component;
+
+import org.transitclock.domain.structs.AvlReport;
 
 @Component
 public class AvlReportRegistry {

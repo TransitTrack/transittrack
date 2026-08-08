@@ -1,14 +1,13 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
 
 /**
  * @author Sean Og Crudden

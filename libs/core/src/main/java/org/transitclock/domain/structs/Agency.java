@@ -1,7 +1,13 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;

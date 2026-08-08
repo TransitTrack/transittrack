@@ -3,10 +3,11 @@ package org.transitclock.domain.structs;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Objects;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor

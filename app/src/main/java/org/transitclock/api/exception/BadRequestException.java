@@ -1,10 +1,9 @@
 package org.transitclock.api.exception;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.ErrorResponseException;
-import org.transitclock.api.exception.ProblemDetailWithCause.ProblemDetailWithCauseBuilder;
 
-import java.net.URI;
 
 @SuppressWarnings("java:S110") // Inheritance tree of classes should not be too deep
 public class BadRequestException extends ErrorResponseException {

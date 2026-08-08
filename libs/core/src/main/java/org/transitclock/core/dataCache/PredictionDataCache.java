@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.domain.structs.Stop;
@@ -22,9 +25,6 @@ import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * For storing and retrieving predictions by stop.

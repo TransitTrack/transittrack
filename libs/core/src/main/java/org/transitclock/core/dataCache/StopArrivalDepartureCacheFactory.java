@@ -1,12 +1,12 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.transitclock.core.dataCache.ehcache.StopArrivalDepartureCache;
-
 import org.ehcache.CacheManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.transitclock.core.dataCache.ehcache.StopArrivalDepartureCache;
 
 /**
  * @author Sean Óg Crudden

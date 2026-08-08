@@ -15,6 +15,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.springframework.stereotype.Component;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;

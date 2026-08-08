@@ -4,9 +4,9 @@ package org.transitclock.api.data.siri;
 import java.text.DateFormat;
 import java.util.Date;
 
-import org.transitclock.service.dto.IpcVehicle;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.transitclock.service.dto.IpcVehicle;
 
 /**
  * Describes the trip

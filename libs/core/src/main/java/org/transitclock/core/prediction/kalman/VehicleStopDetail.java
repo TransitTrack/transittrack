@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.kalman;
 
-import org.transitclock.domain.structs.Stop;
-
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import org.transitclock.domain.structs.Stop;
 
 @ToString
 @EqualsAndHashCode

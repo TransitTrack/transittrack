@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.avl.assigner.BlockAssigner;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
 import org.transitclock.core.avl.space.SpatialMatch;
@@ -31,8 +33,6 @@ import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.utils.StringUtils;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Keeps track of vehicle state including its block assignment, where it last matched to its

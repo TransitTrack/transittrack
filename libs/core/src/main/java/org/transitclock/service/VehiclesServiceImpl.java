@@ -1,6 +1,14 @@
 /* (C)2023 */
 package org.transitclock.service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -15,7 +23,6 @@ import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.QRoute;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.VehicleConfig;
-import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.service.contract.VehiclesService;
 import org.transitclock.service.dto.IpcActiveBlock;
@@ -25,10 +32,6 @@ import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.service.dto.IpcVehicleConfig;
 import org.transitclock.service.dto.IpcVehicleGtfsRealtime;
 import org.transitclock.service.dto.IpcVehicleToBlockConfig;
-
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component

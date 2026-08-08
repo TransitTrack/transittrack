@@ -6,6 +6,7 @@ import javax.annotation.concurrent.Immutable;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.csv.CSVRecord;
+
 import org.transitclock.utils.csv.CsvBase;
 
 /**

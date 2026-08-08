@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.properties.CoreProperties;
 

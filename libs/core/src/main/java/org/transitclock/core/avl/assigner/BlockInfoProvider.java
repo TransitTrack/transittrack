@@ -8,14 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.domain.structs.Block;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 /**
  * Contains information on Blocks as a whole, such as which blocks are currently active.

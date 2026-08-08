@@ -2,8 +2,10 @@
 package org.transitclock.core.avl.assigner;
 
 import java.util.Collection;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.Trip;

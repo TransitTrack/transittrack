@@ -1,6 +1,12 @@
 package org.transitclock.config;
 
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+
 import org.transitclock.properties.ApiProperties;
 import org.transitclock.properties.ArrivalsDeparturesProperties;
 import org.transitclock.properties.AutoBlockAssignerProperties;
@@ -16,12 +22,6 @@ import org.transitclock.properties.TimeoutProperties;
 import org.transitclock.properties.TravelTimesProperties;
 import org.transitclock.properties.TripDataCacheProperties;
 import org.transitclock.properties.UpdatesProperties;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)

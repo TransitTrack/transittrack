@@ -4,11 +4,11 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.domain.structs.TravelTimesForStopPath;
-import org.transitclock.domain.structs.TravelTimesForTrip;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.domain.structs.TravelTimesForStopPath;
+import org.transitclock.domain.structs.TravelTimesForTrip;
 
 /**
  * @author SkiBu Smith

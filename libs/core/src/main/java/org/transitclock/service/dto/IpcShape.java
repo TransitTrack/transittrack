@@ -4,6 +4,7 @@ package org.transitclock.service.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.domain.structs.Vector;

@@ -6,21 +6,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
-
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.utils.IntervalTimer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.IntervalTimer;
 
 /**
  * Subclass of AvlModule to be used when reading AVL data from a feed. Calls the abstract method

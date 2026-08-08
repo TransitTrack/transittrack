@@ -1,15 +1,14 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcActiveBlock;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcActiveBlock;
 
 /**
  * Collection of ActiveBlocks

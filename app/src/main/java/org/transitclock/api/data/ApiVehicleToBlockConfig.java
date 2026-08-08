@@ -1,12 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import java.util.Date;
-
-import org.transitclock.service.dto.IpcVehicleToBlockConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcVehicleToBlockConfig;
 
 @Data
 public class ApiVehicleToBlockConfig {

@@ -3,9 +3,9 @@ package org.transitclock.api.data;
 
 import java.util.List;
 
-import org.transitclock.service.dto.IpcDirection;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.transitclock.service.dto.IpcDirection;
 
 /**
  * A single direction, containing stops

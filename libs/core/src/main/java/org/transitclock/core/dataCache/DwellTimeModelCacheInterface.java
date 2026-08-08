@@ -1,11 +1,12 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
+import java.util.Date;
+
 import org.hibernate.Session;
+
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.Headway;
-
-import java.util.Date;
 
 public interface DwellTimeModelCacheInterface {
 

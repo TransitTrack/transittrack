@@ -1,12 +1,22 @@
 /* (C)2023 */
 package org.transitclock.api.data.gtfs;
 
-import com.google.transit.realtime.GtfsRealtime.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+
+import com.google.transit.realtime.GtfsRealtime.FeedEntity;
+import com.google.transit.realtime.GtfsRealtime.FeedHeader;
 import com.google.transit.realtime.GtfsRealtime.FeedHeader.Incrementality;
+import com.google.transit.realtime.GtfsRealtime.FeedMessage;
+import com.google.transit.realtime.GtfsRealtime.Position;
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
 import com.google.transit.realtime.GtfsRealtime.TripDescriptor.ScheduleRelationship;
+import com.google.transit.realtime.GtfsRealtime.VehicleDescriptor;
+import com.google.transit.realtime.GtfsRealtime.VehiclePosition;
 import com.google.transit.realtime.GtfsRealtime.VehiclePosition.VehicleStopStatus;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.util.StringUtils;
 
 import org.transitclock.api.utils.AgencyTimezoneCache;
@@ -15,11 +25,6 @@ import org.transitclock.service.contract.VehiclesService;
 import org.transitclock.service.dto.IpcVehicleConfig;
 import org.transitclock.service.dto.IpcVehicleGtfsRealtime;
 import org.transitclock.utils.Time;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
 
 /**
  * For creating GTFS-realtime Vehicle feed. The data is obtained via RMI.

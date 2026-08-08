@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.ArrivalDeparture;
@@ -25,9 +28,6 @@ import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reads internal predictions every transitclock.predAccuracy.pollingRateMsec and stores the

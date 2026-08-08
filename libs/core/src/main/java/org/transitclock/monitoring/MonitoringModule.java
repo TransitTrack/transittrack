@@ -1,12 +1,13 @@
 /* (C)2023 */
 package org.transitclock.monitoring;
 
+import java.util.concurrent.TimeUnit;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.transitclock.Module;
 
-import java.util.concurrent.TimeUnit;
+import org.transitclock.Module;
 
 /**
  * A module that runs in a separate thread and repeatedly uses AgencyMonitor to monitor a core

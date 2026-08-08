@@ -1,9 +1,9 @@
 package org.transitclock.core.prediction;
 
+import java.util.List;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.service.dto.IpcPrediction;
-
-import java.util.List;
 
 public interface PredictionGenerator {
     /**

@@ -1,13 +1,14 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
-import org.transitclock.domain.GenericQuery;
-
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
+import org.transitclock.domain.GenericQuery;
 
 /**
  * For providing data to a Google scatter chart when need to specify specific SQL for retrieving

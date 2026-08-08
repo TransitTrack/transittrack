@@ -1,10 +1,11 @@
 /* (C)2023 */
 package org.transitclock.service.dto;
 
+import jakarta.xml.bind.annotation.XmlAttribute;
+
 import java.io.Serializable;
 import java.util.Date;
 
-import jakarta.xml.bind.annotation.XmlAttribute;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.domain.structs.ArrivalDeparture;
 

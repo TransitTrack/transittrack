@@ -1,13 +1,13 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
+import java.util.List;
+
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
-import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-import org.transitclock.domain.structs.HoldingTime;
 
-import java.util.List;
+import org.transitclock.domain.structs.HoldingTime;
 
 /**
  * @author Sean Óg Crudden

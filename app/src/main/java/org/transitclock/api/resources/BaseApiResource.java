@@ -1,5 +1,7 @@
 package org.transitclock.api.resources;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.transitclock.properties.ApiProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.contract.CacheQueryService;
@@ -9,8 +11,6 @@ import org.transitclock.service.contract.HoldingTimeService;
 import org.transitclock.service.contract.PredictionAnalysisService;
 import org.transitclock.service.contract.PredictionsService;
 import org.transitclock.service.contract.VehiclesService;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseApiResource {
     @Autowired

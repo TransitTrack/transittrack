@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcSchedTrip;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcSchedTrip;
 
 /**
  * Represents a single trip for an ApiSchedule

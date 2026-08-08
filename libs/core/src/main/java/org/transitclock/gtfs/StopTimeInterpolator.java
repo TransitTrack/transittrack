@@ -1,8 +1,8 @@
 package org.transitclock.gtfs;
 
-import org.transitclock.gtfs.model.GtfsStopTime;
-
 import java.util.List;
+
+import org.transitclock.gtfs.model.GtfsStopTime;
 
 public class StopTimeInterpolator {
     private final List<GtfsStopTime> stopTimes;

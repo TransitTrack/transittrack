@@ -1,14 +1,14 @@
 package org.transitclock.core.prediction.accuracy;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.GtfsProperties;
 import org.transitclock.properties.PredictionAccuracyProperties;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class PredictionAccuracyModuleFactory {

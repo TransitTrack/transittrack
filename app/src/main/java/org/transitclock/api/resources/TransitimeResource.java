@@ -8,6 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RestController;
+
 import org.transitclock.api.data.ApiActiveBlocksResponse;
 import org.transitclock.api.data.ApiActiveBlocksRoutesResponse;
 import org.transitclock.api.data.ApiAdherenceSummary;
@@ -57,13 +64,6 @@ import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.dto.IpcTripPattern;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleConfig;
-
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Contains the API commands for the Transitime API for getting real-time vehicle and prediction

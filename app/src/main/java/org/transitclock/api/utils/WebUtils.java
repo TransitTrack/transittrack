@@ -2,7 +2,9 @@
 package org.transitclock.api.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.api.exception.BadRequestException;
 
 /**

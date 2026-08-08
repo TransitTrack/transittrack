@@ -3,10 +3,10 @@ package org.transitclock.api.data;
 
 import java.util.Date;
 
-import org.transitclock.service.dto.IpcPredictionForStopPath;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcPredictionForStopPath;
 
 @Data
 public class ApiPredictionForStopPath {

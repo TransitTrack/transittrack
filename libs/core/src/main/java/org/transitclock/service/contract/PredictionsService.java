@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
-import org.transitclock.domain.structs.Location;
-import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-
 import java.io.Serializable;
 import java.util.List;
+
+import org.transitclock.domain.structs.Location;
+import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 
 /**
  * Defines the RMI interface used for obtaining predictions.

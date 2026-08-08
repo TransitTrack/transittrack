@@ -1,20 +1,27 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Type;
-import org.transitclock.utils.Geo;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Type;
+
+import org.transitclock.utils.Geo;
 
 /**
  * Contains the expected time it takes to travel along the specified path, which is for one stop to

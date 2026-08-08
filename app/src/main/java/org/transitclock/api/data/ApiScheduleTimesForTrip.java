@@ -4,11 +4,11 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcSchedTime;
-import org.transitclock.service.dto.IpcSchedTrip;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcSchedTime;
+import org.transitclock.service.dto.IpcSchedTrip;
 
 /**
  * Contains the schedule times for a trip. For when outputting stops horizontally.

@@ -3,14 +3,14 @@ package org.transitclock.monitoring;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.assigner.BlockInfoProvider;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.Block;
 import org.transitclock.properties.MonitoringProperties;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For determining if the AVL feed is up. If not getting data when blocks are active then the AVL

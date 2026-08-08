@@ -1,7 +1,11 @@
 /* (C)2023 */
 package org.transitclock.gtfs;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
+
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Route;
@@ -9,9 +13,6 @@ import org.transitclock.domain.structs.StopPath;
 import org.transitclock.domain.structs.TripPattern;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.utils.Geo;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * For determining which stops are near a location. This information can then be used to provide

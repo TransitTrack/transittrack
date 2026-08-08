@@ -3,9 +3,6 @@ package org.transitclock.api.resources;
 import java.io.InputStream;
 import java.util.List;
 
-import org.transitclock.api.data.ApiCommandAck;
-import org.transitclock.api.utils.StandardParameters;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.MediaType;
@@ -17,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import org.transitclock.api.data.ApiCommandAck;
+import org.transitclock.api.utils.StandardParameters;
 
 @RequestMapping("/api/v1" + "${transitclock.api.old-version-path}" + "/agency/{agency}")
 public interface CommandsApi {

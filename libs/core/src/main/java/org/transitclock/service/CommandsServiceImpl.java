@@ -11,6 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.google.common.base.CaseFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.AvlProcessor;
@@ -34,14 +41,6 @@ import org.transitclock.service.contract.CommandsService;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
-
-import com.google.common.base.CaseFormat;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import org.transitclock.utils.Time;
 
 @Slf4j

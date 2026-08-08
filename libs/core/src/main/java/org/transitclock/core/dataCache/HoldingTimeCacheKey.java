@@ -1,9 +1,9 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.transitclock.domain.structs.HoldingTime;
-
 import java.io.Serializable;
+
+import org.transitclock.domain.structs.HoldingTime;
 
 /**
  * @author Sean Óg Crudden

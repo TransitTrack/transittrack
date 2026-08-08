@@ -4,10 +4,10 @@ package org.transitclock.api.data;
 import java.util.Collection;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcTripPattern;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcTripPattern;
 
 /**
  * A list of ApiTripPattern objects

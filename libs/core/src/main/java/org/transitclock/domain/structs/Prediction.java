@@ -1,16 +1,25 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.DynamicUpdate;
+
 import org.transitclock.service.dto.IpcPrediction;
 
 /**

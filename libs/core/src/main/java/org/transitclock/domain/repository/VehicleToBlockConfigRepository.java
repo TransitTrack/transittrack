@@ -1,14 +1,13 @@
 package org.transitclock.domain.repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import org.transitclock.domain.structs.VehicleToBlockConfig;
-
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
 
 public class VehicleToBlockConfigRepository extends BaseRepository<VehicleToBlockConfig> {
     /**

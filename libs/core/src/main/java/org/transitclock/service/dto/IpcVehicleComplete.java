@@ -6,10 +6,11 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.List;
-import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
-import org.transitclock.core.avl.space.SpatialMatch;
+
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
+import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.Headway;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;

@@ -6,15 +6,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.utils.SystemTime;
-import org.transitclock.utils.Time;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.SystemTime;
+import org.transitclock.utils.Time;
 
 /**
  * Receives AVL data from the AvlExecutor or JMS, determines if AVL should be filtered, and

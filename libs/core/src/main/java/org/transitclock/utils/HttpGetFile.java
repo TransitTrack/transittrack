@@ -15,8 +15,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Copies a file from the specified URL and stores it locally. Useful for things such as reading a

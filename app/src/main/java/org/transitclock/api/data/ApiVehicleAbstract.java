@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.api.resources.TransitimeApi.UiMode;
-import org.transitclock.service.dto.IpcVehicle;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.api.resources.TransitimeApi.UiMode;
+import org.transitclock.service.dto.IpcVehicle;
 
 /**
  * This class exists so that can have multiple subclasses that inherent from each other while still

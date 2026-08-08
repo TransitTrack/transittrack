@@ -12,27 +12,24 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
-
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.service.dto.IpcAvl;
-import org.transitclock.utils.Geo;
-import org.transitclock.utils.SystemTime;
-import org.transitclock.utils.Time;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Immutable;
+
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.service.dto.IpcAvl;
+import org.transitclock.utils.Geo;
+import org.transitclock.utils.SystemTime;
+import org.transitclock.utils.Time;
 
 /**
  * An AvlReport is a GPS report with some additional information, such as vehicleId.

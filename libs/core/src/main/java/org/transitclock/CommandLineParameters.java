@@ -1,17 +1,18 @@
 package org.transitclock;
 
-import com.beust.jcommander.IParameterValidator;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-import com.beust.jcommander.internal.Lists;
-import org.transitclock.utils.Time;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.beust.jcommander.IParameterValidator;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.internal.Lists;
+
+import org.transitclock.utils.Time;
 
 /**
  * This is a JCommander-annotated class that holds parameters for OTP stand-alone mode. These

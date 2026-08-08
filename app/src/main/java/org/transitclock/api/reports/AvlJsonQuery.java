@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
+import java.text.ParseException;
+
 import org.transitclock.core.reports.GenericJsonQuery;
 import org.transitclock.utils.Time;
-
-import java.text.ParseException;
 
 /**
  * Does a query of AVL data and returns result in JSON format.

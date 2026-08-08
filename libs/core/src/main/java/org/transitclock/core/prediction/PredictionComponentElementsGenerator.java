@@ -2,8 +2,8 @@
 package org.transitclock.core.prediction;
 
 import org.transitclock.core.Indices;
-import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.AvlReport;
 
 public interface PredictionComponentElementsGenerator {

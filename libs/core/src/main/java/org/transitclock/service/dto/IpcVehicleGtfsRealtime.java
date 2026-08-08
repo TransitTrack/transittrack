@@ -4,11 +4,11 @@ package org.transitclock.service.dto;
 import java.io.IOException;
 import java.util.Date;
 
+import org.transitclock.core.TemporalDifference;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
 import org.transitclock.core.avl.space.SpatialMatch;
-import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.avl.time.TemporalMatch;
-import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.StopPath;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;

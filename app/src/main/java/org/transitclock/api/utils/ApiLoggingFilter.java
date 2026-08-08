@@ -1,7 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.utils;
 
-import jakarta.servlet.*;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

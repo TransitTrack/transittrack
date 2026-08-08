@@ -3,11 +3,11 @@ package org.transitclock.gtfs.readers;
 
 import java.text.ParseException;
 
+import org.apache.commons.csv.CSVRecord;
+
 import org.transitclock.gtfs.GtfsFilter;
 import org.transitclock.gtfs.model.GtfsTrip;
 import org.transitclock.utils.csv.CsvBaseReader;
-
-import org.apache.commons.csv.CSVRecord;
 
 /**
  * GTFS reader for the trips.txt file

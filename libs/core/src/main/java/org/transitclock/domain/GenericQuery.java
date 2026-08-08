@@ -1,11 +1,6 @@
 /* (C)2023 */
 package org.transitclock.domain;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.utils.IntervalTimer;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +10,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+
+import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.utils.IntervalTimer;
 
 /**
  * For doing a query without using Hibernate. By using regular JDBC and avoiding Hibernate can

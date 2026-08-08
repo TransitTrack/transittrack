@@ -1,11 +1,11 @@
 package org.transitclock.domain.repository;
 
+import java.util.List;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.structs.Stop;
-
-import java.util.List;
 
 public class StopRepository extends BaseRepository<Stop>  {
     public static int deleteFromRev(Session session, int configRev) throws HibernateException {

@@ -1,6 +1,27 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -11,11 +32,6 @@ import org.hibernate.classic.Lifecycle;
 
 import org.transitclock.domain.repository.TripPatternRepository;
 import org.transitclock.gtfs.GtfsData;
-
-import jakarta.persistence.*;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A trip pattern, as obtained from stop_times.txt GTFS file. A trip pattern defines what stops are

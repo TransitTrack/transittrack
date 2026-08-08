@@ -1,12 +1,12 @@
 package org.transitclock.core.holdingmethod;
 
+import java.util.List;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.HoldingTime;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcPrediction;
-
-import java.util.List;
 
 public class DummyHoldingTimeGeneratorImpl implements HoldingTimeGenerator {
     @Override

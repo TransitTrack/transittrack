@@ -2,14 +2,13 @@
 package org.transitclock.api.data;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
 
 /**
  * @author Sean Og Crudden

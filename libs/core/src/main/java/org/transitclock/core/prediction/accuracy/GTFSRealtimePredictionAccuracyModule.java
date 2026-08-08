@@ -7,6 +7,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.google.transit.realtime.GtfsRealtime.FeedEntity;
+import com.google.transit.realtime.GtfsRealtime.FeedMessage;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.ScheduleTime;
@@ -14,13 +20,6 @@ import org.transitclock.domain.structs.StopPath;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.GtfsProperties;
-
-import com.google.transit.realtime.GtfsRealtime.FeedEntity;
-import com.google.transit.realtime.GtfsRealtime.FeedMessage;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
-import lombok.extern.slf4j.Slf4j;
-
 import org.transitclock.properties.PredictionAccuracyProperties;
 
 /**

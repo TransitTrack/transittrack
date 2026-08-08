@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.utils;
 
-import lombok.NonNull;
-
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.List;
+
+import lombok.NonNull;
 
 /**
  * Simple string utilities such as for formating double to desired number of decimal places.

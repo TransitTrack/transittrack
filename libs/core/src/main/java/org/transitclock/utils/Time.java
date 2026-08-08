@@ -1,10 +1,6 @@
 /* (C)2023 */
 package org.transitclock.utils;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.domain.structs.Agency;
-import org.transitclock.gtfs.DbConfig;
-
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -13,6 +9,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.domain.structs.Agency;
+import org.transitclock.gtfs.DbConfig;
 
 /**
  * Contains convenience methods for dealing with time issues.

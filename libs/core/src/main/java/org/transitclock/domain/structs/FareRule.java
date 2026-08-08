@@ -5,13 +5,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.ToString;
-import org.hibernate.annotations.DynamicUpdate;
-import org.transitclock.gtfs.model.GtfsFareRule;
 
 import java.io.Serializable;
 import java.util.Objects;
+
+import lombok.Getter;
+import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
+
+import org.transitclock.gtfs.model.GtfsFareRule;
 
 /**
  * Contains data from the fare_rules.txt GTFS file. This class is for reading/writing that data to

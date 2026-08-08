@@ -1,14 +1,15 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.springframework.stereotype.Component;
-import org.transitclock.domain.structs.PredictionForStopPath;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.transitclock.domain.structs.PredictionForStopPath;
 
 @Slf4j
 @Component

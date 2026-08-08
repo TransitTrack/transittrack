@@ -1,6 +1,11 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -8,14 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.PredictionAccuracy;
 import org.transitclock.domain.structs.QPredictionAccuracy;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * To find route performance information. For now, route performance is the percentage of

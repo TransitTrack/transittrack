@@ -1,15 +1,14 @@
 package org.transitclock.domain.repository;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Date;
+import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.Match;
-
-import java.util.Date;
-import java.util.List;
 
 @Slf4j
 public class MatchRepository extends BaseRepository<Match>  {

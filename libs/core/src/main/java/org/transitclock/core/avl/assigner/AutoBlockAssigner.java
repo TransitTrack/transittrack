@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
@@ -25,8 +27,6 @@ import org.transitclock.properties.AvlProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For automatically assigning a vehicle to an available block by determining both spatial and

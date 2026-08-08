@@ -2,10 +2,13 @@
 package org.transitclock.core.avl;
 
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.avl.AvlReportProcessor.AvlReportProcessingTask;
 import org.transitclock.domain.structs.AvlReport;
 

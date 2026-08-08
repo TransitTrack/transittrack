@@ -3,6 +3,7 @@ package org.transitclock.api.exception;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.http.ProblemDetail;
 
 /*

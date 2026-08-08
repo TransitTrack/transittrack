@@ -3,10 +3,10 @@ package org.transitclock.core.dataCache;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
+
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
 @EqualsAndHashCode

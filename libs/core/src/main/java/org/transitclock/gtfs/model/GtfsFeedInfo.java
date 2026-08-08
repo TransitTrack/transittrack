@@ -2,9 +2,11 @@
 package org.transitclock.gtfs.model;
 
 import java.text.ParseException;
+
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.csv.CSVRecord;
+
 import org.transitclock.utils.csv.CsvBase;
 
 /**

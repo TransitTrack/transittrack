@@ -6,16 +6,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+
 import java.util.List;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.DynamicUpdate;
 
 import org.transitclock.domain.repository.AgencyRepository;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.utils.Encryption;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.DynamicUpdate;
 
 /**
  * For keeping track of agency data for a website. Contains info such as the host of the agency so

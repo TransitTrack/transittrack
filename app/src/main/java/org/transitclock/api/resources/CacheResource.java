@@ -8,6 +8,11 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import org.transitclock.api.data.ApiArrivalDeparturesResponse;
 import org.transitclock.api.data.ApiCacheDetails;
 import org.transitclock.api.data.ApiHistoricalAverage;
@@ -26,11 +31,6 @@ import org.transitclock.service.dto.IpcHoldingTime;
 import org.transitclock.service.dto.IpcHoldingTimeCacheKey;
 import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
 import org.transitclock.service.dto.IpcPredictionForStopPath;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Contains the API commands for the Transitime API for getting info on data that is cached.

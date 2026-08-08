@@ -5,11 +5,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.transitclock.api.resources.TransitimeApi.UiMode;
-import org.transitclock.service.dto.IpcVehicle;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.api.resources.TransitimeApi.UiMode;
+import org.transitclock.service.dto.IpcVehicle;
 
 /**
  * For when have list of Vehicles. By using this class can control the element name when data is

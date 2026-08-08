@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.csv.CSVRecord;
+
 import org.transitclock.utils.Time;
 import org.transitclock.utils.csv.CsvBase;
 

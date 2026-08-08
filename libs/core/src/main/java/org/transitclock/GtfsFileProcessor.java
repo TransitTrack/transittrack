@@ -1,11 +1,25 @@
 /* (C)2023 */
 package org.transitclock;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+
 import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.gtfs.*;
+import org.transitclock.gtfs.DbWriter;
+import org.transitclock.gtfs.GtfsData;
+import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.gtfs.GtfsProcessingConfig;
+import org.transitclock.gtfs.TitleFormatter;
 import org.transitclock.gtfs.model.GtfsAgency;
 import org.transitclock.gtfs.readers.GtfsAgencyReader;
 import org.transitclock.gtfs.readers.ReaderHelper;
@@ -13,11 +27,6 @@ import org.transitclock.properties.GtfsProperties;
 import org.transitclock.utils.HttpGetGtfsFile;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Zip;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * Reads GTFS files, validates and cleans up the data, stores the data into Java objects, and then

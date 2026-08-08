@@ -3,6 +3,9 @@ package org.transitclock.core.avl;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.ad.ArrivalDepartureGenerator;
 import org.transitclock.core.dataCache.PredictionDataCache;
@@ -16,9 +19,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * For generating predictions, arrival/departure times, headways etc. This class is used once a

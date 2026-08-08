@@ -13,8 +13,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
 import org.hibernate.JDBCException;
+import org.hibernate.Session;
 import org.hibernate.collection.spi.PersistentList;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
@@ -51,11 +55,6 @@ import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 
 /**
  * Reads all the configuration data from the database. The data is based on GTFS but is heavily

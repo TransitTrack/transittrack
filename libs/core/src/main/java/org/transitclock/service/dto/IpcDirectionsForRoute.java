@@ -4,6 +4,7 @@ package org.transitclock.service.dto;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.transitclock.domain.structs.Route;
 import org.transitclock.gtfs.DbConfig;
 

@@ -10,16 +10,16 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.transitclock.Module;
-import org.transitclock.properties.GtfsProperties;
-import org.transitclock.utils.HttpGetFile;
-import org.transitclock.utils.Time;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import org.transitclock.Module;
+import org.transitclock.properties.GtfsProperties;
+import org.transitclock.utils.HttpGetFile;
+import org.transitclock.utils.Time;
 
 /**
  * Downloads GTFS file from web server if it has been updated and notifies users. Useful for

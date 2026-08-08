@@ -3,6 +3,8 @@ package org.transitclock.core.prediction.frequency.traveltime.average;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
@@ -29,8 +31,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.utils.SystemTime;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden This provides a prediction based on the average of historical data for

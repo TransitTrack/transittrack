@@ -3,9 +3,10 @@ package org.transitclock.domain.structs;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import org.transitclock.gtfs.DbConfig;
 
 import java.util.Date;
+
+import org.transitclock.gtfs.DbConfig;
 
 /**
  * For persisting a Departure time.

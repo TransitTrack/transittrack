@@ -2,6 +2,7 @@
 package org.transitclock.core.holdingmethod;
 
 import java.util.List;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.HoldingTime;

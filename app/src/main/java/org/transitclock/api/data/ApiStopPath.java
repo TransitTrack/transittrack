@@ -4,12 +4,12 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.service.dto.IpcStopPath;
 import org.transitclock.utils.MathUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * Represents a path from one stop to another.

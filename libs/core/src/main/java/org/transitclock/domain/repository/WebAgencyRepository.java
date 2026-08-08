@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.webstructs.WebAgency;
-import org.transitclock.utils.IntervalTimer;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+
+import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.domain.webstructs.WebAgency;
+import org.transitclock.utils.IntervalTimer;
 
 @Slf4j
 public class WebAgencyRepository extends BaseRepository<WebAgency> {

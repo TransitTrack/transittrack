@@ -1,16 +1,24 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import lombok.*;
+import java.util.Objects;
+
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
-import org.transitclock.domain.hibernate.HibernateUtils;
 
-import java.util.Objects;
+import org.transitclock.domain.hibernate.HibernateUtils;
 
 /**
  * For keeping track of current revisions. This table should only have a single row, one that

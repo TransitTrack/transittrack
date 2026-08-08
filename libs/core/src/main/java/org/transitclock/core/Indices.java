@@ -4,6 +4,7 @@ package org.transitclock.core;
 import java.io.Serializable;
 
 import lombok.Builder;
+
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.Block;

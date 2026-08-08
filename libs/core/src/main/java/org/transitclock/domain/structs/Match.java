@@ -1,7 +1,14 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -9,14 +16,14 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.CallbackException;
 import org.hibernate.Session;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.classic.Lifecycle;
-import org.transitclock.core.avl.time.TemporalMatch;
+
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.time.TemporalMatch;
 
 /**
  * For persisting the match for the vehicle. This data is later used for determining expected travel

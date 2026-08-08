@@ -4,6 +4,7 @@ package org.transitclock.service.dto;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
+
 import org.transitclock.domain.structs.HoldingTime;
 
 public class IpcHoldingTime implements Serializable {

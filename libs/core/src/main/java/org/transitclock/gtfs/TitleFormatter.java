@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.transitclock.properties.GtfsProperties;
-
 import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.properties.GtfsProperties;
 
 /**
  * Tool for formatting titles in the GTFS data. Need to be able to "unshout" titles (change "MAIN

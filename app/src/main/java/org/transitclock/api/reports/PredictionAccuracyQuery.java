@@ -1,6 +1,8 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
+import static org.transitclock.utils.Time.parseDate;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,13 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.transitclock.domain.hibernate.HibernateUtils;
-
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 
-import static org.transitclock.utils.Time.parseDate;
+import org.transitclock.domain.hibernate.HibernateUtils;
 
 /**
  * For doing SQL query and generating JSON data for a prediction accuracy chart. This abstract class

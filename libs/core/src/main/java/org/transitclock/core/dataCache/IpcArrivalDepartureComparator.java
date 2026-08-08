@@ -2,6 +2,7 @@
 package org.transitclock.core.dataCache;
 
 import java.util.Comparator;
+
 import org.transitclock.service.dto.IpcArrivalDeparture;
 
 public class IpcArrivalDepartureComparator implements Comparator<IpcArrivalDeparture> {

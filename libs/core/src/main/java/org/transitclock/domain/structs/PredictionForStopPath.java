@@ -1,17 +1,28 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import com.querydsl.jpa.impl.JPAQuery;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.domain.structs.QPredictionForStopPath;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import com.querydsl.jpa.impl.JPAQuery;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
+
+import org.transitclock.domain.hibernate.HibernateUtils;
 
 /**
  * @author Sean Og Crudden Store the travel time prediction for a stopPath.

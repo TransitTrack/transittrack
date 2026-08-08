@@ -4,12 +4,12 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.service.dto.IpcSchedTime;
 import org.transitclock.service.dto.IpcSchedTrip;
 import org.transitclock.service.dto.IpcSchedule;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * Represents a schedule for a route for a specific direction and service class. Stops are listed

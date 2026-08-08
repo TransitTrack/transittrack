@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.time.TemporalMatch;
@@ -22,9 +25,6 @@ import org.transitclock.properties.AvlProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For determining possible spatial matches. A spatial match is when the AVL report location is

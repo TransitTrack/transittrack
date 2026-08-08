@@ -3,6 +3,8 @@ package org.transitclock.core.prediction.frequency.dwell.rls;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
@@ -27,8 +29,6 @@ import org.transitclock.domain.structs.Headway;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Og Crudden

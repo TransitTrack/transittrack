@@ -4,12 +4,12 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.service.dto.IpcShape;
 import org.transitclock.utils.Geo;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * A portion of a shape that defines a trip pattern. A List of ApiLocation objects.

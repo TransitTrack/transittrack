@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
@@ -35,9 +38,6 @@ import org.transitclock.service.dto.IpcPrediction.ArrivalOrDeparture;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * When a new match based on AVL data is made for a vehicle the methods in this class are used to
