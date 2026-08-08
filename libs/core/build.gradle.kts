@@ -46,7 +46,7 @@ dependencies {
     }
 
     implementation("com.esotericsoftware:kryo:4.0.0")
-    implementation("com.github.haifengl:smile-core:1.5.1")
+    implementation("com.github.haifengl:smile-core:6.2.5")
     implementation("org.glassfish.jaxb:jaxb-core")
     implementation("org.apache.httpcomponents:httpcore")
     implementation("commons-codec:commons-codec")
