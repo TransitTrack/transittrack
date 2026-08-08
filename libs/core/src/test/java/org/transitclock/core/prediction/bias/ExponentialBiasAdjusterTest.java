@@ -1,11 +1,11 @@
 package org.transitclock.core.prediction.bias;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 
 import org.transitclock.properties.CoreProperties.PredictionGenerator.Bias.Exponential;
 import org.transitclock.utils.Time;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ExponentialBiasAdjusterTest {
 

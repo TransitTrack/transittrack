@@ -1,13 +1,19 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Immutable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Immutable;
 
 /**
  * For storing monitoring events into database. By storing the monitoring events one can look back

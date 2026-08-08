@@ -1,14 +1,14 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
 import java.io.Serializable;
 
 import com.querydsl.core.annotations.QueryEmbeddable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+
 import org.transitclock.utils.Time;
 
 /**

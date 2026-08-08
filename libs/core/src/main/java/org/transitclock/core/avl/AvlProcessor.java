@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.ServiceUtils;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.VehicleAtStopInfo;
@@ -49,11 +54,6 @@ import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.StringUtils;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * This is a very important high-level class. It takes the AVL data and processes it. Matches

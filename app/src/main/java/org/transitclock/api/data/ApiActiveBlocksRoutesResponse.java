@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.service.dto.IpcActiveBlock;
 import org.transitclock.service.dto.IpcBlock;
 import org.transitclock.service.dto.IpcTrip;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * A list of routes for when outputting active blocks

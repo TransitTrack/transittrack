@@ -5,15 +5,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.core.dataCache.WebAgencyCache;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.service.dto.IpcActiveBlock;
 import org.transitclock.service.dto.IpcBlock;
 import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.utils.Time;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * @author SkiBu Smith

@@ -2,6 +2,7 @@
 package org.transitclock.core;
 
 import java.io.Serializable;
+
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Time;
 

@@ -5,6 +5,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimeDetails;
 import org.transitclock.core.TravelTimes;
@@ -40,9 +43,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.utils.SystemTime;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * @author Sean Óg Crudden This is a prediction generator that uses a Kalman filter to provide

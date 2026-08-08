@@ -1,17 +1,17 @@
 package org.transitclock.core.avl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpException;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpException;
 
 @Slf4j
 class OccupancyStatusSource {

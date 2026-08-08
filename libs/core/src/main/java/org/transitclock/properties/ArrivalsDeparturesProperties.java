@@ -1,7 +1,6 @@
 package org.transitclock.properties;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 public class ArrivalsDeparturesProperties {

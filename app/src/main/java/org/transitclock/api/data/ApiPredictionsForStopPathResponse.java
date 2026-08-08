@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcPredictionForStopPath;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcPredictionForStopPath;
 
 /**
  * An ordered list of routes.

@@ -1,13 +1,13 @@
 package org.transitclock.domain.repository;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import org.transitclock.domain.structs.TravelTimesForStopPath;
-
-import java.util.List;
 
 @Slf4j
 public class TravelTimesForStopPathRepository extends BaseRepository<TravelTimesForStopPath> {

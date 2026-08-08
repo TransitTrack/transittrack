@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.service.dto.IpcRoute;
 import org.transitclock.service.dto.IpcRouteSummary;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * An ordered list of routes.

@@ -1,14 +1,14 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcHistoricalAverage;
 import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
 import org.transitclock.service.dto.IpcHoldingTimeCacheKey;
 import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
-
-import java.time.LocalDate;
-import java.util.List;
 
 public interface CacheQueryService {
 

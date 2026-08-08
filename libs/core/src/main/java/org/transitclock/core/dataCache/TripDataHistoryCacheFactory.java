@@ -1,16 +1,16 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.transitclock.gtfs.DbConfig;
-import org.transitclock.gtfs.GtfsFilter;
-import org.transitclock.properties.CoreProperties;
-import org.transitclock.properties.GtfsProperties;
-
 import lombok.RequiredArgsConstructor;
 import org.ehcache.CacheManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.transitclock.gtfs.DbConfig;
+import org.transitclock.gtfs.GtfsFilter;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.properties.GtfsProperties;
 
 /**
  * @author Sean Óg Crudden Factory that will provide cache to hold arrival and departures for a

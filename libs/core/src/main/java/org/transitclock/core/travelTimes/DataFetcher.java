@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.repository.AgencyRepository;
 import org.transitclock.domain.repository.ArrivalDepartureRepository;
 import org.transitclock.domain.repository.MatchRepository;
@@ -19,8 +21,6 @@ import org.transitclock.domain.structs.Match;
 import org.transitclock.properties.UpdatesProperties;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For retrieving historic AVL based data from database so that travel times can be determined.

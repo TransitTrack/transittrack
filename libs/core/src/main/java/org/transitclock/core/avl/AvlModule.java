@@ -4,6 +4,7 @@ package org.transitclock.core.avl;
 import java.util.Collection;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.Module;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.properties.AvlProperties;

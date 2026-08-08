@@ -1,19 +1,13 @@
 /* (C)2023 */
 package org.transitclock.config;
 
+import static org.transitclock.utils.ApplicationShutdownSupport.addShutdownHook;
+
 import jakarta.annotation.PostConstruct;
+
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
-
-import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
-import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
-import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
-import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
-import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
-import org.transitclock.domain.hibernate.HibernateUtils;
-import org.transitclock.properties.CoreProperties;
-import org.transitclock.utils.Time;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -28,7 +22,14 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.transitclock.utils.ApplicationShutdownSupport.addShutdownHook;
+import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.frequency.FrequencyBasedHistoricalAverageCache;
+import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
+import org.transitclock.domain.hibernate.HibernateUtils;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.utils.Time;
 
 @Configuration
 @Slf4j

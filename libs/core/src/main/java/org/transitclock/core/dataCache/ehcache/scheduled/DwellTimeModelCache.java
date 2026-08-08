@@ -1,6 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache.ehcache.scheduled;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.Cache;
@@ -18,10 +22,6 @@ import org.transitclock.domain.structs.Headway;
 import org.transitclock.domain.structs.QArrivalDeparture;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author scrudden This stores DwellModel instances in the cache. TODO We should abstract the

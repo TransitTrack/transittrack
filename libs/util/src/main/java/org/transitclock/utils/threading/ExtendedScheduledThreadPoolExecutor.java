@@ -7,9 +7,9 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 
-import org.transitclock.utils.ExceptionUtils;
-
 import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.utils.ExceptionUtils;
 
 @Slf4j
 public class ExtendedScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor {

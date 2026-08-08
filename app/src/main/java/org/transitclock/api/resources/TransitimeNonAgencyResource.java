@@ -1,8 +1,12 @@
 /* (C)2023 */
 package org.transitclock.api.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
 import org.transitclock.api.data.ApiAgenciesResponse;
 import org.transitclock.api.data.ApiAgency;
 import org.transitclock.api.data.ApiNearbyPredictionsForAgenciesResponse;
@@ -17,9 +21,6 @@ import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.webstructs.WebAgency;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Contains the API commands for the Transitime API for system wide commands, such as determining

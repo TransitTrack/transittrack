@@ -1,8 +1,12 @@
 package org.transitclock.domain.repository;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
@@ -11,11 +15,6 @@ import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.ArrivalDeparture.ArrivalsOrDepartures;
 import org.transitclock.domain.structs.QArrivalDeparture;
 import org.transitclock.utils.IntervalTimer;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 @Slf4j
 public class ArrivalDepartureRepository extends BaseRepository<ArrivalDeparture> {

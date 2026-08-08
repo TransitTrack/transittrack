@@ -1,6 +1,10 @@
 /* (C)2023 */
 package org.transitclock.service.contract;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.service.dto.IpcBlock;
@@ -11,10 +15,6 @@ import org.transitclock.service.dto.IpcRouteSummary;
 import org.transitclock.service.dto.IpcSchedule;
 import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.dto.IpcTripPattern;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Defines the RMI interface for getting configuration data.

@@ -2,15 +2,15 @@ package org.transitclock;
 
 import java.util.TimeZone;
 
-import org.transitclock.domain.repository.WebAgencyRepository;
-import org.transitclock.domain.webstructs.WebAgency;
-import org.transitclock.properties.CoreProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+
+import org.transitclock.domain.repository.WebAgencyRepository;
+import org.transitclock.domain.webstructs.WebAgency;
+import org.transitclock.properties.CoreProperties;
 
 @Slf4j
 @Component

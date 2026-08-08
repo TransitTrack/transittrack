@@ -13,13 +13,13 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.utils.IntervalTimer;
-import org.transitclock.utils.Time;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.Time;
 
 /**
  * For parsing a CSV file. Does all of the hard work. This class is abstract because it needs to be

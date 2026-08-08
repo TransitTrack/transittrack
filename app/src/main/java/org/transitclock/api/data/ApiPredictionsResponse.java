@@ -4,10 +4,10 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 
 /**
  * Contains predictions for multiple routes/stops. Can also contain info for the agency.

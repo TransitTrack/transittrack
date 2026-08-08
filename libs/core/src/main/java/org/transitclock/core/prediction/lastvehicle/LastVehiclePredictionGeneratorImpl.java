@@ -4,6 +4,8 @@ package org.transitclock.core.prediction.lastvehicle;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimeDetails;
 import org.transitclock.core.TravelTimes;
@@ -28,8 +30,6 @@ import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden This provides a prediction based on the time it took the previous vehicle

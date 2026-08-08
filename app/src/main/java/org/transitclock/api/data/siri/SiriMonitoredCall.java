@@ -4,11 +4,11 @@ package org.transitclock.api.data.siri;
 import java.text.DateFormat;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For SIRI MonitorCall element.

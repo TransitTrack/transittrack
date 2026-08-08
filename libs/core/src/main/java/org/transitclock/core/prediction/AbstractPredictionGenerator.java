@@ -1,12 +1,21 @@
 /* (C)2023 */
 package org.transitclock.core.prediction;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.time.DateUtils;
 
 import org.transitclock.core.Indices;
 import org.transitclock.core.TravelTimeDetails;
 import org.transitclock.core.VehicleStatus;
-import org.transitclock.core.dataCache.*;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheKey;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.TripKey;
 import org.transitclock.core.prediction.datafilter.TravelTimeDataFilter;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.ArrivalDeparture;
@@ -17,8 +26,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcPrediction;
-
-import java.util.*;
 
 /**
  * Defines the interface for generating predictions. To create predictions using an alternate method

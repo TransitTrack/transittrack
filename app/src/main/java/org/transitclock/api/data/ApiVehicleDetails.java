@@ -5,6 +5,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.transitclock.api.resources.TransitimeApi.UiMode;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
@@ -12,12 +18,6 @@ import org.transitclock.properties.HoldingProperties;
 import org.transitclock.service.dto.IpcVehicle;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.Time;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * Contains data for a single vehicle with additional info that is meant more for management than

@@ -4,6 +4,8 @@ package org.transitclock.core.avl.ad;
 import java.util.ArrayList;
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
@@ -36,8 +38,6 @@ import org.transitclock.properties.ArrivalsDeparturesProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For determining Arrival/Departure times based on a new GPS report and corresponding

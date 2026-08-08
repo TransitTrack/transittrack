@@ -4,10 +4,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 
-import org.transitclock.config.CRLFLogConverter;
-import org.transitclock.properties.GtfsProperties;
-import org.transitclock.utils.threading.UncaughtExceptionHandler;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +16,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+
+import org.transitclock.config.CRLFLogConverter;
+import org.transitclock.properties.GtfsProperties;
+import org.transitclock.utils.threading.UncaughtExceptionHandler;
 
 @Slf4j
 @SpringBootApplication

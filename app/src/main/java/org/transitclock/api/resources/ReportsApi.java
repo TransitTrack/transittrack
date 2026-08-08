@@ -1,21 +1,21 @@
 package org.transitclock.api.resources;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Map;
 
-import org.springframework.boot.context.properties.bind.DefaultValue;
-
-import org.transitclock.api.utils.StandardParameters;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import org.transitclock.api.utils.StandardParameters;
 
 @RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
 public interface ReportsApi {

@@ -4,14 +4,14 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.service.dto.IpcDirection;
 import org.transitclock.service.dto.IpcDirectionsForRoute;
 import org.transitclock.service.dto.IpcRoute;
 import org.transitclock.service.dto.IpcShape;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * Provides detailed information for a route include stops and shape info.

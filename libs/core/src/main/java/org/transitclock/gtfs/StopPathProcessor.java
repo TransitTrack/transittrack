@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.StopPath;

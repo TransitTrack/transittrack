@@ -1,13 +1,13 @@
 package org.transitclock.domain.repository;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.structs.Route;
 import org.transitclock.utils.StringUtils;
-
-import java.util.Comparator;
-import java.util.List;
 
 public class RouteRepository extends BaseRepository<Route> {
     /**

@@ -2,11 +2,11 @@
 package org.transitclock.api.data;
 
 
-import org.transitclock.service.dto.IpcPrediction;
-import org.transitclock.utils.Time;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcPrediction;
+import org.transitclock.utils.Time;
 
 /**
  * Contains data for a single prediction.

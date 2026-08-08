@@ -6,12 +6,6 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.transitclock.core.avl.AvlReportProcessor.AvlReportProcessingTask;
-import org.transitclock.core.avl.AvlReportProcessorQueue;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.utils.ExceptionHandlingAsyncTaskExecutor;
-import org.transitclock.utils.threading.NamedThreadFactory;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
@@ -23,6 +17,12 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import org.transitclock.core.avl.AvlReportProcessor.AvlReportProcessingTask;
+import org.transitclock.core.avl.AvlReportProcessorQueue;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.ExceptionHandlingAsyncTaskExecutor;
+import org.transitclock.utils.threading.NamedThreadFactory;
 
 @Configuration
 @EnableAsync

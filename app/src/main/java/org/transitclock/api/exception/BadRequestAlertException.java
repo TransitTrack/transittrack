@@ -1,8 +1,10 @@
 package org.transitclock.api.exception;
 
 import java.net.URI;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.ErrorResponseException;
+
 import org.transitclock.api.exception.ProblemDetailWithCause.ProblemDetailWithCauseBuilder;
 
 @SuppressWarnings("java:S110") // Inheritance tree of classes should not be too deep

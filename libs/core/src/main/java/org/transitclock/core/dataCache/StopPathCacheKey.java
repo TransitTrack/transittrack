@@ -2,6 +2,7 @@
 package org.transitclock.core.dataCache;
 
 import java.io.Serializable;
+
 import org.transitclock.core.Indices;
 
 /**

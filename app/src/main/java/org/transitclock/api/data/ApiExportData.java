@@ -2,12 +2,11 @@
 package org.transitclock.api.data;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-
-import org.transitclock.domain.structs.ExportTable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.domain.structs.ExportTable;
 
 /**
  * For storing static configuration for vehicle in block.

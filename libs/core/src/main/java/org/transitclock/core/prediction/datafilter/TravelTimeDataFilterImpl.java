@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.datafilter;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author scrudden Filter by schedule adherence min and max travel time min and max

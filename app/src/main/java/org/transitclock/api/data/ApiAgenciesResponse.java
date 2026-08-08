@@ -3,10 +3,10 @@ package org.transitclock.api.data;
 
 import java.util.List;
 
-import org.transitclock.domain.structs.Agency;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.domain.structs.Agency;
 
 /**
  * A list of Agencies

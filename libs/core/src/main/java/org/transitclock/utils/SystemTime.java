@@ -1,9 +1,9 @@
 /* (C)2023 */
 package org.transitclock.utils;
 
-import lombok.experimental.UtilityClass;
-
 import java.util.Date;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * So that can have access to a system time whether in normal mode where the system clock can be

@@ -1,8 +1,31 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+
+import java.io.Serializable;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +40,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.collection.spi.PersistentList;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.SessionImpl;
+
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.repository.BlockRepository;
@@ -24,12 +48,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.utils.ExceptionUtils;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Time;
-
-import java.io.Serializable;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Represents assignment for a vehicle for a day. Obtained by combining data from multiple GTFS

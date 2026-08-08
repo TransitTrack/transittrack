@@ -3,12 +3,14 @@ package org.transitclock.api.exception;
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
 import org.transitclock.api.exception.ProblemDetailWithCause.ProblemDetailWithCauseBuilder;
 
 /**

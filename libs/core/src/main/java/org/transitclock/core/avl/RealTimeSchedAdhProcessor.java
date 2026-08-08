@@ -1,9 +1,15 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
+import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.transitclock.core.*;
+
+import org.transitclock.core.TemporalDifference;
+import org.transitclock.core.TravelTimes;
+import org.transitclock.core.VehicleAtStopInfo;
+import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.core.avl.time.TemporalMatch;
 import org.transitclock.domain.structs.ScheduleTime;
@@ -11,8 +17,6 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Time;
-
-import java.util.Date;
 
 /**
  * For determining the real-time schedule adherence for a predictable vehicle.

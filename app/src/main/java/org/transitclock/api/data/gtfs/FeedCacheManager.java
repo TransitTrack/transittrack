@@ -1,14 +1,14 @@
 package org.transitclock.api.data.gtfs;
 
+import com.google.transit.realtime.GtfsRealtime;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.api.utils.AgencyTimezoneCache;
 import org.transitclock.properties.ApiProperties;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.contract.PredictionsService;
 import org.transitclock.service.contract.VehiclesService;
-
-import com.google.transit.realtime.GtfsRealtime;
-import org.springframework.stereotype.Component;
 
 @Component
 public class FeedCacheManager {

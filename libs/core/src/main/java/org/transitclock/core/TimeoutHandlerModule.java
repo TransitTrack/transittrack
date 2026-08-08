@@ -4,6 +4,10 @@ package org.transitclock.core;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.Module;
 import org.transitclock.core.avl.AvlProcessor;
 import org.transitclock.core.avl.AvlReportRegistry;
@@ -11,17 +15,12 @@ import org.transitclock.core.dataCache.VehicleDataCache;
 import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.domain.structs.Block;
-import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleEventType;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.PredictionProperties;
 import org.transitclock.properties.TimeoutProperties;
 import org.transitclock.utils.SystemTime;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 /**
  * For handling when a vehicle doesn't report its position for too long. Makes the vehicle

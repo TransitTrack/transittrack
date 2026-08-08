@@ -15,6 +15,10 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+
+import java.io.Serializable;
+import java.util.Date;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +29,12 @@ import org.hibernate.Session;
 import org.hibernate.annotations.DiscriminatorOptions;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.classic.Lifecycle;
+
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
-
-import java.io.Serializable;
-import java.util.Date;
 
 /**
  * For persisting an Arrival or a Departure time. Should use Arrival or Departure subclasses.

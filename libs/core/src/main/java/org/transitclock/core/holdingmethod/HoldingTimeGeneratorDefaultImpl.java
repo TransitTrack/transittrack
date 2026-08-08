@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.dataCache.HoldingTimeCache;
 import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
@@ -24,8 +26,6 @@ import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.service.dto.IpcVehicleComplete;
 import org.transitclock.utils.SystemTime;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden This is a default implementation of the holding time generator and is an

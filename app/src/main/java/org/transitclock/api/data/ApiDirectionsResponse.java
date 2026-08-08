@@ -3,10 +3,10 @@ package org.transitclock.api.data;
 
 import java.util.List;
 
-import org.transitclock.service.dto.IpcDirectionsForRoute;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcDirectionsForRoute;
 
 /**
  * A list of directions.

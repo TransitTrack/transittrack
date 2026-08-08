@@ -1,7 +1,22 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -9,15 +24,10 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.utils.Time;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component

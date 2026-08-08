@@ -1,6 +1,8 @@
 //* (C)2023 */
 package org.transitclock.api.resources;
 
+import static org.transitclock.api.utils.RemoveFileFromDirectory.removeFile;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.transitclock.api.data.ApiCommandAck;
@@ -32,14 +39,6 @@ import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.service.dto.IpcAvl;
 import org.transitclock.service.dto.IpcTrip;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.springframework.http.ResponseEntity;
-
-import static org.transitclock.api.utils.RemoveFileFromDirectory.removeFile;
 
 @RestController
 @RequiredArgsConstructor

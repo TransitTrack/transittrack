@@ -2,6 +2,7 @@
 package org.transitclock.core.prediction.scheduled.dwell.rls;
 
 import java.io.Serializable;
+
 import smile.regression.RLS;
 
 public class TransitClockRLS implements Serializable {

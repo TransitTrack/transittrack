@@ -15,6 +15,10 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+
 import org.transitclock.domain.repository.RouteRepository;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
@@ -70,10 +74,6 @@ import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.MapKey;
 import org.transitclock.utils.StringUtils;
 import org.transitclock.utils.Time;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 
 /**
  * Contains all the GTFS data processed into Java lists and such. Also combines in info from

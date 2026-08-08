@@ -1,5 +1,8 @@
 package org.transitclock.domain.repository;
 
+import java.util.Date;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -7,9 +10,6 @@ import org.hibernate.Session;
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.utils.IntervalTimer;
-
-import java.util.Date;
-import java.util.List;
 
 @Slf4j
 public class VehicleEventRepository extends BaseRepository<VehicleEvent> {

@@ -5,6 +5,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.querydsl.jpa.impl.JPAQuery;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.hibernate.Session;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.DwellTimeDetails;
 import org.transitclock.core.TravelTimeDetails;
 import org.transitclock.core.dataCache.ArrivalDepartureComparator;
@@ -19,14 +27,6 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import com.querydsl.jpa.impl.JPAQuery;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.hibernate.Session;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Sean Óg Crudden

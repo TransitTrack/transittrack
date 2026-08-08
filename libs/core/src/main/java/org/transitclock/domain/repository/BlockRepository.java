@@ -2,17 +2,17 @@ package org.transitclock.domain.repository;
 
 import java.util.List;
 
-import org.transitclock.domain.structs.Block;
-import org.transitclock.domain.structs.Trip;
-import org.transitclock.gtfs.DbConfig;
-import org.transitclock.properties.CoreProperties;
-import org.transitclock.utils.Time;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
+
+import org.transitclock.domain.structs.Block;
+import org.transitclock.domain.structs.Trip;
+import org.transitclock.gtfs.DbConfig;
+import org.transitclock.properties.CoreProperties;
+import org.transitclock.utils.Time;
 
 @Slf4j
 @Component

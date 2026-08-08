@@ -1,16 +1,15 @@
 package org.transitclock.domain.repository;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.TimeZone;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.hibernate.HibernateUtils;
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
-
-import java.util.List;
-import java.util.TimeZone;
 
 @Slf4j
 public class AgencyRepository extends BaseRepository<Agency> {

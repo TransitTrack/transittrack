@@ -2,6 +2,7 @@
 package org.transitclock.core.travelTimes;
 
 import java.util.List;
+
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.utils.Geo;
 

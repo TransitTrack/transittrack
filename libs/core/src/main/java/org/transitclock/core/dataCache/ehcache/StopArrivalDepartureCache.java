@@ -1,22 +1,22 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache.ehcache;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.hibernate.Session;
+
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheKey;
 import org.transitclock.core.dataCache.StopEvents;
 import org.transitclock.domain.structs.ArrivalDeparture;
 import org.transitclock.domain.structs.QArrivalDeparture;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Sean Og Crudden This is a Cache to hold a sorted list of all arrival departure events for

@@ -1,6 +1,8 @@
 /* (C)2023 */
 package org.transitclock.core.avl;
 
+import static org.transitclock.properties.AvlProperties.vehicleIdForFeedRegExPattern;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -12,20 +14,18 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
-import org.transitclock.domain.structs.AssignmentType;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.domain.structs.Location;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.utils.IntervalTimer;
-import org.transitclock.utils.MathUtils;
-
 import com.google.protobuf.CodedInputStream;
 import com.google.transit.realtime.GtfsRealtime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import static org.transitclock.properties.AvlProperties.vehicleIdForFeedRegExPattern;
+import org.transitclock.domain.structs.AssignmentType;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.domain.structs.Location;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.MathUtils;
 
 /**
  * For reading in feed of GTFS-realtime AVL data. Is used for both realtime feeds and for when

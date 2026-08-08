@@ -1,11 +1,11 @@
 package org.transitclock.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.transitclock.domain.structs.Location;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import org.transitclock.domain.structs.Location;
 
 class GeoTest {
 

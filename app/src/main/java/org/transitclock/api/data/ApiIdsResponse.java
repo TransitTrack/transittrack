@@ -3,10 +3,10 @@ package org.transitclock.api.data;
 
 import java.util.List;
 
-import org.transitclock.utils.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.utils.StringUtils;
 
 /**
  * For outputting simple list of sorted alpha-number IDs

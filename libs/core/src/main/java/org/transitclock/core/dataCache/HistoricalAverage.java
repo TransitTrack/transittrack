@@ -1,9 +1,9 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import lombok.ToString;
-
 import java.io.Serializable;
+
+import lombok.ToString;
 
 @ToString
 public class HistoricalAverage implements Serializable {

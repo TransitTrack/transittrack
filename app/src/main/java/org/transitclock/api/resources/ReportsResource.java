@@ -1,6 +1,7 @@
 package org.transitclock.api.resources;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -10,6 +11,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import com.google.common.base.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RestController;
 
 import org.transitclock.api.reports.ChartGenericJsonQuery;
 import org.transitclock.api.reports.PredAccuracyIntervalQuery;
@@ -22,13 +30,6 @@ import org.transitclock.core.reports.Reports;
 import org.transitclock.core.reports.SqlUtils;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.utils.Time;
-
-import com.google.common.base.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ReportsResource extends BaseApiResource implements ReportsApi {

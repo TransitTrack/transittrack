@@ -1,5 +1,10 @@
 package org.transitclock.domain.repository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.querydsl.jpa.impl.JPAQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
@@ -7,11 +12,6 @@ import org.hibernate.Session;
 
 import org.transitclock.domain.structs.QTravelTimesForTrip;
 import org.transitclock.domain.structs.TravelTimesForTrip;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class TravelTimesForTripRepository extends BaseRepository<TravelTimesForTrip> {

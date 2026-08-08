@@ -1,6 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.avl.ad;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
 import org.transitclock.core.dataCache.HoldingTimeCache;
@@ -15,12 +19,6 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.ArrivalsDeparturesProperties;
 import org.transitclock.properties.CoreProperties;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import org.transitclock.properties.PredictionAccuracyProperties;
 
 /**
  * For instantiating a ArrivalDepartureGenerator object that generates arrival/departure data when a

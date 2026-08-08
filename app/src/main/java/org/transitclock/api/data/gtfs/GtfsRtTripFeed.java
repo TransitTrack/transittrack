@@ -1,11 +1,25 @@
 /* (C)2023 */
 package org.transitclock.api.data.gtfs;
 
-import com.google.transit.realtime.GtfsRealtime.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.transit.realtime.GtfsRealtime.FeedEntity;
+import com.google.transit.realtime.GtfsRealtime.FeedHeader;
 import com.google.transit.realtime.GtfsRealtime.FeedHeader.Incrementality;
+import com.google.transit.realtime.GtfsRealtime.FeedMessage;
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate.ScheduleRelationship;
+import com.google.transit.realtime.GtfsRealtime.VehicleDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.transitclock.api.utils.AgencyTimezoneCache;
@@ -19,9 +33,6 @@ import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.service.dto.IpcVehicleConfig;
 import org.transitclock.utils.IntervalTimer;
 import org.transitclock.utils.Time;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * For creating GTFS-realtime trip feed. The data is obtained from the server via RMI.

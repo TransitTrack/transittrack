@@ -1,6 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.reports;
 
+import static org.transitclock.core.reports.ScheduleAdhStopsCSVReport.validateParseToLocalDate;
+import static org.transitclock.utils.Time.DAY_IN_MSECS;
+import static org.transitclock.utils.Time.YEAR_IN_MSECS;
+
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -9,18 +13,13 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import org.apache.commons.lang3.StringUtils;
-
-import org.transitclock.core.dataCache.WebAgencyCache;
-import org.transitclock.domain.webstructs.WebAgency;
-
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import static org.transitclock.core.reports.ScheduleAdhStopsCSVReport.validateParseToLocalDate;
-import static org.transitclock.utils.Time.DAY_IN_MSECS;
-import static org.transitclock.utils.Time.YEAR_IN_MSECS;
+import org.transitclock.core.dataCache.WebAgencyCache;
+import org.transitclock.domain.webstructs.WebAgency;
 
 public class Reports {
 

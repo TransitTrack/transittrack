@@ -5,6 +5,20 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.querydsl.jpa.impl.JPAQuery;
+import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.procedure.ProcedureCall;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.service.ServiceRegistry;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+
 import org.transitclock.domain.structs.ActiveRevision;
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Arrival;
@@ -40,20 +54,6 @@ import org.transitclock.domain.structs.VehicleEvent;
 import org.transitclock.domain.structs.VehicleState;
 import org.transitclock.domain.structs.VehicleToBlockConfig;
 import org.transitclock.domain.webstructs.WebAgency;
-
-import com.querydsl.jpa.impl.JPAQuery;
-import lombok.experimental.Delegate;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.procedure.ProcedureCall;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.service.ServiceRegistry;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 
 @Slf4j
 public class HibernateUtils {

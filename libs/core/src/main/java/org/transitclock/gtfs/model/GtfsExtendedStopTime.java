@@ -3,6 +3,7 @@ package org.transitclock.gtfs.model;
 
 import lombok.Getter;
 import lombok.ToString;
+
 import org.transitclock.statistics.ScheduleStatistics;
 
 /**

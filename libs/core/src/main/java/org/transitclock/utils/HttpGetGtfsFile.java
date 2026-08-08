@@ -1,7 +1,6 @@
 /* (C)2023 */
 package org.transitclock.utils;
 
-import java.io.File;
 
 import lombok.extern.slf4j.Slf4j;
 

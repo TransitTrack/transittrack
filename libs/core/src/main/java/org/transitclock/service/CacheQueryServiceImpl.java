@@ -1,20 +1,35 @@
 /* (C)2023 */
 package org.transitclock.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.transitclock.core.dataCache.*;
-import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
-import org.transitclock.service.contract.CacheQueryService;
-import org.transitclock.service.dto.*;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import org.transitclock.core.dataCache.ErrorCache;
+import org.transitclock.core.dataCache.HistoricalAverage;
+import org.transitclock.core.dataCache.HoldingTimeCache;
+import org.transitclock.core.dataCache.HoldingTimeCacheKey;
+import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
+import org.transitclock.core.dataCache.KalmanErrorCacheKey;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
+import org.transitclock.core.dataCache.StopArrivalDepartureCacheKey;
+import org.transitclock.core.dataCache.StopPathCacheKey;
+import org.transitclock.core.dataCache.TripDataHistoryCacheInterface;
+import org.transitclock.core.dataCache.TripKey;
+import org.transitclock.core.dataCache.scheduled.ScheduleBasedHistoricalAverageCache;
+import org.transitclock.service.contract.CacheQueryService;
+import org.transitclock.service.dto.IpcArrivalDeparture;
+import org.transitclock.service.dto.IpcHistoricalAverage;
+import org.transitclock.service.dto.IpcHistoricalAverageCacheKey;
+import org.transitclock.service.dto.IpcHoldingTimeCacheKey;
+import org.transitclock.service.dto.IpcKalmanErrorCacheKey;
 
 /**
  * @author Sean Og Crudden Server to allow cache content to be queried.

@@ -1,12 +1,12 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import java.util.Date;
-
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+
+import java.util.Date;
+
 import org.transitclock.gtfs.DbConfig;
-import org.transitclock.utils.Time;
 
 /**
  * For persisting an Arrival time.

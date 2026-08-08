@@ -2,15 +2,16 @@
 package org.transitclock.service.dto;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
-import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.VehicleStatus;
+import org.transitclock.core.avl.assigner.BlockAssignmentMethod;
+import org.transitclock.core.avl.space.SpatialMatch;
 import org.transitclock.domain.structs.Location;
 import org.transitclock.domain.structs.Stop;
 import org.transitclock.domain.structs.Trip;

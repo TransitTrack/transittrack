@@ -1,12 +1,13 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache;
 
-import org.hibernate.Session;
-import org.transitclock.domain.structs.ArrivalDeparture;
-import org.transitclock.service.dto.IpcArrivalDeparture;
-
 import java.util.Date;
 import java.util.List;
+
+import org.hibernate.Session;
+
+import org.transitclock.domain.structs.ArrivalDeparture;
+import org.transitclock.service.dto.IpcArrivalDeparture;
 
 public interface StopArrivalDepartureCacheInterface {
 

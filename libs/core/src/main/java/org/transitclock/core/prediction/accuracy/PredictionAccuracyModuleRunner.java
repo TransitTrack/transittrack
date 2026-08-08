@@ -1,11 +1,11 @@
 package org.transitclock.core.prediction.accuracy;
 
+import java.util.concurrent.TimeUnit;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor

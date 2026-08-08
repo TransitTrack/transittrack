@@ -2,14 +2,14 @@
 package org.transitclock.core.reports;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
-import org.transitclock.utils.Time;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
+
+import org.transitclock.utils.Time;
 
 /**
  * SQL utilities for creating SQL statements using parameters passed in to a page. Intended to make

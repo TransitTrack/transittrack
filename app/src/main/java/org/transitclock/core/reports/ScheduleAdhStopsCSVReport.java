@@ -1,5 +1,8 @@
 package org.transitclock.core.reports;
 
+import static org.transitclock.domain.repository.ExportTableRepository.deleteExportTableRecord;
+import static org.transitclock.domain.repository.ExportTableRepository.updateStatus;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,22 +21,16 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import com.opencsv.CSVWriter;
-
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.hibernate.HibernateUtils;
-
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-
 import org.transitclock.domain.structs.ExportTable;
 import org.transitclock.domain.structs.Route;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.utils.IntervalTimer;
-
-import static org.transitclock.domain.repository.ExportTableRepository.deleteExportTableRecord;
-import static org.transitclock.domain.repository.ExportTableRepository.updateStatus;
 
 @Slf4j
 public class ScheduleAdhStopsCSVReport {

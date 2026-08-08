@@ -4,6 +4,7 @@ package org.transitclock.monitoring;
 import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.domain.structs.MonitoringEvent;
 import org.transitclock.properties.MonitoringProperties;

@@ -8,12 +8,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcVehicleComplete;
-import org.transitclock.utils.Time;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcVehicleComplete;
+import org.transitclock.utils.Time;
 
 /**
  * @author SkiBu Smith

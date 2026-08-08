@@ -1,15 +1,16 @@
 /* (C)2023 */
 package org.transitclock.api.utils;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.transitclock.domain.structs.Agency;
-import org.transitclock.service.contract.ConfigService;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import org.transitclock.domain.structs.Agency;
+import org.transitclock.service.contract.ConfigService;
 
 /**
  * So that can get quick access to TimeZone for agency so that can properly format times and dates

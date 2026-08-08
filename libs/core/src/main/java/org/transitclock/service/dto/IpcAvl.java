@@ -6,12 +6,12 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import lombok.Getter;
+
 import org.transitclock.domain.structs.AssignmentType;
 import org.transitclock.domain.structs.AvlReport;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
-
-import lombok.Getter;
 
 /**
  * A serializable object used by RMI to transfer AVL data to client.

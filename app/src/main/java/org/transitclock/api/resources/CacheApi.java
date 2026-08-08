@@ -2,6 +2,14 @@ package org.transitclock.api.resources;
 
 import java.util.Date;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import org.transitclock.api.data.ApiArrivalDeparturesResponse;
 import org.transitclock.api.data.ApiCacheDetails;
 import org.transitclock.api.data.ApiHistoricalAverage;
@@ -12,14 +20,6 @@ import org.transitclock.api.data.ApiKalmanErrorCacheKeysResponse;
 import org.transitclock.api.data.ApiPredictionsForStopPathResponse;
 import org.transitclock.api.resources.request.DateParam;
 import org.transitclock.api.utils.StandardParameters;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
 public interface CacheApi {

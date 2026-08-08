@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.bias;
 
-import org.transitclock.properties.CoreProperties.PredictionGenerator;
-
 import lombok.Getter;
 import lombok.ToString;
+
+import org.transitclock.properties.CoreProperties.PredictionGenerator;
 
 /**
  * @author scrudden This will adjust a prediction based on a percentage which increases

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.structs.Agency;
 import org.transitclock.domain.structs.Calendar;
 import org.transitclock.domain.structs.CalendarDate;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.ServiceProperties;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * For working with service types, such as determining serviceId or appropriate block to use for a

@@ -3,6 +3,7 @@ package org.transitclock.gtfs.writers;
 
 import java.io.IOException;
 import java.io.Writer;
+
 import org.transitclock.gtfs.model.GtfsStopTime;
 import org.transitclock.utils.StringUtils;
 import org.transitclock.utils.Time;

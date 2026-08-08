@@ -16,6 +16,9 @@
  */
 package org.transitclock.core.avl;
 
+import static java.math.BigDecimal.valueOf;
+import static org.transitclock.core.avl.OccupancyStatusSource.fetchBusLoads;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -28,11 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.transitclock.core.avl.OccupancyStatusSource.BusLoadDto;
-import org.transitclock.domain.structs.AvlReport;
-import org.transitclock.properties.AvlProperties;
-import org.transitclock.utils.IntervalTimer;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,8 +40,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import static java.math.BigDecimal.valueOf;
-import static org.transitclock.core.avl.OccupancyStatusSource.fetchBusLoads;
+import org.transitclock.core.avl.OccupancyStatusSource.BusLoadDto;
+import org.transitclock.domain.structs.AvlReport;
+import org.transitclock.properties.AvlProperties;
+import org.transitclock.utils.IntervalTimer;
 
 /**
  * @author Sean Óg Crudden This module integrates TheTransitClock with the API of a traccar

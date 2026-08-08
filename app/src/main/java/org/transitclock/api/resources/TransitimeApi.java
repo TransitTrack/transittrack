@@ -2,7 +2,14 @@ package org.transitclock.api.resources;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import org.transitclock.api.data.ApiActiveBlocksResponse;
 import org.transitclock.api.data.ApiActiveBlocksRoutesResponse;
@@ -16,8 +23,8 @@ import org.transitclock.api.data.ApiDirectionsResponse;
 import org.transitclock.api.data.ApiExportsDataResponse;
 import org.transitclock.api.data.ApiIdsResponse;
 import org.transitclock.api.data.ApiPredictionsResponse;
-import org.transitclock.api.data.ApiRoutesResponse;
 import org.transitclock.api.data.ApiRoutesDetailsResponse;
+import org.transitclock.api.data.ApiRoutesResponse;
 import org.transitclock.api.data.ApiSchedulesHorizStopsResponse;
 import org.transitclock.api.data.ApiSchedulesVertStopsResponse;
 import org.transitclock.api.data.ApiServiceIdResponse;
@@ -30,14 +37,6 @@ import org.transitclock.api.data.ApiVehiclesDetailsResponse;
 import org.transitclock.api.data.ApiVehiclesResponse;
 import org.transitclock.api.utils.StandardParameters;
 import org.transitclock.domain.structs.Location;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/api/v1"+"${transitclock.api.old-version-path}"+"/agency/{agency}")
 public interface TransitimeApi {

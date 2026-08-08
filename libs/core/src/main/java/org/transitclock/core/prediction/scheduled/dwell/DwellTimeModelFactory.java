@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.scheduled.dwell;
 
-import org.transitclock.properties.PredictionProperties;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.transitclock.properties.PredictionProperties;
 
 /**
  * @author scrudden Returns the model that is to be used to estimate dwell time for a stop.

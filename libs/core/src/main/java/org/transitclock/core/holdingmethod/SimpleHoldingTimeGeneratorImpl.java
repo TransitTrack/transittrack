@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
@@ -18,8 +20,6 @@ import org.transitclock.service.dto.IpcArrivalDeparture;
 import org.transitclock.service.dto.IpcPrediction;
 import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 import org.transitclock.utils.SystemTime;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Sean Óg Crudden Simple holding time generator.

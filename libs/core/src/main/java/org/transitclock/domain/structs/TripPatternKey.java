@@ -2,6 +2,7 @@
 package org.transitclock.domain.structs;
 
 import java.util.List;
+
 import lombok.Getter;
 
 /**

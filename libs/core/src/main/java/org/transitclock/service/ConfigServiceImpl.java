@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import org.transitclock.core.dataCache.PredictionDataCache;
@@ -32,10 +35,6 @@ import org.transitclock.service.dto.IpcSchedule;
 import org.transitclock.service.dto.IpcTrip;
 import org.transitclock.service.dto.IpcTripPattern;
 import org.transitclock.service.dto.IpcVehicleComplete;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Implements ConfigInterface to serve up configuration information to RMI clients.

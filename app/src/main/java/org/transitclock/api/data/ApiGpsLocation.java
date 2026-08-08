@@ -1,14 +1,14 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcVehicle;
-import org.transitclock.utils.MathUtils;
-import org.transitclock.utils.Time;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.transitclock.service.dto.IpcVehicle;
+import org.transitclock.utils.MathUtils;
+import org.transitclock.utils.Time;
 
 /**
  * Extends a location by including GPS information including time, speed, heading, and pathHeading.

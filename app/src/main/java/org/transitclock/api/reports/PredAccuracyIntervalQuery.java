@@ -1,14 +1,15 @@
 /* (C)2023 */
 package org.transitclock.api.reports;
 
-import lombok.extern.slf4j.Slf4j;
-import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
-import org.transitclock.statistics.Statistics;
-
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.transitclock.api.reports.ChartJsonBuilder.RowBuilder;
+import org.transitclock.statistics.Statistics;
 
 /**
  * For doing SQL query and generating JSON data for a prediction accuracy intervals chart.

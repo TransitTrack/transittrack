@@ -1,13 +1,22 @@
 /* (C)2023 */
 package org.transitclock.domain.structs;
 
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.DynamicUpdate;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
 
 /**
  * For storing a measured arrival time so that can see if measured arrival time via GPS is accurate.

@@ -1,6 +1,15 @@
 /* (C)2023 */
 package org.transitclock.core.travelTimes;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.transitclock.core.TemporalDifference;
@@ -12,9 +21,11 @@ import org.transitclock.domain.structs.Trip;
 import org.transitclock.properties.TravelTimesProperties;
 import org.transitclock.properties.UpdatesProperties;
 import org.transitclock.statistics.Statistics;
-import org.transitclock.utils.*;
-
-import java.util.*;
+import org.transitclock.utils.Geo;
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.MapKey;
+import org.transitclock.utils.StringUtils;
+import org.transitclock.utils.Time;
 
 /**
  * Takes arrival/departure times plus the matches (where vehicle is matched to a route between

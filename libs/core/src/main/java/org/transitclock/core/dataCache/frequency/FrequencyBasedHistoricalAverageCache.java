@@ -10,6 +10,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.querydsl.jpa.impl.JPAQuery;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
+import org.hibernate.Session;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.dataCache.ArrivalDepartureComparator;
 import org.transitclock.core.dataCache.HistoricalAverage;
 import org.transitclock.core.dataCache.IpcArrivalDepartureComparator;
@@ -24,12 +30,6 @@ import org.transitclock.gtfs.GtfsFilter;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.GtfsProperties;
 import org.transitclock.service.dto.IpcArrivalDeparture;
-
-import com.querydsl.jpa.impl.JPAQuery;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.Session;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Sean Óg Crudden This class is to hold the historical average for frequency based

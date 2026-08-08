@@ -1,11 +1,11 @@
 /* (C)2023 */
 package org.transitclock.core.prediction.bias;
 
-import org.transitclock.properties.CoreProperties;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.transitclock.properties.CoreProperties;
 
 @Configuration
 public class BiasAdjusterFactory {

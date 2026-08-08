@@ -1,6 +1,10 @@
 /* (C)2023 */
 package org.transitclock.core.prediction;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.avl.RealTimeSchedAdhProcessor;
 import org.transitclock.core.dataCache.DwellTimeModelCacheInterface;
@@ -21,10 +25,6 @@ import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.properties.PredictionProperties;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * For instantiating a PredictionGenerator object that generates predictions when a new match is

@@ -1,18 +1,19 @@
 /* (C)2023 */
 package org.transitclock.service;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import org.transitclock.core.dataCache.StopPathCacheKey;
 import org.transitclock.core.dataCache.StopPathPredictionCache;
 import org.transitclock.domain.structs.PredictionForStopPath;
 import org.transitclock.service.contract.PredictionAnalysisService;
 import org.transitclock.service.dto.IpcPredictionForStopPath;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Sean Óg Crudden Server to allow stored travel time predictions to be queried. TODO May

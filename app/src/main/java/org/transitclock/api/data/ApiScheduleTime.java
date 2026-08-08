@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.utils.Time;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.utils.Time;
 
 /**
  * Represents a schedule time for a stop. Intended to be used for displaying a schedule for a route.

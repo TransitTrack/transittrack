@@ -1,11 +1,11 @@
 package org.transitclock.domain.repository;
 
+import java.util.List;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.structs.FareAttribute;
-
-import java.util.List;
 
 public class FareAttributeRepository extends BaseRepository<FareAttribute> {
     /**

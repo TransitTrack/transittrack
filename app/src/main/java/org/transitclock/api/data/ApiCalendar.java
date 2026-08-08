@@ -1,10 +1,10 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.service.dto.IpcCalendar;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcCalendar;
 
 /**
  * A GTFS calendar

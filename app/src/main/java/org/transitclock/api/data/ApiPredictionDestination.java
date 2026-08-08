@@ -4,11 +4,11 @@ package org.transitclock.api.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.transitclock.service.dto.IpcPrediction;
-import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.service.dto.IpcPrediction;
+import org.transitclock.service.dto.IpcPredictionsForRouteStopDest;
 
 /**
  * Contains list of predictions for a particular headsign.

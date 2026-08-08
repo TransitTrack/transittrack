@@ -4,6 +4,9 @@ package org.transitclock.core.avl.time;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.Indices;
 import org.transitclock.core.TemporalDifference;
 import org.transitclock.core.TravelTimes;
@@ -16,9 +19,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.CoreProperties;
 import org.transitclock.utils.Geo;
 import org.transitclock.utils.Time;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 /**
  * Singleton class that does the temporal matching to determine where an AVL report matches to the

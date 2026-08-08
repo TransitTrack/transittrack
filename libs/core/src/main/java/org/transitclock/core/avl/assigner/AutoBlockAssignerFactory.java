@@ -1,5 +1,7 @@
 package org.transitclock.core.avl.assigner;
 
+import org.springframework.stereotype.Component;
+
 import org.transitclock.core.TravelTimes;
 import org.transitclock.core.VehicleStatus;
 import org.transitclock.core.avl.time.TemporalMatcher;
@@ -9,8 +11,6 @@ import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.AutoBlockAssignerProperties;
 import org.transitclock.properties.AvlProperties;
 import org.transitclock.properties.CoreProperties;
-
-import org.springframework.stereotype.Component;
 
 @Component
 public class AutoBlockAssignerFactory {

@@ -2,6 +2,7 @@
 package org.transitclock.domain.structs;
 
 import java.io.Serializable;
+
 import org.transitclock.utils.Geo;
 
 /**

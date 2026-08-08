@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.transitclock.domain.structs.Block;
 import org.transitclock.domain.structs.Trip;
 import org.transitclock.domain.structs.TripPattern;

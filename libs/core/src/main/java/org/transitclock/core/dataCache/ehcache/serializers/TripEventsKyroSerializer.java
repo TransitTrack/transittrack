@@ -1,14 +1,16 @@
 /* (C)2023 */
 package org.transitclock.core.dataCache.ehcache.serializers;
 
+import java.nio.ByteBuffer;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferInputStream;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
-import java.nio.ByteBuffer;
 import org.ehcache.spi.serialization.Serializer;
 import org.ehcache.spi.serialization.SerializerException;
+
 import org.transitclock.core.dataCache.TripEvents;
 import org.transitclock.service.dto.IpcArrivalDeparture;
 

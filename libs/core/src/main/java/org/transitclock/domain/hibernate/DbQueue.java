@@ -1,18 +1,6 @@
 /* (C)2023 */
 package org.transitclock.domain.hibernate;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.exception.GenericJDBCException;
-import org.hibernate.exception.JDBCConnectionException;
-import org.hibernate.exception.SQLGrammarException;
-import org.transitclock.utils.ExceptionUtils;
-import org.transitclock.utils.IntervalTimer;
-import org.transitclock.utils.Time;
-
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.sql.SQLException;
@@ -22,6 +10,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.GenericJDBCException;
+import org.hibernate.exception.JDBCConnectionException;
+import org.hibernate.exception.SQLGrammarException;
+
+import org.transitclock.utils.ExceptionUtils;
+import org.transitclock.utils.IntervalTimer;
+import org.transitclock.utils.Time;
 
 /**
  * Encapsulate the queuing operations of the database. Make generic so db-side batching is more

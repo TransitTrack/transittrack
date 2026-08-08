@@ -1,13 +1,13 @@
 /* (C)2023 */
 package org.transitclock.api.data;
 
-import org.transitclock.domain.structs.Extent;
-import org.transitclock.utils.MathUtils;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import org.transitclock.domain.structs.Extent;
+import org.transitclock.utils.MathUtils;
 
 /**
  * Describes the extent of a route or agency via a min & max lat & lon.

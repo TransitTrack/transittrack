@@ -1,13 +1,12 @@
 package org.transitclock.domain.repository;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
 import org.transitclock.domain.structs.CalendarDate;
-
-import java.util.List;
 
 @Slf4j
 public class CalendarDateRepository extends BaseRepository<CalendarDate> {

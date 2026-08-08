@@ -1,6 +1,11 @@
 /* (C)2023 */
 package org.transitclock.core.holdingmethod;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+
 import org.transitclock.core.dataCache.HoldingTimeCache;
 import org.transitclock.core.dataCache.PredictionDataCache;
 import org.transitclock.core.dataCache.StopArrivalDepartureCacheInterface;
@@ -9,11 +14,6 @@ import org.transitclock.core.dataCache.VehicleStatusManager;
 import org.transitclock.domain.hibernate.DataDbLogger;
 import org.transitclock.gtfs.DbConfig;
 import org.transitclock.properties.HoldingProperties;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 /**
  * @author Sean Óg Crudden
