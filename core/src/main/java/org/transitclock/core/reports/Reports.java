@@ -309,6 +309,11 @@ public class Reports {
         return GenericJsonQuery.getJsonString(agencyId, sqlBuilder.toString(), date, date, date);
     }
 
+    public static RouteTripsStopAdherenceReport.Result getRouteTripsStopAdherence(
+            String agencyId, String beginDate, String endDate, String routeId) {
+        return RouteTripsStopAdherenceReport.run(agencyId, beginDate, endDate, routeId);
+    }
+
     public static String getAvgPaxAndArrivalsDeparturesDelays(String agencyId,
                                                               String beginDate,
                                                               String endDate,

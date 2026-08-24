@@ -1995,6 +1995,47 @@ public class TransitimeApi {
     }
 
     /**
+     * Returns executed trips for a route over a date range with stop-level schedule adherence.
+     * Only stops with timepoints are included when the trip execution has timepoints; otherwise
+     * first, middle, and last stop are returned.
+     */
+    @Path("/reports/routeTripsStopAdherence")
+    @GET
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Operation(
+            summary = "Gets stop-level schedule adherence for executed trips on a route.",
+            description = "Returns executed trips for the specified route and date range, grouped by"
+                    + " date. For each trip execution, returns timepoint stops when timepoints are"
+                    + " defined in GTFS; otherwise returns the first, middle, and last stop."
+                    + " Maximum date range is 3 months.",
+            tags = {"report", "trip", "route"})
+    public Response getRouteTripsStopAdherence(
+            @BeanParam StandardParameters stdParameters,
+            @Parameter(description = "Begin date (YYYY-MM-DD).", required = true)
+                    @QueryParam(value = "beginDate")
+                    String beginDate,
+            @Parameter(description = "End date (YYYY-MM-DD).", required = true) @QueryParam(value = "endDate")
+                    String endDate,
+            @Parameter(description = "Route ID.", required = true) @QueryParam(value = "routeId")
+                    String routeId)
+            throws WebApplicationException {
+
+        stdParameters.validate();
+
+        if (StringUtils.isBlank(beginDate)) throw WebUtils.badRequestException("Must specify beginDate");
+        if (StringUtils.isBlank(endDate)) throw WebUtils.badRequestException("Must specify endDate");
+        if (StringUtils.isBlank(routeId)) throw WebUtils.badRequestException("Must specify routeId");
+
+        try {
+            var result = Reports.getRouteTripsStopAdherence(
+                    stdParameters.getAgencyId(), beginDate, endDate, routeId);
+            return stdParameters.createResponse(new ApiRouteTripsStopAdherence(result));
+        } catch (Exception e) {
+            throw WebUtils.badRequestException(e);
+        }
+    }
+
+    /**
      * Handles the tripIds command. Returns list of trip IDs.
      *
      * @param stdParameters
